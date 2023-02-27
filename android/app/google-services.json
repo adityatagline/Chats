@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "708629365014",
+    "firebase_url": "https://chats-375305-default-rtdb.firebaseio.com",
     "project_id": "chats-375305",
     "storage_bucket": "chats-375305.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "708629365014-ccj8lc1cicfrhck1802k5rv677c8926n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.chats",
+            "certificate_hash": "1008b6ab81415af21ebfbc6a445d71160528a0c2"
+          }
+        },
         {
           "client_id": "708629365014-mbk9stsf3c0r0mefhlg951n0rfth3jod.apps.googleusercontent.com",
           "client_type": 1,

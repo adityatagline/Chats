@@ -9,7 +9,7 @@ export const apiRequest = async (url, method, data, myHeaders) => {
       headers = {...myHeaders};
     }
 
-    const raw = JSON.stringify({...data});
+    const raw = JSON.stringify(data);
     let requestOptions = {
       method: !!method ? method : 'GET',
       headers: headers,
@@ -31,8 +31,8 @@ export const apiRequest = async (url, method, data, myHeaders) => {
       data: responsedata,
     };
   } catch (error) {
-    console.log('error-aksjdksa');
-    console.log(error.toString());
+    // console.log('error-aksjdksa');
+    // console.log(error);
     return {
       isError: true,
       error: error.toString(),

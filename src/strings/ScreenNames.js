@@ -4,5 +4,16 @@ export default ScreenNames = {
   SignupScreen: 'SignupScreen',
   VerificationScreen: 'VerificationScreen',
   EnterDetails: 'EnterDetails',
-  HomeScreen: 'HomeScreen',
+  TopTabNavigator: 'TopTabNavigator',
+  TopTabScreens: {
+    HomeScreen: 'Home',
+    StatusScreen: 'Status',
+    ProfileScreen: 'Profile',
+  },
+  TopTabInnerScreens: {
+    Appearence: 'Appearence',
+    PrivacyNSecurity: 'PrivacyAndSecurity',
+    BackupNRestore: 'BackupAndRestore',
+  },
+  NewChatPage: 'NewChatPage',
 };

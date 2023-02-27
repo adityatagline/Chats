@@ -1,6 +1,7 @@
 import {memo} from 'react';
 import {Dimensions, Pressable, StyleSheet, Text} from 'react-native';
 import FontfamiliesNames from '../strings/FontfamiliesNames';
+import {fontSize} from '../styles/commonStyles';
 const dimesions = Dimensions.get('screen');
 
 const TextButton = ({title, onPress, textStyle}) => {
@@ -15,7 +16,7 @@ const TextButton = ({title, onPress, textStyle}) => {
 let styles = StyleSheet.create({
   text: {
     fontFamily: FontfamiliesNames.primaryFontBold,
-    fontSize: 20,
+    fontSize: fontSize.medium,
     alignSelf: 'center',
     paddingVertical: 5,
   },

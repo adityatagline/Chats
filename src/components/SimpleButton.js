@@ -3,6 +3,7 @@ import {Dimensions, Pressable, StyleSheet, Text} from 'react-native';
 import {colorStrings} from '../strings/ColorStrings';
 import FontfamiliesNames from '../strings/FontfamiliesNames';
 import {themeColorName} from '../strings/ScreenNames';
+import {fontSize} from '../styles/commonStyles';
 const dimesions = Dimensions.get('screen');
 
 export default SimpleButton = ({
@@ -44,7 +45,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: FontfamiliesNames.primaryFontBold,
-    fontSize: 25,
+    fontSize: fontSize.heading,
     textAlign: 'center',
     color: colorStrings.lightThemeColors.primaryColor,
   },

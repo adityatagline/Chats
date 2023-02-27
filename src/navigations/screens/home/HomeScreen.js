@@ -1,131 +1,64 @@
-import {useTheme} from '@react-navigation/native';
-import {useState} from 'react';
 import {
-  Text,
-  StyleSheet,
-  View,
-  StatusBar,
-  NativeModules,
-  Image,
-} from 'react-native';
+  useIsFocused,
+  useNavigation,
+  useRoute,
+  useTheme,
+} from '@react-navigation/native';
+import {useEffect, useState} from 'react';
+import {StyleSheet, View, NativeModules} from 'react-native';
 import {useSelector} from 'react-redux';
 import {AppStatusBar} from '../../../components/AppStatusBar';
-import Avatar from '../../../components/Avatar';
-import HeadingLarge from '../../../components/HeadingLarge';
-import IconButton from '../../../components/IconButton';
-import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
-import {commonStyles, dimensions} from '../../../styles/commonStyles';
-import ChatsPage from './ChatsPage';
-import StatusList from './StatusList';
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
+import SearchPage from '../../../components/home/search/SearchPage';
+import HomepageChatsPage from '../../../components/home/HomepageChatsPage';
+import {commonStyles} from '../../../styles/commonStyles';
+import {AddNewChatButton} from '../../../components/home/AddNewChatButton';
+import {getUserHomepageChats} from '../../../../api/chat/ChatRequests';
 
-export default HomeScreen = () => {
-  const StatusBarHeight = NativeModules.StatusBarManager.HEIGHT;
+export default HomeScreen = props => {
   const themeRef = useTheme();
-  const authRef = useSelector(state => state.authenticationSlice);
-  const [statusArray, setStatusArray] = useState([
-    {
-      name: 'aditya',
-      avatar: imageUrlStrings.lemon,
-    },
-    {
-      name: 'yash',
-      avatar: imageUrlStrings.banana,
-    },
-    {
-      name: 'yash',
-      avatar: imageUrlStrings.banana,
-    },
-  ]);
+  const authenticationSlice = useSelector(state => state.authenticationSlice);
+  const loadingSlice = useSelector(state => state.loadingSlice);
+  const navigation = useNavigation();
+  const route = useRoute();
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    getInitialData();
+    isFocused && props.setterFunction(route.name);
+  }, [isFocused]);
+
+  const getInitialData = async () => {
+    const response = await getUserHomepageChats(
+      authenticationSlice.user.username,
+    );
+    console.log('response');
+    console.log(response);
+  };
 
   const styles = StyleSheet.create({
     ...commonStyles,
     mainDiv: {
-      backgroundColor: themeRef.colors.appThemeColor,
+      backgroundColor: themeRef.colors.primaryColor,
       flex: 1,
+      paddingTop: hp(12),
     },
-    heading: {
-      color: themeRef.colors.primaryColor,
-      flex: 1,
-      textAlign: 'center',
-    },
-    headerDiv: {
-      backgroundColor: themeRef.colors.appThemeColor,
-      paddingTop: StatusBarHeight + 5,
+    searchDiv: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingBottom: 20,
-    },
-    floatingButton: {
-      position: 'absolute',
-      top: StatusBarHeight + 5,
-      marginHorizontal: 20,
-    },
-    rightIconDiv: {
-      right: 0,
-      flexDirection: 'row',
-      marginHorizontal: 5,
-    },
-    icon: {
-      marginHorizontal: 10,
-    },
-    statusListDiv: {
-      position: 'absolute',
-      width: dimensions.width,
-      top: StatusBarHeight + dimensions.height * 0.06,
-      left: 0,
-      zIndex: 0,
+      marginHorizontal: wp(7),
     },
   });
 
   return (
     <View style={[styles.mainDiv]}>
-      <View style={styles.headerDiv}>
-        <IconButton
-          name={'search'}
-          color={themeRef.colors.primaryColor}
-          size={30}
-          containerStyle={[styles.floatingButton]}
-        />
-        <HeadingLarge text={'Home'} style={styles.heading} />
-        <View style={[styles.floatingButton, styles.rightIconDiv]}>
-          {/* <IconButton
-            name={'person'}
-            color={themeRef.colors.primaryColor}
-            size={30}
-            containerStyle={[styles.icon]}
-          /> */}
-          <IconButton
-            name={'ellipsis-vertical'}
-            color={themeRef.colors.primaryColor}
-            size={30}
-            containerStyle={[styles.icon]}
-          />
-        </View>
-        {/* <Avatar source={imageUrlStrings.banana} /> */}
+      <View style={styles.searchDiv}>
+        <SearchPage />
       </View>
-      <StatusList
-        containerStyle={styles.statusListDiv}
-        statusArray={[
-          ...statusArray,
-          ...statusArray,
-          ...statusArray,
-          ...statusArray,
-          ...statusArray,
-          ...statusArray,
-          ...statusArray,
-          ...statusArray,
-          ...statusArray,
-          ...statusArray,
-        ]}
-        nameColor={themeRef.colors.primaryColor}
-      />
-      <ChatsPage />
-      <AppStatusBar
-        dark={themeRef.dark}
-        barStyle={'light-content'}
-        backgroundColor={themeRef.colors.appThemeColor}
-        translucent={true}
-      />
+      <HomepageChatsPage />
+      <AppStatusBar dark={themeRef.dark} />
     </View>
   );
 };

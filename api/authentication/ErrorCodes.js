@@ -14,6 +14,9 @@ export default errorCodes = {
   ['7']: {
     message: 'Not connected to internet ?!',
   },
+  ['-5']: {
+    message: '',
+  },
   ['TypeError: Network request failed']: {
     message: 'Not connected to internet ?!',
   },

@@ -4,11 +4,23 @@ const AuthenticationSlice = createSlice({
   name: 'authentication',
   initialState: {
     isAuthenticated: true,
+    // isAuthenticated: false,
     checkForDetails: false,
-    user: {},
+    user: {
+      age: '21',
+      email: 'adityat.tagline@gmail.com',
+      emailVerified: true,
+      firstName: 'Aditya',
+      isNewUser: false,
+      lastName: 'Thummar',
+      username: 'adityat-tagline--gmail-com',
+      profilePhoto:
+        'https://lh3.googleusercontent.com/a/AEdFTp4_9kNWjMb2uHUNGdvpzmHIwLVCK4yyCNNXCKfm=s96-c',
+    },
+    // user: {},
   },
   reducers: {
-    login: (state, action) => {
+    storeUserDataInRedux: (state, action) => {
       return {
         isAuthenticated: true,
         checkForDetails: true,
@@ -35,6 +47,7 @@ const AuthenticationSlice = createSlice({
   },
 });
 
-export const {login, logout, changeUserDetails} = AuthenticationSlice.actions;
+export const {storeUserDataInRedux, logout, changeUserDetails} =
+  AuthenticationSlice.actions;
 
 export default AuthenticationSlice.reducer;

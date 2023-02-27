@@ -1,3 +1,4 @@
+import { useTheme } from '@react-navigation/native';
 import {memo} from 'react';
 import {Image, StyleSheet, View} from 'react-native';
 
@@ -10,6 +11,7 @@ const Avatar = ({
   haveBorder = true,
   containerStyle,
 }) => {
+  const themeRef = useTheme()
   const styles = StyleSheet.create({
     avatar: {
       height: imageSize,
@@ -18,7 +20,7 @@ const Avatar = ({
     mainDiv: {
       borderRadius: borderRadius + 3,
       borderWidth: 2,
-      borderColor: 'white',
+      borderColor: themeRef.colors.primaryColor,
       padding: 3,
     },
   });

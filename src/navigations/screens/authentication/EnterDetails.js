@@ -6,7 +6,7 @@ import FloatingBackButton from '../../../components/FloatingBackButton';
 import HeadingLarge from '../../../components/HeadingLarge';
 import InputBox from '../../../components/InputBox';
 import SimpleButton from '../../../components/SimpleButton';
-import {commonStyles} from '../../../styles/commonStyles';
+import {commonStyles, fontSize} from '../../../styles/commonStyles';
 import auth from '@react-native-firebase/auth';
 import {
   addUserToDatabase,
@@ -24,21 +24,27 @@ import ScreenNames from '../../../strings/ScreenNames';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import ErrorCodes from '../../../../api/authentication/ErrorCodes';
+import {useDispatch} from 'react-redux';
+import {storeUserDataInRedux} from '../../../../redux/authentication/AuthenticationSlice';
 
 export default EnterDetails = () => {
   const themeRef = useTheme();
   const navigation = useNavigation();
+  const route = useRoute();
+  const previousDetails = !!route.params && route.params.previousDetails;
+  console.log('previousDetails');
+  console.log(previousDetails);
+  const withGoogle = !!route.params && route.params.withGoogle;
+
   const firstNameRef = useRef(0);
   const lastNameRef = useRef(0);
   const ageRef = useRef(0);
+
+  const dipatch = useDispatch();
   // navigation.reset({
   //   index:0,
   //   routes:[{name:screenanem}]
   // })
-  const route = useRoute();
-  const previousDetails = !!route.params
-    ? route.params.previousDetails
-    : {newUser: true};
 
   useEffect(() => {
     firstNameRef?.current.focus();
@@ -59,7 +65,7 @@ export default EnterDetails = () => {
     },
     error: {
       fontFamily: FontfamiliesNames.primaryFontSemiBold,
-      fontSize: 18,
+      fontSize: fontSize.medium,
       marginHorizontal: 20,
       marginVertical: 2,
       color: themeRef.colors.errorColor,
@@ -69,7 +75,7 @@ export default EnterDetails = () => {
       textAlign: 'center',
     },
     greetSmall: {
-      fontSize: 20,
+      fontSize: fontSize.large,
       color: themeRef.colors.secondaryColor,
       textAlign: 'center',
       marginBottom: 20,
@@ -97,17 +103,23 @@ export default EnterDetails = () => {
   };
 
   const addDetails = async values => {
-    const sendData = await addUserToDatabase({...values});
+    const sendData = await addUserToDatabase(previousDetails.username, {
+      ...values,
+      ...previousDetails,
+      isNewUser: false,
+    });
     if (sendData.isError) {
       Alert.alert('Oops !!', ErrorCodes[sendData.error].message);
       return;
     }
-    Alert.alert('Success !!');
+    console.log('sendData');
+    console.log(sendData);
+    dipatch(storeUserDataInRedux({userDetails: {...sendData.response}}));
   };
 
   const initialNewUserValues = {
-    firstName: '',
-    lastName: '',
+    firstName: !!previousDetails.firstName ? previousDetails.firstName : '',
+    lastName: !!previousDetails.firstName ? previousDetails.lastName : '',
     age: '',
   };
 
@@ -124,7 +136,7 @@ export default EnterDetails = () => {
           validationSchema={newUserDetails}>
           {({values, touched, errors, setFieldValue, setTouched}) => (
             <>
-              {previousDetails.newUser && (
+              {previousDetails.isNewUser && (
                 <>
                   <InputBox
                     label={'First Name'}
@@ -206,7 +218,7 @@ export default EnterDetails = () => {
                 </>
               )}
               <SimpleButton
-                title={previousDetails.newUser ? 'Submit' : 'Next'}
+                title={previousDetails.isNewUser ? 'Submit' : 'Next'}
                 containerStyle={[styles.verifyButton]}
                 textStyle={[styles.verifyButtonText]}
                 onPress={

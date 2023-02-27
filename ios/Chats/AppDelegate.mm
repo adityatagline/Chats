@@ -7,6 +7,8 @@
 #import <GoogleSignIn/GIDSignIn.h>
 #import <Firebase.h>
 
+#import "RNSplashScreen.h"
+
 #import <React/RCTAppSetupUtils.h>
 
 #if RCT_NEW_ARCH_ENABLED
@@ -64,6 +66,8 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   if ([FIRApp defaultApp] == nil) {
       [FIRApp configure];
     }
+  
+  [RNSplashScreen show];
 //
   return YES;
 }

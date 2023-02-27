@@ -21,13 +21,64 @@ export const loginWithGoogle = async () => {
     }
     const credential = auth.GoogleAuthProvider.credential(response.idToken);
     const fireResponse = await auth().signInWithCredential(credential);
-    const objectToReturn = {
-      email: fireResponse.email,
-      isNewUser: fireResponse.additionalUserInfo.isNewUser,
+    console.log(fireResponse);
+
+    let username = fireResponse.user.email
+      .replaceAll('-', '---')
+      .replaceAll('.', '-')
+      .replaceAll('@', '--');
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
+    const user = await apiRequest(url, 'GET');
+
+    // console.log('\n\nuser');
+    // console.log(user);
+
+    if (!!user.error && user.error != 'noData') {
+      return {
+        isError: true,
+        error: user.error,
+      };
+    }
+
+    if (user.isError && user.error == 'noData') {
+      const sendUser = await apiRequest(url, 'PUT', {
+        email: fireResponse.user.email,
+        username: username,
+        isNewUser: true,
+        profilePhoto: !!fireResponse.user.photoURL
+          ? fireResponse.user.photoURL
+          : '',
+      });
+      if (!!sendUser.isError) {
+        return {
+          isError: true,
+          error: sendUser.error,
+        };
+      }
+    }
+
+    let objectToReturn = {
+      email: fireResponse.user.email,
+      isNewUser: !!user.isError && user.error == 'noData' ? true : false,
       emailVerified: fireResponse.user.emailVerified,
       firstName: fireResponse.additionalUserInfo.profile.given_name,
       lastName: fireResponse.additionalUserInfo.profile.family_name,
+      username,
     };
+
+    if (!user.isError) {
+      objectToReturn = {
+        ...objectToReturn,
+        ...user.data,
+        profilePhoto: !!fireResponse.user.photoURL
+          ? fireResponse.user.photoURL
+          : '',
+      };
+    }
+
+    // console.log('\n\nobjectToReturn');
+    // console.log(objectToReturn);
+
     return {
       isError: false,
       response: {...objectToReturn},
@@ -37,7 +88,7 @@ export const loginWithGoogle = async () => {
     console.log(error.code);
     return {
       isError: true,
-      error,
+      error: error.code,
     };
   }
 };
@@ -50,13 +101,31 @@ export const loginWithEmail = async userDetails => {
       userDetails.email,
       userDetails.password,
     );
-    console.log('-----fireResponse');
-    console.log(fireResponse);
-    const objectToReturn = {
+    let username = fireResponse.user.email
+      .replaceAll('-', '---')
+      .replaceAll('.', '-')
+      .replaceAll('@', '--');
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
+    const getUserStatus = await apiRequest(url, 'GET');
+    if (getUserStatus.isError && getUserStatus.error != 'noData') {
+      return {
+        isError: true,
+        error: getUserStatus.error,
+      };
+    }
+
+    let objectToReturn = {
       email: userDetails.email,
       emailVerified: fireResponse.user.emailVerified,
+      username,
       // varification,
     };
+    if (!getUserStatus.isError) {
+      objectToReturn = {
+        ...objectToReturn,
+        ...getUserStatus.data,
+      };
+    }
     return {
       isError: false,
       response: {...objectToReturn},
@@ -76,7 +145,8 @@ export const sendOtp = async number => {
   console.log(number);
   try {
     const fireResponse = await auth().signInWithPhoneNumber(number);
-
+    console.log('fireResponse   - - - - -');
+    console.log(fireResponse);
     return {
       isError: false,
       response: fireResponse,
@@ -132,15 +202,34 @@ export const signinToFirebase = async userDetails => {
       userDetails.password,
     );
 
-    const addUser = await apiRequest(url, 'POST', {
+    const addUser = await apiRequest(url, 'PUT', {
       phone: userDetails.phone,
       email: userDetails.email,
     });
-
     if (addUser.isError) {
       return {
         isError: true,
         error: addUser.error,
+      };
+    }
+
+    let username = userDetails.email
+      .replaceAll('-', '---')
+      .replaceAll('.', '-')
+      .replaceAll('@', '--');
+
+    console.log(username);
+    url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
+    const addUserCredentials = await apiRequest(url, 'PUT', {
+      phone: userDetails.phone,
+      email: userDetails.email,
+      phoneVerified: false,
+    });
+
+    if (addUserCredentials.isError) {
+      return {
+        isError: true,
+        error: addUserCredentials.error,
       };
     }
 
@@ -149,6 +238,7 @@ export const signinToFirebase = async userDetails => {
       password: userDetails.password,
       phone: userDetails.phone,
       sendOtpCode,
+      username,
       // uid: fireResponse.user.uid,
       // varification,
     };
@@ -167,13 +257,32 @@ export const signinToFirebase = async userDetails => {
   }
 };
 
-export const addUserToDatabase = async userDetails => {
+export const verifyTheUser = async userDetails => {
   try {
-    const url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${userDetails.phone}.json`;
-    const storeToDatabase = apiRequest(url, 'POST', {...userDetails});
+    const url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${userDetails.username}/phoneVerified.json`;
+    const url2 = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${userDetails.username}/isNewUser.json`;
+    const storeToDatabase = apiRequest(url, 'PUT', true);
+    const storeToDatabase2 = apiRequest(url2, 'PUT', true);
+
     return {
       isError: false,
       response: storeToDatabase,
+    };
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const addUserToDatabase = async (username, userDetails) => {
+  try {
+    const url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
+    const storeToDatabase = await apiRequest(url, 'PUT', {...userDetails});
+    return {
+      isError: false,
+      response: storeToDatabase.data,
     };
   } catch (error) {
     return {

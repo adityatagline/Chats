@@ -16,6 +16,14 @@ import VerificationScreen from './screens/authentication/VerificationScreen';
 import EnterDetails from './screens/authentication/EnterDetails';
 import {useSelector} from 'react-redux';
 import HomeScreen from './screens/home/HomeScreen';
+import {TopTabNavigator} from './TopTabNavigator';
+import {StyleSheet, View} from 'react-native';
+import {commonStyles} from '../styles/commonStyles';
+import LoadingPage from '../components/LoadingPage';
+import NewChatPage from './screens/NewChatPage';
+import AppearenceSettings from './screens/settings/AppearenceSettings';
+import BackupNRestore from './screens/settings/BackupNRestore';
+import PrivacySettings from './screens/settings/PrivacySettings';
 
 export default StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -33,7 +41,7 @@ export default StackNavigator = () => {
   const AuthStack = () => (
     <Stack.Navigator
       screenOptions={{headerShown: false}}
-      initialRouteName={ScreenNames.EnterDetails}>
+      initialRouteName={ScreenNames.LoginScreen}>
       <Stack.Screen
         name={ScreenNames.VerificationScreen}
         component={VerificationScreen}
@@ -47,7 +55,23 @@ export default StackNavigator = () => {
 
   const MainStack = () => (
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name={ScreenNames.HomeScreen} component={HomeScreen} />
+      <Stack.Screen
+        name={ScreenNames.TopTabNavigator}
+        component={TopTabNavigator}
+      />
+      <Stack.Screen name={ScreenNames.NewChatPage} component={NewChatPage} />
+      <Stack.Screen
+        name={ScreenNames.TopTabInnerScreens.Appearence}
+        component={AppearenceSettings}
+      />
+      <Stack.Screen
+        name={ScreenNames.TopTabInnerScreens.BackupNRestore}
+        component={BackupNRestore}
+      />
+      <Stack.Screen
+        name={ScreenNames.TopTabInnerScreens.PrivacyNSecurity}
+        component={PrivacySettings}
+      />
     </Stack.Navigator>
   );
 

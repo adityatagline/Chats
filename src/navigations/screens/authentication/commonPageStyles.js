@@ -1,6 +1,7 @@
 import {useTheme} from '@react-navigation/native';
 import {StyleSheet} from 'react-native';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
+import {fontSize} from '../../../styles/commonStyles';
 
 export const commonPageStyles = () => {
   const themeRef = useTheme();
@@ -19,7 +20,7 @@ export const commonPageStyles = () => {
     },
     error: {
       fontFamily: FontfamiliesNames.primaryFontSemiBold,
-      fontSize: 18,
+      fontSize: fontSize.medium,
       marginHorizontal: 20,
       marginVertical: 2,
       color: themeRef.colors.errorColor,
@@ -39,14 +40,14 @@ export const commonPageStyles = () => {
     },
     googleLoginButton: {
       alignSelf: 'center',
-      marginVertical: 10,
+      marginVertical: 7,
     },
     greetLarge: {
       color: themeRef.colors.appThemeColor,
       textAlign: 'center',
     },
     greetSmall: {
-      fontSize: 20,
+      fontSize: fontSize.subheading,
       color: themeRef.colors.secondaryColor,
       textAlign: 'center',
     },

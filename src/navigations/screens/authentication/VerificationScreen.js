@@ -6,12 +6,13 @@ import FloatingBackButton from '../../../components/FloatingBackButton';
 import HeadingLarge from '../../../components/HeadingLarge';
 import InputBox from '../../../components/InputBox';
 import SimpleButton from '../../../components/SimpleButton';
-import {commonStyles} from '../../../styles/commonStyles';
+import {commonStyles, fontSize} from '../../../styles/commonStyles';
 import auth from '@react-native-firebase/auth';
 import {
   loginWithEmail,
   logoutFromAuth,
   sendOtp,
+  verifyTheUser,
 } from '../../../../api/authentication/AuthenticationRequests';
 import ScreenNames from '../../../strings/ScreenNames';
 import {Formik} from 'formik';
@@ -19,17 +20,20 @@ import {otpSchema} from './ValidationSchemas';
 import ErrorCodes from '../../../../api/authentication/ErrorCodes';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import TextButton from '../../../components/TextButton';
+import {setLoadingState} from '../../../../redux/loading/LoadingSlice';
+import {useDispatch} from 'react-redux';
+import LoadingPage from '../../../components/LoadingPage';
 
 export default VerificationScreen = ({userDetails}) => {
   const themeRef = useTheme();
   const navigation = useNavigation();
-  const route = useRoute();
   const otpRef = useRef(0);
   const [verificationFunction, setVerificationFunction] = useState(
     userDetails.sendOtpCode.response,
   );
-  // console.log('userDetails');
-  // console.log(userDetails);
+  const [loading, setloading] = useState('');
+  console.log('userDetails');
+  console.log(userDetails);
   // console.log('verificationFunction');
   // console.log(verificationFunction);
   // : {signinUsingPhone: true};
@@ -49,11 +53,14 @@ export default VerificationScreen = ({userDetails}) => {
   const submitOtp = async number => {
     console.log('number');
     console.log(number);
+    setloading('Verifying otp ..');
     try {
       const verifyOtp = await verificationFunction.confirm(number);
+      setloading('');
       console.log('verifyOtp');
       console.log(verifyOtp);
       Alert.alert('Success!!');
+      const setVerified = await verifyTheUser({...userDetails});
       const logout = await logoutFromAuth();
       if (logout.isError) {
         Alert.alert('Oops', ErrorCodes[logout.error].message);
@@ -65,10 +72,13 @@ export default VerificationScreen = ({userDetails}) => {
       // console.log(error.code);
       Alert.alert('Oops!!', ErrorCodes[error.code.toString()].message);
     }
+    setloading('');
   };
 
   const resendOtp = async () => {
+    setloading('Resending otp ..');
     const resendResponse = await sendOtp('+91' + userDetails.phone);
+    setloading('');
     if (resendResponse.isError) {
       Alert.alert('Oops!!', `${ErrorCodes[resendResponse.error].message}`);
       return;
@@ -94,7 +104,7 @@ export default VerificationScreen = ({userDetails}) => {
     },
     error: {
       fontFamily: FontfamiliesNames.primaryFontSemiBold,
-      fontSize: 18,
+      fontSize: fontSize.medium,
       marginHorizontal: 20,
       marginVertical: 2,
       color: themeRef.colors.errorColor,
@@ -107,6 +117,7 @@ export default VerificationScreen = ({userDetails}) => {
 
   return (
     <View style={[styles.screenStyle, styles.mainDiv]}>
+      {!!loading && <LoadingPage dark={themeRef.dark} loadingText={loading} />}
       <HeadingLarge style={[styles.heading]} text={'Verify !!'} />
       <HeadingLarge
         style={[styles.suggestion, styles.heading]}

@@ -21,16 +21,22 @@ import {
 import IconButton from '../../../components/IconButton';
 import ScreenNames from '../../../strings/ScreenNames';
 import ErrorCodes from '../../../../api/authentication/ErrorCodes';
+import {useDispatch, useSelector} from 'react-redux';
+import {setLoadingState} from '../../../../redux/loading/LoadingSlice';
+import LoadingPage from '../../../components/LoadingPage';
+import {storeUserDataInRedux} from '../../../../redux/authentication/AuthenticationSlice';
 
 export default LoginScreen = () => {
   const themeRef = useTheme();
   const emailRef = useRef(0);
   const passwordRef = useRef(0);
   const [loginUsingEmail, setLoginUsingEmail] = useState(true);
+  const [loading, setLoading] = useState('');
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    emailRef.current.focus();
+    emailRef?.current.focus();
   }, [loginUsingEmail]);
 
   const goToSinupPage = () => navigation.replace(ScreenNames.SignupScreen);
@@ -81,35 +87,63 @@ export default LoginScreen = () => {
     }
   };
 
-  const focusEmail = func => {
+  const focusEmail = (func, isBlur = false) => {
+    if (isBlur) {
+      func({});
+      return;
+    }
     func({email: true});
   };
-  const focusPassword = func => {
+
+  const focusPassword = (func, isBlur = false) => {
+    if (isBlur) {
+      func({});
+      return;
+    }
     func({password: true});
   };
-  const focusPhone = func => {
+
+  const focusPhone = (func, isBlur = false) => {
+    if (isBlur) {
+      func({});
+      return;
+    }
     func({phone: true});
   };
 
   const signinWithGoogle = async () => {
+    setLoading('Checking info ..');
     const loginResponse = await loginWithGoogle();
+    setLoading('');
     if (!!loginResponse.isError) {
-      // Alert.alert('Oops !!', loginResponse.error);
+      !!ErrorCodes[loginResponse.error.toString()].message &&
+        Alert.alert(
+          'Oops !!',
+          ErrorCodes[loginResponse.error.toString()].message,
+        );
       return;
     }
-    if (!loginResponse.response.emailVerified) {
-      navigation.navigate(ScreenNames.VerificationScreen, {
-        verifyEmail: true,
+    console.log(loginResponse);
+    if (!!loginResponse.response.isNewUser) {
+      navigation.navigate(ScreenNames.EnterDetails, {
+        previousDetails: {...loginResponse.response},
+        withGoogle: true,
       });
+    } else {
+      Alert.alert('Done !', 'Login SuccessFully');
+      dispatch(
+        storeUserDataInRedux({userDetails: {...loginResponse.response}}),
+      );
     }
-    Alert.alert('Done !', 'Login SuccessFully');
   };
 
   const login = async values => {
+    setLoading('Checking info ..');
     const loginResponse = await loginWithEmail({
       email: values.email,
       password: values.password,
     });
+    setLoading('');
     if (!!loginResponse.isError) {
       Alert.alert(
         'Oops !!',
@@ -117,17 +151,20 @@ export default LoginScreen = () => {
       );
       return;
     }
-
-    // if (!loginResponse.response.emailVerified) {
-    //   navigation.navigate(ScreenNames.VerificationScreen);
-    // }
+    console.log('loginResponse');
+    console.log(loginResponse);
     Alert.alert('Done !', 'Login SuccessFully');
-    navigation.navigate(ScreenNames.EnterDetails, {
-      previousDetails: {
-        ...loginResponse.response,
-        newUser: true,
-      },
-    });
+    if (loginResponse.response.isNewUser) {
+      navigation.navigate(ScreenNames.EnterDetails, {
+        previousDetails: {
+          ...loginResponse.response,
+        },
+      });
+    } else {
+      dispatch(
+        storeUserDataInRedux({userDetails: {...loginResponse.response}}),
+      );
+    }
   };
 
   const showError = errors => {
@@ -148,130 +185,137 @@ export default LoginScreen = () => {
   });
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={[styles.container, {flexGrow: 1}]}
-      extraScrollHeight={5}
-      scrollEnabled={false}>
-      <View style={[styles.mainDiv, styles.screenStyle]}>
-        <HeadingLarge style={[styles.greetLarge]} text={'Wellcome Back !!'} />
-        <HeadingLarge style={[styles.greetSmall]} text={'We missed You :)'} />
-        <TextButton
-          title={loginUsingEmail ? 'Email' : 'Phone'}
-          onPress={toggleLoginScheme}
-        />
-        <Formik
-          initialValues={{email: '', password: ''}}
-          validationSchema={
-            loginUsingEmail
-              ? LoginValidationSchema
-              : LoginValidationSchemaWithPhone
-          }>
-          {({values, touched, errors, setFieldValue, setTouched}) => (
-            <>
-              <View style={styles.formDiv}>
-                <InputBox
-                  label={loginUsingEmail ? 'Email' : 'Phone number'}
-                  value={loginUsingEmail ? values.email : values.phone}
-                  focused={loginUsingEmail ? !!touched.email : !!touched.phone}
-                  focusFunction={
-                    loginUsingEmail
-                      ? focusEmail.bind(this, setTouched)
-                      : focusPhone.bind(this, setTouched)
-                  }
-                  otherProps={{
-                    onChangeText: loginUsingEmail
-                      ? changeEmail.bind(this, setFieldValue)
-                      : changePhone.bind(this, setFieldValue),
-                    onSubmitEditing: loginUsingEmail
-                      ? submitEmail.bind(this, setTouched, errors)
-                      : submitPhone.bind(this, setTouched, errors),
-                  }}
-                  inputRef={emailRef}
-                />
-                {!!touched[loginUsingEmail ? 'email' : 'phone'] &&
-                  !!errors[loginUsingEmail ? 'email' : 'phone'] && (
-                    <Text style={styles.error}>
-                      {errors[loginUsingEmail ? 'email' : 'phone']}
-                    </Text>
+    <>
+      {!!loading && <LoadingPage dark={themeRef.dark} loadingText={loading} />}
+      <KeyboardAwareScrollView
+        contentContainerStyle={[styles.container, {flexGrow: 1}]}
+        extraScrollHeight={5}
+        scrollEnabled={false}>
+        <View style={[styles.mainDiv, styles.screenStyle]}>
+          <HeadingLarge style={[styles.greetLarge]} text={'Wellcome Back !!'} />
+          <HeadingLarge style={[styles.greetSmall]} text={'We missed You :)'} />
+          <TextButton
+            title={loginUsingEmail ? 'Email' : 'Phone'}
+            onPress={toggleLoginScheme}
+          />
+          <Formik
+            initialValues={{email: '', password: ''}}
+            validationSchema={
+              loginUsingEmail
+                ? LoginValidationSchema
+                : LoginValidationSchemaWithPhone
+            }>
+            {({values, touched, errors, setFieldValue, setTouched}) => (
+              <>
+                <View style={styles.formDiv}>
+                  <InputBox
+                    label={loginUsingEmail ? 'Email' : 'Phone number'}
+                    value={loginUsingEmail ? values.email : values.phone}
+                    focused={
+                      loginUsingEmail ? !!touched.email : !!touched.phone
+                    }
+                    focusFunction={
+                      loginUsingEmail
+                        ? focusEmail.bind(this, setTouched)
+                        : focusPhone.bind(this, setTouched)
+                    }
+                    otherProps={{
+                      onChangeText: loginUsingEmail
+                        ? changeEmail.bind(this, setFieldValue)
+                        : changePhone.bind(this, setFieldValue),
+                      onSubmitEditing: loginUsingEmail
+                        ? submitEmail.bind(this, setTouched, errors)
+                        : submitPhone.bind(this, setTouched, errors),
+                    }}
+                    inputRef={emailRef}
+                  />
+                  {!!touched[loginUsingEmail ? 'email' : 'phone'] &&
+                    !!errors[loginUsingEmail ? 'email' : 'phone'] && (
+                      <Text style={styles.error}>
+                        {errors[loginUsingEmail ? 'email' : 'phone']}
+                      </Text>
+                    )}
+                  <InputBox
+                    label={'Password'}
+                    value={values.password}
+                    focused={!!touched.password}
+                    focusFunction={focusPassword.bind(this, setTouched)}
+                    otherProps={{
+                      onChangeText: changePassword.bind(this, setFieldValue),
+                      onSubmitEditing: submitPassword.bind(
+                        this,
+                        setTouched,
+                        errors,
+                      ),
+                    }}
+                    inputRef={passwordRef}
+                    isPassword
+                  />
+                  {touched.password && !!errors.password && (
+                    <Text style={styles.error}>{errors.password}</Text>
                   )}
-                <InputBox
-                  label={'Password'}
-                  value={values.password}
-                  focused={!!touched.password}
-                  focusFunction={focusPassword.bind(this, setTouched)}
-                  otherProps={{
-                    onChangeText: changePassword.bind(this, setFieldValue),
-                    onSubmitEditing: submitPassword.bind(
-                      this,
-                      setTouched,
-                      errors,
-                    ),
-                  }}
-                  inputRef={passwordRef}
+                </View>
+                <SimpleButton
+                  title={'Login'}
+                  onPress={
+                    (
+                      loginUsingEmail
+                        ? !!errors.email || !!errors.password
+                        : !!errors.phone
+                    )
+                      ? showError.bind(this, errors)
+                      : login.bind(this, values)
+                  }
+                  containerStyle={[
+                    styles.loginButton,
+                    {
+                      backgroundColor:
+                        themeRef.colors[
+                          !errors.email && !errors.password
+                            ? 'appThemeColor'
+                            : 'primaryColor'
+                        ],
+                    },
+                  ]}
+                  textStyle={[
+                    styles.loginButtonText,
+                    {
+                      color:
+                        themeRef.colors[
+                          !!errors.password || !!errors.email
+                            ? 'appThemeColor'
+                            : 'primaryColor'
+                        ],
+                    },
+                  ]}
                 />
-                {touched.password && !!errors.password && (
-                  <Text style={styles.error}>{errors.password}</Text>
-                )}
-              </View>
-              <SimpleButton
-                title={'Login'}
-                onPress={
-                  (
-                    loginUsingEmail
-                      ? !!errors.email || !!errors.password
-                      : !!errors.phone
-                  )
-                    ? showError.bind(this, errors)
-                    : login.bind(this, values)
-                }
-                containerStyle={[
-                  styles.loginButton,
-                  {
-                    backgroundColor:
-                      themeRef.colors[
-                        !errors.email && !errors.password
-                          ? 'appThemeColor'
-                          : 'primaryColor'
-                      ],
-                  },
-                ]}
-                textStyle={[
-                  styles.loginButtonText,
-                  {
-                    color:
-                      themeRef.colors[
-                        !!errors.password || !!errors.email
-                          ? 'appThemeColor'
-                          : 'primaryColor'
-                      ],
-                  },
-                ]}
-              />
-            </>
-          )}
-        </Formik>
-        <Text style={[styles.orText, {color: themeRef.colors.secondaryColor}]}>
-          or
-        </Text>
-        <IconButton
-          name={'logo-google'}
-          onPress={signinWithGoogle}
-          containerStyle={[styles.googleLoginButton]}
-          color={themeRef.colors.appThemeColor}
-        />
-        <View style={[styles.signupDiv]}>
+              </>
+            )}
+          </Formik>
           <Text
             style={[styles.orText, {color: themeRef.colors.secondaryColor}]}>
-            Don't have an account ?
+            or
           </Text>
-          <TextButton
-            title={'Sign up'}
-            textStyle={styles.otherScreenBtn}
-            onPress={goToSinupPage}
+          <IconButton
+            name={'logo-google'}
+            onPress={signinWithGoogle}
+            containerStyle={[styles.googleLoginButton]}
+            color={themeRef.colors.appThemeColor}
           />
+          <View style={[styles.signupDiv]}>
+            <Text
+              style={[styles.orText, {color: themeRef.colors.secondaryColor}]}>
+              Don't have an account ?
+            </Text>
+            <TextButton
+              title={'Sign up'}
+              textStyle={styles.otherScreenBtn}
+              onPress={goToSinupPage}
+            />
+          </View>
+          <AppStatusBar />
         </View>
-        <AppStatusBar />
-      </View>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </>
   );
 };

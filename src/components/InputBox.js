@@ -1,5 +1,5 @@
 import {useTheme} from '@react-navigation/native';
-import {useRef} from 'react';
+import {useRef, useState} from 'react';
 import {
   Text,
   StyleSheet,
@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import {useSelector} from 'react-redux';
 import FontfamiliesNames from '../strings/FontfamiliesNames';
+import {fontSize} from '../styles/commonStyles';
+import IconButton from './IconButton';
 
 const dimensions = Dimensions.get('screen');
 export default InputBox = ({
@@ -20,16 +22,18 @@ export default InputBox = ({
   focused,
   focusFunction,
   inputRef,
+  isPassword = false,
 }) => {
   const themeRef = useTheme();
   const labelRef = useRef(new Animated.ValueXY({x: 55, y: 5})).current;
   const labelSizeRef = useRef(new Animated.ValueXY({x: 20, y: 0})).current;
   const secureTextEntry = !!otherProps.secureTextEntry;
+  const [passwordShown, setPasswordShown] = useState(!isPassword);
 
   const slideLabel = () =>
     Animated.parallel([
       Animated.timing(labelRef, {
-        toValue: {x: 40, y: 45},
+        toValue: {x: 35, y: 47},
         useNativeDriver: false,
         duration: 100,
       }).start(),
@@ -39,6 +43,8 @@ export default InputBox = ({
         duration: 100,
       }).start(),
     ]);
+
+  !!value && slideLabel();
 
   const slideLabelBack = () =>
     Animated.parallel([
@@ -60,28 +66,35 @@ export default InputBox = ({
   };
   const blurHandler = () => {
     !value && slideLabelBack();
+    focusFunction(true);
   };
 
   const styles = StyleSheet.create({
     mainDiv: {
-      height: 90,
+      height: 65,
       justifyContent: 'flex-end',
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderColor:
+        themeRef.colors[focused ? 'appThemeColor' : 'secondaryColor'],
+      borderRadius: 10,
+      borderWidth: 2,
+      marginTop: 25,
+      width: dimensions.width * 0.82,
+      paddingHorizontal: 15,
     },
     inputBox: {
       fontFamily: FontfamiliesNames.primaryFontSemiBold,
       // backgroundColor: 'yellow',
       height: 65,
-      width: dimensions.width * 0.82,
       alignSelf: 'center',
-      borderRadius: 10,
-      fontSize: 20,
-      borderWidth: 2,
-      paddingHorizontal: 15,
+      fontSize: fontSize.large,
       letterSpacing: 1,
       color: themeRef.colors[focused ? 'appThemeColor' : 'secondaryColor'],
-      borderColor:
-        themeRef.colors[focused ? 'appThemeColor' : 'secondaryColor'],
+      flex: 1,
       letterSpacing: secureTextEntry ? 5 : 1,
+      marginRight: 10,
+      // backgroundColor: 'red',
     },
     boxLabel: {
       fontFamily: FontfamiliesNames.primaryFontSemiBold,
@@ -93,6 +106,7 @@ export default InputBox = ({
       justifyContent: 'center',
       zIndex: -10,
       backgroundColor: themeRef.colors.primaryColor,
+      // backgroundColor: 'red',
     },
   });
 
@@ -122,7 +136,14 @@ export default InputBox = ({
         value={value}
         ref={inputRef}
         {...otherProps}
+        secureTextEntry={!passwordShown}
       />
+      {!!isPassword && (
+        <IconButton
+          name={passwordShown ? 'eye-off' : 'eye'}
+          onPress={() => setPasswordShown(pre => !pre)}
+        />
+      )}
     </View>
   );
 };
