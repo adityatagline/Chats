@@ -1,5 +1,4 @@
 import {
-  View,
   Text,
   StyleSheet,
   FlatList,
@@ -7,6 +6,7 @@ import {
   TouchableOpacity,
   NativeModules,
   Appearance,
+  View,
 } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -18,9 +18,18 @@ import {
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import {useTheme} from '@react-navigation/native';
 import {PageHeading, PageName, SettingItem} from './CommonComponents';
+import {useDispatch} from 'react-redux';
+import {toggleTheme} from '../../../../redux/theme/ThemeSlice';
+import CommonStyle from './CommonStyle';
 
 export default AppearenceSettings = () => {
   const themeRef = useTheme();
+  const dispath = useDispatch();
+
+  const changeTheme = () => {
+    // console.log('running');
+    dispath(toggleTheme({themeMode: themeRef.dark ? 'light' : 'dark'}));
+  };
 
   const styles = StyleSheet.create({
     mainDiv: {
@@ -59,19 +68,23 @@ export default AppearenceSettings = () => {
   });
 
   return (
-    <View style={styles.mainDiv}>
+    <View style={[styles.mainDiv]}>
       <PageHeading
         middleComponenet={<PageName name={'Appearence'} />}
         backButtonProps={{
           name: 'chevron-back',
           size: 30,
-          color: 'black',
+          color: themeRef.colors.secondaryColor,
           backScreen: 'Settings',
         }}
         backNavigationScreen={ScreenNames.TopTabScreens.ProfileScreen}
       />
       <ScrollView style={styles.listDiv}>
-        <SettingItem title={'Theme'} itemIcon={'contrast'} />
+        <SettingItem
+          title={'Theme'}
+          itemIcon={'contrast'}
+          onPress={changeTheme}
+        />
         <SettingItem title={'Wallpaper'} itemIcon={'image-outline'} />
       </ScrollView>
     </View>

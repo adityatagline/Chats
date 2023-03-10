@@ -4,4 +4,9 @@ export default fontFamilies = {
   primaryFont: 'Quicksand-Regular',
   primaryFontSemiBold: 'Quicksand-SemiBold',
   primaryFontBold: 'Quicksand-Bold',
+  // primaryFontLight: 'ProductSans-Thin',
+  // primaryFontMedium: 'ProductSans-Light',
+  // primaryFont: 'ProductSans-Regular',
+  // primaryFontSemiBold: 'ProductSans-MediumItalic',
+  // primaryFontBold: 'ProductSans-Bold',
 };

@@ -1,5 +1,4 @@
 import {
-  View,
   Text,
   StyleSheet,
   FlatList,
@@ -7,6 +6,7 @@ import {
   TouchableOpacity,
   NativeModules,
   Appearance,
+  View,
 } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -18,8 +18,12 @@ import {
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import {useTheme} from '@react-navigation/native';
 import {PageHeading, PageName, SettingItem} from './CommonComponents';
+import {useDispatch} from 'react-redux';
+import {toggleTheme} from '../../../../redux/theme/ThemeSlice';
 
 export default BackupNRestore = () => {
+  const themeRef = useTheme();
+
   const styles = StyleSheet.create({
     mainDiv: {
       marginTop: StatusBarHeight,
@@ -28,28 +32,31 @@ export default BackupNRestore = () => {
       // backgroundColor: "yellow",
       // flex: 1,
       // textAlign: "center",
-      marginLeft: '10%',
-      fontSize: 25,
-      fontWeight: 'bold',
+      marginLeft: wp(10),
+      fontSize: fontSize.heading,
+      fontFamily: FontfamiliesNames.primaryFontBold,
+      color: themeRef.colors.appThemeColor,
     },
     settingItem: {
       // backgroundColor: "yellow",
       flexDirection: 'row',
-      marginVertical: '1%',
-      paddingVertical: '4%',
-      marginHorizontal: '1%',
+      marginVertical: hp(1),
+      paddingVertical: hp(1),
       borderRadius: 15,
-      paddingHorizontal: '7%',
+      paddingHorizontal: wp(8),
       alignItems: 'center',
     },
     settingItemIcon: {
-      paddingRight: '5%',
+      paddingRight: wp(5),
     },
     settingItemLabel: {
       // fontWeight: "bold",
+      fontSize: fontSize.large,
+      fontFamily: FontfamiliesNames.primaryFontSemiBold,
+      color: themeRef.colors.secondaryColor,
     },
     listDiv: {
-      marginTop: '5%',
+      marginTop: hp(2),
     },
   });
 
@@ -60,7 +67,7 @@ export default BackupNRestore = () => {
         backButtonProps={{
           name: 'chevron-back',
           size: 30,
-          color: 'black',
+          color: themeRef.colors.secondaryColor,
           backScreen: 'Settings',
         }}
         backNavigationScreen={ScreenNames.TopTabScreens.ProfileScreen}

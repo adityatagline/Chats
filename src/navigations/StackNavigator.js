@@ -4,7 +4,7 @@ import {
   NavigationContainer,
 } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 // import {useDispatch, useSelector} from 'react-redux';
 // import {toggleTheme} from '../../redux/theme/ThemeSlice';
 import ScreenNames from '../strings/ScreenNames';
@@ -14,29 +14,50 @@ import {colorStrings} from '../strings/ColorStrings';
 import SignupScreen from './screens/authentication/SignupScreen';
 import VerificationScreen from './screens/authentication/VerificationScreen';
 import EnterDetails from './screens/authentication/EnterDetails';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import HomeScreen from './screens/home/HomeScreen';
 import {TopTabNavigator} from './TopTabNavigator';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {commonStyles} from '../styles/commonStyles';
 import LoadingPage from '../components/LoadingPage';
 import NewChatPage from './screens/NewChatPage';
 import AppearenceSettings from './screens/settings/AppearenceSettings';
 import BackupNRestore from './screens/settings/BackupNRestore';
 import PrivacySettings from './screens/settings/PrivacySettings';
+import {setLoadingState} from '../../redux/loading/LoadingSlice';
+import {toggleTheme} from '../../redux/theme/ThemeSlice';
+import ChatScreen from './screens/chat/ChatScreen';
 
 export default StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const themeRef = useSelector(state => state.themeSlice);
+  const loadingRef = useSelector(state => state.loadingSlice);
   const authRef = useSelector(state => state.authenticationSlice);
+  const dispatch = useDispatch();
 
-  const theme = {
-    colors:
-      themeRef == 'light'
-        ? {...colorStrings.lightThemeColors}
-        : {...colorStrings.darkThemeColors},
-    dark: themeRef == 'dark',
-  };
+  const [theme, setTheme] = useState({
+    colors: {...colorStrings.lightThemeColors},
+    dark: false,
+  });
+
+  useEffect(() => {
+    if (!!themeRef.themeMode) {
+      // setLoadingState(pre => {
+      //   return {
+      //     ...pre,
+      //     loading: false,
+      //   };
+      // });
+      console.log({themeRef});
+      setTheme({
+        colors:
+          themeRef.themeMode == 'light'
+            ? {...colorStrings.lightThemeColors}
+            : {...colorStrings.darkThemeColors},
+        dark: themeRef.themeMode == 'dark',
+      });
+    }
+  }, [themeRef]);
 
   const AuthStack = () => (
     <Stack.Navigator
@@ -60,6 +81,7 @@ export default StackNavigator = () => {
         component={TopTabNavigator}
       />
       <Stack.Screen name={ScreenNames.NewChatPage} component={NewChatPage} />
+      <Stack.Screen name={ScreenNames.ChatPage} component={ChatScreen} />
       <Stack.Screen
         name={ScreenNames.TopTabInnerScreens.Appearence}
         component={AppearenceSettings}
@@ -75,9 +97,18 @@ export default StackNavigator = () => {
     </Stack.Navigator>
   );
 
+  // if (loadingRef.loading && !theme) {
+  //   return <Text>loading</Text>;
+  // } else if (!!theme) {
   return (
-    <NavigationContainer theme={theme}>
+    <NavigationContainer
+      theme={
+        !!theme
+          ? theme
+          : {colors: {...colorStrings.lightThemeColors}, dark: false}
+      }>
       {!authRef.isAuthenticated ? <AuthStack /> : <MainStack />}
     </NavigationContainer>
   );
+  // }
 };

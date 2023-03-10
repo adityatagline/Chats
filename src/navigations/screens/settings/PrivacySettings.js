@@ -66,7 +66,7 @@ export default PrivacySettings = () => {
         backButtonProps={{
           name: 'chevron-back',
           size: 30,
-          color: 'black',
+          color: themeRef.colors.secondaryColor,
           backScreen: 'Settings',
         }}
         backNavigationScreen={ScreenNames.TopTabScreens.ProfileScreen}

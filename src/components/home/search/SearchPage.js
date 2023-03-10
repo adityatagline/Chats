@@ -32,9 +32,7 @@ export default SearchPage = ({isLeft}) => {
       height: hp(7),
       marginLeft: wp(1),
       paddingHorizontal: wp(2),
-      fontFamily: !!searchText
-        ? FontfamiliesNames.primaryFontBold
-        : FontfamiliesNames.primaryFontLight,
+      fontFamily: FontfamiliesNames.primaryFontSemiBold,
       color: !!searchText
         ? themeRef.colors.appThemeColor
         : themeRef.colors.secondaryColor,

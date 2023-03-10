@@ -10,7 +10,7 @@ import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 
-const Settings = ({
+const PageHeading = ({
   disableBackButton = false,
   rightButton,
   middleComponenet,
@@ -47,7 +47,7 @@ const Settings = ({
   );
 };
 
-export default memo(Settings);
+export default memo(PageHeading);
 
 const styles = StyleSheet.create({
   mainDiv: {

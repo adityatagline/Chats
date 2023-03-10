@@ -1,7 +1,15 @@
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {Formik} from 'formik';
 import {useEffect, useRef, useState} from 'react';
-import {Text, StyleSheet, View, Alert} from 'react-native';
+import {
+  Text,
+  StyleSheet,
+  Alert,
+  Keyboard,
+  View,
+  TouchableHighlight,
+  TouchableOpacity,
+} from 'react-native';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {AppStatusBar} from '../../../components/AppStatusBar';
 import HeadingLarge from '../../../components/HeadingLarge';
@@ -37,6 +45,7 @@ export default LoginScreen = () => {
 
   useEffect(() => {
     emailRef?.current.focus();
+    // emailRef?.current.blur();
   }, [loginUsingEmail]);
 
   const goToSinupPage = () => navigation.replace(ScreenNames.SignupScreen);
@@ -137,6 +146,10 @@ export default LoginScreen = () => {
     }
   };
 
+  const testFun = () => {
+    emailRef.current.focus();
+  };
+
   const login = async values => {
     setLoading('Checking info ..');
     const loginResponse = await loginWithEmail({
@@ -184,6 +197,11 @@ export default LoginScreen = () => {
     ...commonPageStyles(),
   });
 
+  // const dumyFun = props => {
+  //   console.log({props});
+  //   alert('pressed');
+  // };
+
   return (
     <>
       {!!loading && <LoadingPage dark={themeRef.dark} loadingText={loading} />}
@@ -191,6 +209,11 @@ export default LoginScreen = () => {
         contentContainerStyle={[styles.container, {flexGrow: 1}]}
         extraScrollHeight={5}
         scrollEnabled={false}>
+        {/* <TouchableOpacity
+          style={{marginTop: '10%'}}
+          onPress={dumyFun.bind(this, 'id')}>
+          <Text>Hello</Text>
+        </TouchableOpacity> */}
         <View style={[styles.mainDiv, styles.screenStyle]}>
           <HeadingLarge style={[styles.greetLarge]} text={'Wellcome Back !!'} />
           <HeadingLarge style={[styles.greetSmall]} text={'We missed You :)'} />
@@ -208,6 +231,13 @@ export default LoginScreen = () => {
             {({values, touched, errors, setFieldValue, setTouched}) => (
               <>
                 <View style={styles.formDiv}>
+                  {console.log({
+                    values,
+                    touched,
+                    errors,
+                    setFieldValue,
+                    setTouched,
+                  })}
                   <InputBox
                     label={loginUsingEmail ? 'Email' : 'Phone number'}
                     value={loginUsingEmail ? values.email : values.phone}
@@ -221,7 +251,7 @@ export default LoginScreen = () => {
                     }
                     otherProps={{
                       onChangeText: loginUsingEmail
-                        ? changeEmail.bind(this, setFieldValue)
+                        ? changeEmail.bind(this, setFieldValue, 'okkk')
                         : changePhone.bind(this, setFieldValue),
                       onSubmitEditing: loginUsingEmail
                         ? submitEmail.bind(this, setTouched, errors)
@@ -311,6 +341,7 @@ export default LoginScreen = () => {
               title={'Sign up'}
               textStyle={styles.otherScreenBtn}
               onPress={goToSinupPage}
+              // onPress={testFun}
             />
           </View>
           <AppStatusBar />

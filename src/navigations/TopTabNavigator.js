@@ -47,7 +47,7 @@ export const TopTabNavigator = () => {
     ChatsHeading: {
       fontSize: fontSize.heading + 5,
       position: 'absolute',
-      top: hp(4.5),
+      top: hp(0.5) + StatusBarHeight,
       fontFamily: FontfamiliesNames.primaryFontBold,
       left: wp(10),
       color: themeRef.colors.appThemeColor,
@@ -72,7 +72,7 @@ export const TopTabNavigator = () => {
             top: StatusBarHeight,
             right: wp(10),
             width: wp(30),
-            height: hp(6.5),
+            height: hp(6),
             elevation: 0,
             shadowOpacity: 0,
             // display: 'none',
@@ -92,7 +92,7 @@ export const TopTabNavigator = () => {
             display: 'none',
           },
           tabBarActiveTintColor: themeRef.colors.appThemeColor,
-          tabBarInactiveTintColor: themeRef.colors.secondaryColor,
+          tabBarInactiveTintColor: themeRef.colors.card,
           tabBarPressColor: 'transparent',
           // headerShown: true,
         }}>

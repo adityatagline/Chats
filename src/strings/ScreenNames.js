@@ -16,4 +16,5 @@ export default ScreenNames = {
     BackupNRestore: 'BackupAndRestore',
   },
   NewChatPage: 'NewChatPage',
+  ChatPage: 'ChatPage',
 };

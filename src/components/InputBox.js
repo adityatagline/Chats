@@ -74,6 +74,7 @@ export default InputBox = ({
       height: 65,
       justifyContent: 'flex-end',
       flexDirection: 'row',
+      alignSelf: 'center',
       alignItems: 'center',
       borderColor:
         themeRef.colors[focused ? 'appThemeColor' : 'secondaryColor'],

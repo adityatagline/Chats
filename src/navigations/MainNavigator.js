@@ -1,11 +1,14 @@
 import {Provider} from 'react-redux';
-import Store from '../../redux/Store';
+import {PersistGate} from 'redux-persist/lib/integration/react';
+import Store, {PersistStore} from '../../redux/Store';
 import StackNavigator from './StackNavigator';
 
 export default MainNavigator = () => {
   return (
     <Provider store={Store}>
-      <StackNavigator />
+      <PersistGate persistor={PersistStore} loading={null}>
+        <StackNavigator />
+      </PersistGate>
     </Provider>
   );
 };

@@ -3,11 +3,12 @@ import {createSlice} from '@reduxjs/toolkit';
 const LoadingSlice = createSlice({
   name: 'LoadingSlice',
   initialState: {
-    loading: false,
+    loading: true,
     waitingMessage: 'Please wait ...',
   },
   reducers: {
     setLoadingState: (state, action) => {
+      console.log({state, action});
       return {
         loading: action.payload.loading,
         waitingMessage: !!action.payload.waitingMessage

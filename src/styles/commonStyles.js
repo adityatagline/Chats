@@ -25,7 +25,7 @@ export const commonStyles = StyleSheet.create({
   screenStyle: {
     flex: 1,
     paddingTop: StatusBarHeight,
-    paddingHorizontal: 30,
+    paddingHorizontal: wp(5),
   },
   floatingButton: {
     position: 'absolute',

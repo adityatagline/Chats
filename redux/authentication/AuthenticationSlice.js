@@ -4,7 +4,7 @@ const AuthenticationSlice = createSlice({
   name: 'authentication',
   initialState: {
     isAuthenticated: true,
-    // isAuthenticated: false,
+    isAuthenticated: false,
     checkForDetails: false,
     user: {
       age: '21',
@@ -17,7 +17,7 @@ const AuthenticationSlice = createSlice({
       profilePhoto:
         'https://lh3.googleusercontent.com/a/AEdFTp4_9kNWjMb2uHUNGdvpzmHIwLVCK4yyCNNXCKfm=s96-c',
     },
-    // user: {},
+    user: {},
   },
   reducers: {
     storeUserDataInRedux: (state, action) => {
