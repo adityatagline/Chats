@@ -1,5 +1,6 @@
 import {databaseLinks} from '../../credentials/firebaseCredentials/FirebaseDatabaseLinks';
 import {apiRequest} from '../global/BaseApiRequestes';
+import firestore from '@react-native-firebase/firestore';
 
 export const getUserHomepageChats = async username => {
   try {
@@ -92,6 +93,20 @@ export const checkForUserInRecord = async contactArray => {
       isError: false,
       users: [...contactArrayToReturn],
     };
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const sendMessgae = async (
+  senderUserInfo,
+  receiverUserInfo,
+  chatObject,
+) => {
+  try {
   } catch (error) {
     return {
       isError: true,

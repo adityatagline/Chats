@@ -1,4 +1,7 @@
 import {createSlice} from '@reduxjs/toolkit';
+import {act} from 'react-test-renderer';
+import {isTemplateLiteralTypeNode} from 'typescript';
+import {getUsernameFromEmail} from '../../src/components/CommonFunctions';
 
 const Chatslice = createSlice({
   name: 'chatSlice',
@@ -69,8 +72,64 @@ const Chatslice = createSlice({
       // },
     ],
     individualChats: {},
+    friends: {},
   },
-  reducers: {},
+  reducers: {
+    storeMessage: (state, action) => {
+      // console.log({state, action});
+      let {username, chatName} = action.payload.receiverObject;
+      let personChat = state.individualChats[username];
+      if (!personChat) {
+        personChat = [{...action.payload.chatObject}];
+      } else {
+        personChat = [{...action.payload.chatObject}, ...personChat];
+      }
+      let homeScreenChats = state.homepageChats;
+      if (homeScreenChats.length == 0) {
+        homeScreenChats = [{...action.payload.chatObject}];
+      } else {
+        let isIncluded = false;
+        let itemIdex = -1;
+        homeScreenChats.map((item, index) => {
+          if (item.username == username) {
+            isIncluded = true;
+            itemIdex = index;
+          }
+        });
+        if (!isIncluded) {
+          homeScreenChats = [{...action.payload}];
+        } else {
+          homeScreenChats = homeScreenChats.filter(
+            item => item.username != username,
+          );
+          homeScreenChats = [{...action.payload}, ...homeScreenChats];
+        }
+      }
+      return {
+        ...state,
+        homepageChats: [{...action.payload.chatObject}],
+        individualChats: {
+          ...state.individualChats,
+          [action.payload.username]: [...personChat],
+        },
+      };
+    },
+    storeFriends: (state, actions) => {
+      console.log({payload: actions.payload});
+      let objectToSet = {};
+      actions.payload.forEach(element => {
+        let username = getUsernameFromEmail(element.email);
+        objectToSet[username] = {...element, username};
+      });
+      return {
+        ...state,
+        friends: {
+          ...objectToSet,
+        },
+      };
+    },
+  },
 });
 
+export const {storeMessage, storeFriends} = Chatslice.actions;
 export default Chatslice.reducer;

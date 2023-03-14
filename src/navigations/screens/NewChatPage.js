@@ -7,6 +7,7 @@ import {
   Text,
   Image,
   Animated,
+  TouchableOpacity,
 } from 'react-native';
 import SearchPage from '../../components/home/search/SearchPage';
 import {commonStyles, fontSize} from '../../styles/commonStyles';
@@ -19,6 +20,7 @@ import {useEffect, useRef, useState} from 'react';
 import {getAll} from 'react-native-contacts';
 import {checkForUserInRecord} from '../../../api/chat/ChatRequests';
 import IconButton from '../../components/IconButton';
+import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontfamiliesNames from '../../strings/FontfamiliesNames';
 import {imageUrlStrings} from '../../strings/ImageUrlStrings';
 import {useDispatch, useSelector} from 'react-redux';
@@ -28,6 +30,7 @@ import {setLoadingState} from '../../../redux/loading/LoadingSlice';
 import {toggleTheme} from '../../../redux/theme/ThemeSlice';
 import ScreenNames from '../../strings/ScreenNames';
 import {getUsernameFromEmail} from '../../components/CommonFunctions';
+import {storeFriends} from '../../../redux/chats/ChatSlice';
 
 export default NewChatPage = () => {
   const themeRef = useTheme();
@@ -92,6 +95,7 @@ export default NewChatPage = () => {
         setContactList([...response.users]);
       }
       setIsLoading(false);
+      dispatch(storeFriends([...response.users]));
     } catch (error) {
       console.log({contactsError: error});
       setIsLoading(false);
@@ -107,7 +111,7 @@ export default NewChatPage = () => {
   };
 
   const goToChatPage = item => {
-    navigation.navigate(ScreenNames.ChatPage, {
+    navigation.replace(ScreenNames.ChatPage, {
       userInfo: {...item},
       username: getUsernameFromEmail(item.email),
     });
@@ -203,12 +207,16 @@ export default NewChatPage = () => {
           source={imageUrlStrings.newMessage}
           style={styles.newChatIcon}
         /> */}
-        <IconButton
-          name={'add'}
-          size={30}
-          color={themeRef.colors.secondaryColor}
-          onPress={goToChatPage.bind(this, item)}
-        />
+        <TouchableOpacity onPress={goToChatPage.bind(this, item)}>
+          <MaterialCommunityIcon
+            name={'chat-plus-outline'}
+            size={25}
+            color={themeRef.colors.appThemeColor}
+            style={{
+              paddingHorizontal: wp(1),
+            }}
+          />
+        </TouchableOpacity>
       </View>
     );
   };

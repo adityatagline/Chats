@@ -251,7 +251,7 @@ export default LoginScreen = () => {
                     }
                     otherProps={{
                       onChangeText: loginUsingEmail
-                        ? changeEmail.bind(this, setFieldValue, 'okkk')
+                        ? changeEmail.bind(this, setFieldValue)
                         : changePhone.bind(this, setFieldValue),
                       onSubmitEditing: loginUsingEmail
                         ? submitEmail.bind(this, setTouched, errors)

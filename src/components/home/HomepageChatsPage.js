@@ -97,12 +97,17 @@ export default HomepageChatsPage = ({chatArray}) => {
     navigation.navigate(ScreenNames.NewChatPage);
   };
 
+  const goToChatScreen = item => {
+    navigation.navigate(ScreenNames.ChatPage, {
+      userInfo: {...chatSlice.friends[item.chatUserName]},
+      username: item.chatUserName,
+    });
+    console.log({item});
+  };
+
   const renderHomePageChats = ({item}) => {
-    let chatname =
-      item.to == authenticationSlice.user.username ? item.from : item.to;
-    chatname = !!chatSlice.aliasNames[chatname]
-      ? chatSlice.aliasNames[chatname]
-      : chatname.split('--')[0].replaceAll('-', ' ');
+    console.log({item});
+    let chatname = item.chatName;
     if (chatname.length > 15) {
       chatname = chatname.slice(0, 15);
       chatname = chatname.split(' ');
@@ -117,9 +122,9 @@ export default HomepageChatsPage = ({chatArray}) => {
     }
 
     let chattime =
-      new Date() - new Date(item.time) > 86400000
-        ? new Date(item.time).toLocaleDateString()
-        : new Date(item.time).toLocaleTimeString();
+      new Date() - new Date(item.date) > 86400000
+        ? new Date(item.date).toLocaleDateString()
+        : new Date(item.date).toLocaleTimeString();
     if (chattime.includes(':')) {
       chattime =
         (chattime.length < 11
@@ -134,7 +139,9 @@ export default HomepageChatsPage = ({chatArray}) => {
         : item.message;
 
     return (
-      <View style={styles.chatDiv}>
+      <TouchableOpacity
+        style={styles.chatDiv}
+        onPress={goToChatScreen.bind(this, item)}>
         <Image
           source={{uri: authenticationSlice.user.profilePhoto}}
           style={styles.chatAvatar}
@@ -149,9 +156,12 @@ export default HomepageChatsPage = ({chatArray}) => {
           </Text>
         </View>
         <Text style={styles.chattime}>{chattime}</Text>
-      </View>
+      </TouchableOpacity>
     );
   };
+
+  console.log('running ------------------');
+  console.log({frnds: chatSlice.friends});
 
   return (
     <View style={styles.mainDiv}>
@@ -165,16 +175,16 @@ export default HomepageChatsPage = ({chatArray}) => {
           showsVerticalScrollIndicator={false}
         />
       )}
-      {chatSlice.homepageChats.length == 0 && (
-        <View style={styles.noChatsDiv}>
-          <Text style={styles.noChatsText}>No Recent Chats ..</Text>
-          <TextButton
-            title={'Start new'}
-            textStyle={styles.newChatButton}
-            onPress={goToNewChatPage}
-          />
-        </View>
-      )}
+      {/* {chatSlice.homepageChats.length == 0 && ( */}
+      <View style={styles.noChatsDiv}>
+        <Text style={styles.noChatsText}>No Recent Chats ..</Text>
+        <TextButton
+          title={'Start new'}
+          textStyle={styles.newChatButton}
+          onPress={goToNewChatPage}
+        />
+      </View>
+      {/* )} */}
     </View>
   );
 };

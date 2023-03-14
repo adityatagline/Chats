@@ -9,12 +9,14 @@ import {
   TextInput,
   Animated,
   FlatList,
+  Alert,
 } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {
   commonStyles,
   dimensions,
+  fontSize,
   StatusBarHeight,
 } from '../../../styles/commonStyles';
 import {useEffect} from 'react';
@@ -25,18 +27,160 @@ import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import {useNavigation, useTheme} from '@react-navigation/native';
+import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import IconButton from '../../../components/IconButton';
+import FontfamiliesNames from '../../../strings/FontfamiliesNames';
+import {useDispatch, useSelector} from 'react-redux';
+import {storeMessage} from '../../../../redux/chats/ChatSlice';
+
+let dummyChats = [
+  {
+    message: 'HI',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Hie',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'how are you ?',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'fine',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'what about you ?',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'amazing\nmeet me at the office today',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Okay',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Sure',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: "I'll meet you at office.",
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'HI',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Hie',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'how are you ?',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'fine',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'what about you ?',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'amazing\nmeet me at the office today',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Okay',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Sure',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: "I'll meet you at office.",
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'HI',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Hie',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'how are you ?',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'fine',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'what about you ?',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'amazing\nmeet me at the office today',
+    from: 'askldmasdiaodmjkssds',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Okay',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: 'Sure',
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+  {
+    message: "I'll meet you at office.",
+    from: 'aditya',
+    date: new Date('2023-02-26T08:59:58.946Z'),
+  },
+].reverse();
 
 export default ChatScreen = ({
   isGroup = false,
-  chatName = 'askldmasdiaodmjkssds',
+  // chatName = 'askldmasdiaodmjkssds',
   chatObject,
   backScreen,
-  userInfo = {
-    username: 'aditya',
-  },
+  // userInfo = {
+  //   username: 'aditya',
+  // },
 }) => {
   const themeRef = useTheme();
   const styles = StyleSheet.create({
@@ -58,7 +202,9 @@ export default ChatScreen = ({
     },
     chatName: {
       flex: 1,
-      color: themeRef.colors.secondaryColor,
+      color: themeRef.colors.appThemeColor,
+      fontFamily: FontfamiliesNames.primaryFontBold,
+      fontSize: fontSize.big,
     },
     chatImage: {
       height: hp(5),
@@ -143,6 +289,23 @@ export default ChatScreen = ({
       color: themeRef.colors.secondaryColor,
     },
   });
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  const userInfo = !!route.params && route.params.userInfo;
+  console.log({userInfo});
+  const username = !!route.params && route.params.username;
+  const chatName = !!userInfo.contactName
+    ? userInfo.contactName
+    : userInfo.firstName + userInfo.lastName;
+
+  const chatSliceRef = useSelector(state => state.chatSlice);
+  const authenticationSliceRef = useSelector(
+    state => state.authenticationSlice,
+  );
+  const dispatch = useDispatch();
+
+  const currentUserInfo = authenticationSliceRef.user;
 
   const [orientation, setOrientation] = useState(
     dimensions.height > dimensions.width ? 'portrait' : 'landscape',
@@ -150,153 +313,28 @@ export default ChatScreen = ({
   // console.log({ orientation });
   const [displayChatName, setDisplayChatName] = useState(chatName);
   const [userChatMessage, setUserChatMessage] = useState('');
-  const [chatContent, setChatContent] = useState(
-    [
-      {
-        message: 'HI',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Hie',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'how are you ?',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'fine',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'what about you ?',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'amazing\nmeet me at the office today',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Okay',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Sure',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: "I'll meet you at office.",
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'HI',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Hie',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'how are you ?',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'fine',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'what about you ?',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'amazing\nmeet me at the office today',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Okay',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Sure',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: "I'll meet you at office.",
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'HI',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Hie',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'how are you ?',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'fine',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'what about you ?',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'amazing\nmeet me at the office today',
-        from: 'askldmasdiaodmjkssds',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Okay',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: 'Sure',
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-      {
-        message: "I'll meet you at office.",
-        from: 'aditya',
-        date: new Date('2023-02-26T08:59:58.946Z'),
-      },
-    ].reverse(),
-  );
+  const [chatContent, setChatContent] = useState([]);
+
+  const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
   // console.log({ chatContent });
   const noChatRef = useRef(
     new Animated.ValueXY({x: 0, y: dimensions.height * 0.15}),
   ).current;
   const chatListRef = useRef();
+  const fileSendingTray = useRef(
+    new Animated.ValueXY({
+      x: hp(0),
+      y: wp(0),
+    }),
+  ).current;
+  const fileSendingTrayScaleAndOpacity = useRef(
+    new Animated.ValueXY({
+      x: 0.5,
+      y: 0,
+    }),
+  ).current;
   const [noChatRefValue, setNoChatRefValue] = useState();
-
-  const navigation = useNavigation();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const rotateListenre = Dimensions.addEventListener('change', ({screen}) => {
@@ -307,10 +345,14 @@ export default ChatScreen = ({
       }
     });
 
-    if (chatContent.length == 0) {
+    let chats = chatSliceRef.individualChats[username];
+
+    if (!chats || (!!chats && chats.length == 0)) {
       setNoChatRefValue(
         animateNoChat(noChatRef, {x: 0.6, y: dimensions.height * 0.16}, 500),
       );
+    } else {
+      setChatContent([...chats]);
     }
 
     return () => {
@@ -344,14 +386,21 @@ export default ChatScreen = ({
     }
   }, [noChatRefValue, chatContent, chatListRef]);
 
-  const sendMessage = message => {
+  const sendMessage = async message => {
+    if (!message) {
+      Alert.alert('Oops', 'Write something to send ..');
+      return;
+    }
     let chatObject = {
-      from: userInfo.username,
+      from: currentUserInfo.username,
       date: new Date(),
       message,
       isSending: true,
     };
+    let receiverObject = {chatName, username};
+    console.log({chatObject});
     setChatContent(pre => [{...chatObject}, ...pre]);
+    dispatch(storeMessage({chatObject, receiverObject}));
   };
 
   const RenderChatComp = ({item, index, chatArray}) => {
@@ -394,15 +443,19 @@ export default ChatScreen = ({
     if (position != 'center' && position != 'alone') {
       borderRadiusStyle[
         `border${position}${
-          item.from == userInfo.username ? 'Right' : 'Left'
+          item.from == currentUserInfo.username ? 'Right' : 'Left'
         }Radius`
       ] = 0;
     } else if (position == 'center') {
       borderRadiusStyle[
-        `borderTop${item.from == userInfo.username ? 'Right' : 'Left'}Radius`
+        `borderTop${
+          item.from == currentUserInfo.username ? 'Right' : 'Left'
+        }Radius`
       ] = 0;
       borderRadiusStyle[
-        `borderBottom${item.from == userInfo.username ? 'Right' : 'Left'}Radius`
+        `borderBottom${
+          item.from == currentUserInfo.username ? 'Right' : 'Left'
+        }Radius`
       ] = 0;
       // borderRadiusStyle['borderTopRightRadius'] = 0;
     }
@@ -414,7 +467,7 @@ export default ChatScreen = ({
           styles.chatItemContainer,
           {
             alignItems:
-              item.from == userInfo.username ? 'flex-end' : 'flex-start',
+              item.from == currentUserInfo.username ? 'flex-end' : 'flex-start',
           },
           {
             marginBottom: position == 'Top' ? hp(2) : hp(0.25),
@@ -425,7 +478,7 @@ export default ChatScreen = ({
         {isGroup ? (
           <Text style={styles.senderName}>{item.from}</Text>
         ) : (
-          item.from == userInfo.username &&
+          item.from == currentUserInfo.username &&
           (position == 'alone' || position == 'Bottom') && (
             <Text style={styles.senderName}>you</Text>
           )
@@ -437,7 +490,7 @@ export default ChatScreen = ({
             {...borderRadiusStyle, overflow: 'hidden'},
             {
               backgroundColor:
-                item.from == userInfo.username
+                item.from == currentUserInfo.username
                   ? themeRef.colors.appThemeColor
                   : themeRef.colors.card,
             },
@@ -445,7 +498,7 @@ export default ChatScreen = ({
           <Text
             style={{
               color:
-                item.from == userInfo.username
+                item.from == currentUserInfo.username
                   ? themeRef.colors.primaryColor
                   : themeRef.colors.secondaryColor,
             }}>
@@ -454,6 +507,75 @@ export default ChatScreen = ({
         </View>
       </View>
     );
+  };
+
+  const expandFileSendingTray = () => {
+    setIsFileSendingTrayOpen(true);
+    Animated.sequence([
+      Animated.timing(fileSendingTray, {
+        toValue: {
+          x: hp(0),
+          y: wp(90),
+        },
+        duration: 100,
+        useNativeDriver: false,
+      }),
+      Animated.timing(fileSendingTray, {
+        toValue: {
+          x: hp(10),
+          y: wp(90),
+        },
+        duration: 250,
+        useNativeDriver: false,
+      }),
+      Animated.timing(fileSendingTrayScaleAndOpacity, {
+        toValue: {
+          x: 1,
+          y: 1,
+        },
+        duration: 250,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+  const closeFileSendingTray = () => {
+    Animated.sequence([
+      Animated.timing(fileSendingTrayScaleAndOpacity, {
+        toValue: {
+          x: 0.5,
+          y: 0,
+        },
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fileSendingTray, {
+        toValue: {
+          x: hp(10),
+          y: wp(90),
+        },
+        duration: 250,
+        useNativeDriver: false,
+      }),
+      Animated.timing(fileSendingTray, {
+        toValue: {
+          x: hp(0),
+          y: wp(90),
+        },
+        duration: 100,
+        useNativeDriver: false,
+      }),
+      Animated.timing(fileSendingTray, {
+        toValue: {
+          x: hp(0),
+          y: wp(0),
+        },
+        duration: 10,
+        useNativeDriver: false,
+      }),
+    ]).start();
+    setTimeout(() => {
+      setIsFileSendingTrayOpen(false);
+    }, 650);
   };
 
   return (
@@ -524,6 +646,53 @@ export default ChatScreen = ({
         inverted
         contentContainerStyle={styles.chatListContainer}
       />
+      {isFileSendingTrayOpen && (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            bottom: hp(10),
+            alignSelf: 'center',
+            height: fileSendingTray.x,
+            width: fileSendingTray.y,
+            backgroundColor: themeRef.colors.primary,
+            justifyContent: 'center',
+            // paddingVertical: hp(2),
+            borderRadius: 20,
+            elevation: 4,
+            shadowColor: themeRef.colors.secondaryColor,
+            shadowOffset: {
+              height: 0,
+              width: 0,
+            },
+            shadowOpacity: 0.3,
+            shadowRadius: 5,
+          }}>
+          <Animated.View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-evenly',
+              alignItems: 'center',
+              opacity: fileSendingTrayScaleAndOpacity.y,
+              transform: [
+                {
+                  scale: fileSendingTrayScaleAndOpacity.x,
+                },
+              ],
+            }}>
+            <IconButton name={'image'} color={themeRef.colors.appThemeColor} />
+            <IconButton name={'film'} color={themeRef.colors.appThemeColor} />
+            <IconButton
+              name={'document'}
+              color={themeRef.colors.appThemeColor}
+            />
+            <IconButton name={'folder'} color={themeRef.colors.appThemeColor} />
+            <IconButton
+              name={'location'}
+              color={themeRef.colors.appThemeColor}
+            />
+          </Animated.View>
+        </Animated.View>
+      )}
       <View style={styles.userTextInputContainer}>
         <TouchableOpacity style={styles.inputButton}>
           <Icon
@@ -541,7 +710,11 @@ export default ChatScreen = ({
           onChangeText={setUserChatMessage}
           textAlignVertical="center"
         />
-        <TouchableOpacity style={[styles.inputButton]}>
+        <TouchableOpacity
+          style={[styles.inputButton]}
+          onPress={
+            isFileSendingTrayOpen ? closeFileSendingTray : expandFileSendingTray
+          }>
           <Icon
             name={'attach'}
             size={25}

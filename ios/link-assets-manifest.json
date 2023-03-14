@@ -2,50 +2,6 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "assets/fonts/Montserrat-Bold.ttf",
-      "sha1": "04052dc3b846609216de1e0cbcec337c6b6e74f6"
-    },
-    {
-      "path": "assets/fonts/Montserrat-ExtraBold.ttf",
-      "sha1": "1914bc1981e6ceceadb2f6d72455b4e89e04965c"
-    },
-    {
-      "path": "assets/fonts/Montserrat-Light.ttf",
-      "sha1": "6f21894a80049259ef71fcba135218695b41b67a"
-    },
-    {
-      "path": "assets/fonts/Montserrat-Medium.ttf",
-      "sha1": "6b57d12e018c64352e202f8ef3bf7f431f76d935"
-    },
-    {
-      "path": "assets/fonts/Montserrat-Regular.ttf",
-      "sha1": "de57aa03e4821fdbe6c34ec2c895e8b5c914e837"
-    },
-    {
-      "path": "assets/fonts/Montserrat-SemiBold.ttf",
-      "sha1": "8580dec824bbdb6ce24d04d3aaf360776339f0a7"
-    },
-    {
-      "path": "assets/fonts/ProductSans-Bold.ttf",
-      "sha1": "aef01f4ff0c1d4673bffafec90bad5ba408d5a74"
-    },
-    {
-      "path": "assets/fonts/ProductSans-Light.ttf",
-      "sha1": "d6f62dd0830483c61d550e470413c6048c88f79e"
-    },
-    {
-      "path": "assets/fonts/ProductSans-MediumItalic.ttf",
-      "sha1": "db737052e03b53ba4a5962664809a9b5d44a4da2"
-    },
-    {
-      "path": "assets/fonts/ProductSans-Regular.ttf",
-      "sha1": "1a08c03428ee60b7d310a8263ababb54a4b89b25"
-    },
-    {
-      "path": "assets/fonts/ProductSans-Thin.ttf",
-      "sha1": "ddd98b39ea0daff2f72d6f197f16a6595c1cf6e7"
-    },
-    {
       "path": "assets/fonts/Quicksand-Bold.ttf",
       "sha1": "8727a6ae26c6646a7f25bfe6560e19c9265ea87c"
     },
