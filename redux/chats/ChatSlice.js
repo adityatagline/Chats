@@ -76,7 +76,7 @@ const Chatslice = createSlice({
   },
   reducers: {
     storeMessage: (state, action) => {
-      // console.log({state, action});
+      console.log({state, action});
       let {username, chatName} = action.payload.receiverObject;
       let personChat = state.individualChats[username];
       if (!personChat) {
@@ -85,33 +85,39 @@ const Chatslice = createSlice({
         personChat = [{...action.payload.chatObject}, ...personChat];
       }
       let homeScreenChats = state.homepageChats;
+      console.log('running 1');
+      let objectToSet = {
+        ...action.payload.chatObject,
+        ...action.payload.receiverObject,
+      };
       if (homeScreenChats.length == 0) {
-        homeScreenChats = [{...action.payload.chatObject}];
+        homeScreenChats = [{...objectToSet}];
       } else {
+        console.log('running 3');
+
         let isIncluded = false;
-        let itemIdex = -1;
         homeScreenChats.map((item, index) => {
           if (item.username == username) {
             isIncluded = true;
-            itemIdex = index;
           }
         });
-        if (!isIncluded) {
-          homeScreenChats = [{...action.payload}];
-        } else {
+
+        if (isIncluded) {
           homeScreenChats = homeScreenChats.filter(
             item => item.username != username,
           );
-          homeScreenChats = [{...action.payload}, ...homeScreenChats];
         }
+        homeScreenChats = [{...objectToSet}, ...homeScreenChats];
       }
       return {
         ...state,
-        homepageChats: [{...action.payload.chatObject}],
-        individualChats: {
-          ...state.individualChats,
-          [action.payload.username]: [...personChat],
-        },
+        homepageChats: [...homeScreenChats],
+        individualChats: !!state.individualChats
+          ? {
+              ...state.individualChats,
+              [username]: [...personChat],
+            }
+          : {[username]: [...personChat]},
       };
     },
     storeFriends: (state, actions) => {

@@ -33,7 +33,7 @@ export default HomepageChatsPage = ({chatArray}) => {
       borderRadius: 30,
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 0,
-      borderRadius: 30,
+      // borderRadius: 30,
       overflow: 'hidden',
     },
     flatListContainer: {
@@ -43,6 +43,7 @@ export default HomepageChatsPage = ({chatArray}) => {
     chatAvatar: {
       height: hp(7),
       width: hp(7),
+      borderRadius: 20,
     },
     chatDiv: {
       // backgroundColor: 'red',
@@ -99,8 +100,8 @@ export default HomepageChatsPage = ({chatArray}) => {
 
   const goToChatScreen = item => {
     navigation.navigate(ScreenNames.ChatPage, {
-      userInfo: {...chatSlice.friends[item.chatUserName]},
-      username: item.chatUserName,
+      userInfo: {...chatSlice.friends[item.username]},
+      username: item.username,
     });
     console.log({item});
   };
@@ -145,7 +146,6 @@ export default HomepageChatsPage = ({chatArray}) => {
         <Image
           source={{uri: authenticationSlice.user.profilePhoto}}
           style={styles.chatAvatar}
-          borderRadius={17}
         />
         <View style={styles.chatDetails}>
           <Text style={styles.chatName}>{chatname}</Text>

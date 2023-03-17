@@ -210,6 +210,7 @@ export default ChatScreen = ({
       height: hp(5),
       width: hp(5),
       marginRight: wp(3),
+      borderRadius: 17,
     },
     userTextInputContainer: {
       position: 'absolute',
@@ -335,6 +336,7 @@ export default ChatScreen = ({
   ).current;
   const [noChatRefValue, setNoChatRefValue] = useState();
   const [isLoading, setIsLoading] = useState(true);
+  console.log({username, chats: chatSliceRef.individualChats});
 
   useEffect(() => {
     const rotateListenre = Dimensions.addEventListener('change', ({screen}) => {
@@ -344,7 +346,6 @@ export default ChatScreen = ({
         setOrientation('landscape');
       }
     });
-
     let chats = chatSliceRef.individualChats[username];
 
     if (!chats || (!!chats && chats.length == 0)) {
@@ -600,7 +601,7 @@ export default ChatScreen = ({
           <Image
             source={imageUrlStrings.banana}
             style={styles.chatImage}
-            borderRadius={17}
+            // borderRadius={17}
           />
         )}
         <Text style={styles.chatName}>{displayChatName}</Text>
