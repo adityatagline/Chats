@@ -8,7 +8,7 @@ const LoadingSlice = createSlice({
   },
   reducers: {
     setLoadingState: (state, action) => {
-      console.log({state, action});
+      // console.log({state, action});
       return {
         loading: action.payload.loading,
         waitingMessage: !!action.payload.waitingMessage

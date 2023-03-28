@@ -1,12 +1,6 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  NavigationContainer,
-} from '@react-navigation/native';
+import {NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useEffect, useState} from 'react';
-// import {useDispatch, useSelector} from 'react-redux';
-// import {toggleTheme} from '../../redux/theme/ThemeSlice';
 import ScreenNames from '../strings/ScreenNames';
 import LoginScreen from './screens/authentication/LoginScreen';
 import Onboarding from './screens/onboarding/Onboarding';
@@ -15,11 +9,7 @@ import SignupScreen from './screens/authentication/SignupScreen';
 import VerificationScreen from './screens/authentication/VerificationScreen';
 import EnterDetails from './screens/authentication/EnterDetails';
 import {useDispatch, useSelector} from 'react-redux';
-import HomeScreen from './screens/home/HomeScreen';
 import {TopTabNavigator} from './TopTabNavigator';
-import {StyleSheet, Text, View} from 'react-native';
-import {commonStyles} from '../styles/commonStyles';
-import LoadingPage from '../components/LoadingPage';
 import NewChatPage from './screens/NewChatPage';
 import AppearenceSettings from './screens/settings/AppearenceSettings';
 import BackupNRestore from './screens/settings/BackupNRestore';
@@ -27,6 +17,7 @@ import PrivacySettings from './screens/settings/PrivacySettings';
 import {setLoadingState} from '../../redux/loading/LoadingSlice';
 import {toggleTheme} from '../../redux/theme/ThemeSlice';
 import ChatScreen from './screens/chat/ChatScreen';
+import ProfileSettings from './screens/settings/ProfileSettings';
 
 export default StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -48,7 +39,7 @@ export default StackNavigator = () => {
       //     loading: false,
       //   };
       // });
-      console.log({themeRef});
+      // console.log({themeRef});
       setTheme({
         colors:
           themeRef.themeMode == 'light'
@@ -82,6 +73,10 @@ export default StackNavigator = () => {
       />
       <Stack.Screen name={ScreenNames.NewChatPage} component={NewChatPage} />
       <Stack.Screen name={ScreenNames.ChatPage} component={ChatScreen} />
+      <Stack.Screen
+        name={ScreenNames.TopTabInnerScreens.ProfileSettings}
+        component={ProfileSettings}
+      />
       <Stack.Screen
         name={ScreenNames.TopTabInnerScreens.Appearence}
         component={AppearenceSettings}

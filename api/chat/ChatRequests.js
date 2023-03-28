@@ -24,7 +24,7 @@ export const getUserHomepageChats = async username => {
   }
 };
 
-export const checkForUserInRecord = async contactArray => {
+export const checkForUserInRecord = async (contactArray, currentUserName) => {
   // console.log('runnin');
   let contactArrayToReturn = [];
   try {
@@ -52,17 +52,20 @@ export const checkForUserInRecord = async contactArray => {
         // console.log({phonenumberFinal: phonenumber});
         let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/credentials/${phonenumber}.json`;
         const response = await apiRequest(url, 'GET');
+
         if (response.isError && response.error !== 'noData') {
           return {
             isError: true,
             error: response.error,
           };
         }
-        if (!response.isError) {
-          let username = response.data.email
-            .replaceAll('-', '---')
-            .replaceAll('.', '-')
-            .replaceAll('@', '--');
+        // console.log({friendsAtHome2: response.data, currentUserName});
+
+        if (!response.isError && response.data.username != currentUserName) {
+          // console.log({currentUserName});
+
+          let username = response.data.username;
+          // console.log({usernameInScan: username});
           url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
           const response2 = await apiRequest(url, 'GET');
           if (response2.isError && response2.error !== 'noData') {
@@ -73,6 +76,7 @@ export const checkForUserInRecord = async contactArray => {
           }
           if (!response2.isError) {
             contactArrayToReturn.push({
+              username,
               email: response2.data.email,
               firstName: response2.data.firstName,
               lastName: response2.data.lastName,

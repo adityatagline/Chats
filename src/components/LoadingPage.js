@@ -55,3 +55,41 @@ export default LoadingPage = ({dark, loadingText = ''}) => {
     </View>
   );
 };
+
+export const BaseLoader = ({
+  dark,
+  loadingText = 'Please wait',
+  size = Platform.OS == 'adnroid' ? 30 : 'small',
+  containerStyle,
+  textStyle,
+  loaderStyle,
+}) => {
+  const styles = StyleSheet.create({
+    waitingMessage: {
+      fontFamily: FontfamiliesNames.primaryFontSemiBold,
+      fontSize: 16,
+      marginVertical: 10,
+      color: dark
+        ? colorStrings.darkThemeColors.appThemeColor
+        : colorStrings.lightThemeColors.appThemeColor,
+      marginHorizontal: widthPercentageToDP(20),
+      textAlign: 'center',
+    },
+  });
+  return (
+    <View style={[containerStyle]}>
+      <ActivityIndicator
+        size={size}
+        color={
+          dark
+            ? colorStrings.darkThemeColors.appThemeColor
+            : colorStrings.lightThemeColors.appThemeColor
+        }
+        style={[loaderStyle]}
+      />
+      {!!loadingText && (
+        <Text style={[styles.waitingMessage, textStyle]}>{loadingText}</Text>
+      )}
+    </View>
+  );
+};

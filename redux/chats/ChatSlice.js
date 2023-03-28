@@ -1,131 +1,124 @@
 import {createSlice} from '@reduxjs/toolkit';
-import {act} from 'react-test-renderer';
-import {isTemplateLiteralTypeNode} from 'typescript';
-import {getUsernameFromEmail} from '../../src/components/CommonFunctions';
+const initialValues = {
+  homepageChats: [
+    // {
+    //   message:
+    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
+    //   from: 'adityat-tagline--gmail-com',
+    //   to: 'yash-dhola-tagline--gmail-com',
+    //   time: '2023-02-05T05:26:24.160Z',
+    // },
+    // {
+    //   message: 'adjajs',
+    //   to: 'adityat-tagline--gmail-com',
+    //   from: 'yash-dhola-tagline--gmail-com',
+    //   time: '2023-02-09T05:26:24.160Z',
+    // },
+    // {
+    //   message: 'adjiucjnNAJN;audjs',
+    //   from: 'adityat-tagline--gmail-com',
+    //   to: 'kevin-tagline--gmail-com',
+    //   time: '2023-01-09T05:26:24.160Z',
+    // },
+    // {
+    //   message: 'adjSHDLUhaduhIUNAJN;audjs',
+    //   to: 'adityat-tagline--gmail-com',
+    //   from: 'kevin-tagline--gmail-com',
+    //   time: '2023-02-05T05:26:24.160Z',
+    // },
+    // {
+    //   message: 'adjasdlahscbacjk jacbaAJN;audjs',
+    //   from: 'adityat-tagline--gmail-com',
+    //   to: 'yash-dhola-tagline--gmail-com',
+    //   time: '2023-02-09T01:26:24.160Z',
+    // },
+    // {
+    //   message:
+    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
+    //   to: 'adityat-tagline--gmail-com',
+    //   from: 'yash-dhola-tagline--gmail-com',
+    //   time: '2023-02-09T05:26:24.160Z',
+    // },
+    // {
+    //   message:
+    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
+    //   from: 'adityat-tagline--gmail-com',
+    //   to: 'kevin-tagline--gmail-com',
+    //   time: '2023-02-09T05:26:24.160Z',
+    // },
+    // {
+    //   message:
+    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjsadjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
+    //   to: 'adityat-tagline--gmail-com',
+    //   from: 'kevin-tagline--gmail-com',
+    //   time: '2023-02-09T05:26:24.160Z',
+    // },
+    // {
+    //   message:
+    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
+    //   to: 'adityat-tagline--gmail-com',
+    //   from: 'dhruvi-tagline--gmail-com',
+    //   time: '2023-02-09T05:26:24.160Z',
+    // },
+  ],
+  individualChats: {},
+  friends: {},
+  unseenChats: [],
+};
 
 const Chatslice = createSlice({
   name: 'chatSlice',
-  initialState: {
-    aliasNames: {
-      ['yash-dhola-tagline--gmail-com']: 'yashdholacollage and',
-      ['kevin-tagline--gmail-com']: 'kevin solanki clg',
-    },
-    homepageChats: [
-      // {
-      //   message:
-      //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-      //   from: 'adityat-tagline--gmail-com',
-      //   to: 'yash-dhola-tagline--gmail-com',
-      //   time: '2023-02-05T05:26:24.160Z',
-      // },
-      // {
-      //   message: 'adjajs',
-      //   to: 'adityat-tagline--gmail-com',
-      //   from: 'yash-dhola-tagline--gmail-com',
-      //   time: '2023-02-09T05:26:24.160Z',
-      // },
-      // {
-      //   message: 'adjiucjnNAJN;audjs',
-      //   from: 'adityat-tagline--gmail-com',
-      //   to: 'kevin-tagline--gmail-com',
-      //   time: '2023-01-09T05:26:24.160Z',
-      // },
-      // {
-      //   message: 'adjSHDLUhaduhIUNAJN;audjs',
-      //   to: 'adityat-tagline--gmail-com',
-      //   from: 'kevin-tagline--gmail-com',
-      //   time: '2023-02-05T05:26:24.160Z',
-      // },
-      // {
-      //   message: 'adjasdlahscbacjk jacbaAJN;audjs',
-      //   from: 'adityat-tagline--gmail-com',
-      //   to: 'yash-dhola-tagline--gmail-com',
-      //   time: '2023-02-09T01:26:24.160Z',
-      // },
-      // {
-      //   message:
-      //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-      //   to: 'adityat-tagline--gmail-com',
-      //   from: 'yash-dhola-tagline--gmail-com',
-      //   time: '2023-02-09T05:26:24.160Z',
-      // },
-      // {
-      //   message:
-      //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-      //   from: 'adityat-tagline--gmail-com',
-      //   to: 'kevin-tagline--gmail-com',
-      //   time: '2023-02-09T05:26:24.160Z',
-      // },
-      // {
-      //   message:
-      //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjsadjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-      //   to: 'adityat-tagline--gmail-com',
-      //   from: 'kevin-tagline--gmail-com',
-      //   time: '2023-02-09T05:26:24.160Z',
-      // },
-      // {
-      //   message:
-      //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-      //   to: 'adityat-tagline--gmail-com',
-      //   from: 'dhruvi-tagline--gmail-com',
-      //   time: '2023-02-09T05:26:24.160Z',
-      // },
-    ],
-    individualChats: {},
-    friends: {},
-  },
+  initialState: {...initialValues},
   reducers: {
     storeMessage: (state, action) => {
-      console.log({state, action});
-      let {username, chatName} = action.payload.receiverObject;
-      let personChat = state.individualChats[username];
+      let {otherUser} = action.payload.receiverObject;
+      let personChat = state.individualChats[otherUser];
       if (!personChat) {
-        personChat = [{...action.payload.chatObject}];
+        personChat = [{...action.payload.chatObject, otherUser}];
       } else {
-        personChat = [{...action.payload.chatObject}, ...personChat];
+        personChat = [{...action.payload.chatObject, otherUser}, ...personChat];
       }
-      let homeScreenChats = state.homepageChats;
-      console.log('running 1');
+      let homepageChats = state.homepageChats;
       let objectToSet = {
         ...action.payload.chatObject,
         ...action.payload.receiverObject,
+        chatName: !!state.friends[otherUser]
+          ? state.friends[otherUser].contactName
+          : otherUser,
       };
-      if (homeScreenChats.length == 0) {
-        homeScreenChats = [{...objectToSet}];
+      if (homepageChats.length == 0) {
+        homepageChats = [{...objectToSet}];
       } else {
-        console.log('running 3');
-
         let isIncluded = false;
-        homeScreenChats.map((item, index) => {
-          if (item.username == username) {
+        homepageChats.map((item, index) => {
+          if (item.otherUser == otherUser) {
             isIncluded = true;
           }
         });
 
         if (isIncluded) {
-          homeScreenChats = homeScreenChats.filter(
-            item => item.username != username,
+          homepageChats = homepageChats.filter(
+            item => item.otherUser != otherUser,
           );
         }
-        homeScreenChats = [{...objectToSet}, ...homeScreenChats];
+        homepageChats = [{...objectToSet}, ...homepageChats];
       }
       return {
         ...state,
-        homepageChats: [...homeScreenChats],
+        homepageChats: [...homepageChats],
         individualChats: !!state.individualChats
           ? {
+              [otherUser]: [...personChat],
               ...state.individualChats,
-              [username]: [...personChat],
             }
-          : {[username]: [...personChat]},
+          : {[otherUser]: [...personChat]},
       };
     },
     storeFriends: (state, actions) => {
-      console.log({payload: actions.payload});
+      // console.log({payload: actions.payload});
       let objectToSet = {};
       actions.payload.forEach(element => {
-        let username = getUsernameFromEmail(element.email);
-        objectToSet[username] = {...element, username};
+        objectToSet[element.username] = {...element};
       });
       return {
         ...state,
@@ -134,8 +127,107 @@ const Chatslice = createSlice({
         },
       };
     },
+    checkAndStoreNewMessages: (state, action) => {
+      let newState = {...state};
+
+      action.payload.messageArray.forEach(element => {
+        let {otherUser} = element;
+        console.log({otherUser});
+
+        let chatName = !!newState.friends[otherUser]
+          ? newState.friends[otherUser].contactName
+          : otherUser;
+        console.log({chatName});
+
+        let itemFound = !!newState.individualChats[otherUser]
+          ? newState.individualChats[otherUser].find(
+              innerItem => innerItem.id == element.id,
+            )
+          : {};
+        console.log({itemFound});
+
+        let isExistInIndividual =
+          !!newState.individualChats[otherUser] &&
+          !!itemFound &&
+          Object.keys({...itemFound}).length != 0;
+
+        console.log({isExistInIndividual});
+
+        itemFound = newState.homepageChats.find(
+          innerItem => innerItem.id == element.id,
+        );
+        console.log({itemFound});
+
+        let isExistInHome =
+          !!itemFound && Object.keys({...itemFound}).length != 0;
+        console.log({isExistInHome});
+
+        itemFound = newState.homepageChats.find(
+          innerItem => innerItem.otherUser == element.otherUser,
+        );
+        console.log({itemFound});
+
+        let isRecordExistInHome =
+          !!itemFound && Object.keys({...itemFound}).length != 0;
+        console.log({isRecordExistInHome});
+
+        if (!isExistInIndividual) {
+          console.log({isExistInIndividual});
+
+          newState = {
+            ...newState,
+            individualChats: {
+              ...newState.individualChats,
+              [otherUser]: !!newState.individualChats[otherUser]
+                ? [{...element}, ...newState.individualChats[otherUser]]
+                : [{...element}],
+            },
+          };
+        }
+        if (!isExistInHome) {
+          console.log({isExistInHome, isRecordExistInHome});
+
+          let newArrayForHome = [];
+          if (!isRecordExistInHome) {
+            newArrayForHome = [
+              {...element, chatName},
+              ...newState.homepageChats,
+            ];
+          } else {
+            newArrayForHome = newState.homepageChats.filter(
+              innerItem => innerItem.otherUser != element.otherUser,
+            );
+            newArrayForHome = [{...element, chatName}, ...newArrayForHome];
+          }
+          newState = {
+            ...newState,
+            homepageChats: [...newArrayForHome],
+          };
+        }
+      });
+      return {...newState};
+    },
+    removeUnseenChats: (state, action) => {
+      let newArrayToSet = [...state.unseenChats];
+      newArrayToSet = newArrayToSet.filter(item => item != action.payload);
+      return {
+        ...state,
+        unseenChats: [...newArrayToSet],
+      };
+    },
+    clearAllChats: (state, actions) => {
+      return {
+        ...initialValues,
+      };
+    },
   },
 });
 
-export const {storeMessage, storeFriends} = Chatslice.actions;
+export const {
+  storeMessage,
+  storeFriends,
+  clearAllChats,
+  checkAndStoreNewMessages,
+  removeUnseenChats,
+} = Chatslice.actions;
 export default Chatslice.reducer;

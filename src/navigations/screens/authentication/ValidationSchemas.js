@@ -70,7 +70,7 @@ export const newUserDetails = Yup.object({
       /^\S*$/,
       'Last Name not contain any special characters or whitespace !!',
     )
-    .matches(/^\D*$/, 'Name sould not contain any number !!')
+    .matches(/^\D*$/, 'Name should not contain any number !!')
     .min(3)
     .max(20),
   age: Yup.string()
@@ -78,4 +78,8 @@ export const newUserDetails = Yup.object({
     .matches(/^\d*$/, 'Enter your age !!')
     .min(1)
     .max(3),
+  userName: Yup.string()
+    .required('Enter username !!')
+    .min(6, 'Minimum 6 charachters are required')
+    .max(20, 'Maximum 20 characters are allowed'),
 });

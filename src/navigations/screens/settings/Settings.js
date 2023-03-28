@@ -2,19 +2,13 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
-  ScrollView,
   TouchableOpacity,
-  NativeModules,
+  Alert,
+  Image,
 } from 'react-native';
-import React, {useEffect} from 'react';
-import PageHeading from './PageHeading';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  commonStyles,
-  fontSize,
-  StatusBarHeight,
-} from '../../../styles/commonStyles';
+import {useEffect, React} from 'react';
+import IoniconsIcon from 'react-native-vector-icons/Ionicons';
+import {commonStyles, fontSize} from '../../../styles/commonStyles';
 import {
   useIsFocused,
   useNavigation,
@@ -27,15 +21,62 @@ import {
 } from 'react-native-responsive-screen';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import ScreenNames from '../../../strings/ScreenNames';
+import {useDispatch, useSelector} from 'react-redux';
+import {logout} from '../../../../redux/authentication/AuthenticationSlice';
+import {clearAllChats} from '../../../../redux/chats/ChatSlice';
 
 export default Settings = props => {
-  const PageName = () => {
-    return <Text style={styles.pageHeading}>Settings</Text>;
-  };
+  const themeRef = useTheme();
+  const styles = StyleSheet.create({
+    ...commonStyles,
+    mainDiv: {
+      backgroundColor: themeRef.colors.primaryColor,
+      flex: 1,
+      paddingTop: hp(10),
+      paddingHorizontal: wp(7),
+    },
+    pageHeading: {
+      marginLeft: '10%',
+      fontSize: 25,
+      fontWeight: 'bold',
+    },
+    settingItem: {
+      flexDirection: 'row',
+      marginVertical: '1%',
+      paddingVertical: '4%',
+      marginHorizontal: wp(2),
+      borderRadius: 15,
+      alignItems: 'center',
+    },
+    settingItemIcon: {
+      paddingRight: '5%',
+      alignSelf: 'center',
+    },
+    settingItemLabel: {
+      fontSize: fontSize.large,
+      fontFamily: FontfamiliesNames.primaryFontSemiBold,
+      color: themeRef.colors.secondaryColor,
+      alignSelf: 'center',
+    },
+    listDiv: {
+      marginTop: '5%',
+    },
+    userInfo: {
+      fontSize: fontSize.big,
+      fontFamily: FontfamiliesNames.primaryFontBold,
+      color: themeRef.colors.secondaryColor,
+    },
+    fieldName: {
+      fontFamily: FontfamiliesNames.primaryFontMedium,
+      color: themeRef.colors.appThemeColor,
+    },
+  });
+
   const navigation = useNavigation();
   const route = useRoute();
   const isFocused = useIsFocused();
-  const themeRef = useTheme();
+  const dispatch = useDispatch();
+  const user = useSelector(state => state.authenticationSlice).user;
 
   useEffect(() => {
     isFocused && props.setterFunction(route.name);
@@ -56,7 +97,7 @@ export default Settings = props => {
       <TouchableOpacity
         onPress={onPress}
         style={[styles.settingItem, customContainerStyle]}>
-        <Icon
+        <IoniconsIcon
           name={itemIcon}
           size={30}
           color={themeRef.colors.secondaryColor}
@@ -67,75 +108,148 @@ export default Settings = props => {
     );
   };
 
-  const styles = StyleSheet.create({
-    ...commonStyles,
-    mainDiv: {
-      backgroundColor: themeRef.colors.primaryColor,
-      flex: 1,
-      paddingTop: hp(10),
-    },
-    pageHeading: {
-      // backgroundColor: "yellow",
-      // flex: 1,
-      // textAlign: "center",
-      marginLeft: '10%',
-      fontSize: 25,
-      fontWeight: 'bold',
-    },
-    settingItem: {
-      // backgroundColor: "yellow",
-      flexDirection: 'row',
-      marginVertical: '1%',
-      paddingVertical: '4%',
-      marginHorizontal: wp(2),
-      borderRadius: 15,
-      alignItems: 'center',
-    },
-    settingItemIcon: {
-      paddingRight: '5%',
-      alignSelf: 'center',
-    },
-    settingItemLabel: {
-      fontSize: fontSize.large,
-      fontFamily: FontfamiliesNames.primaryFontSemiBold,
-      color: themeRef.colors.secondaryColor,
-      alignSelf: 'center',
-      // fontWeight: "bold",
-    },
-    listDiv: {
-      marginTop: '5%',
-    },
-  });
+  const logoutUser = () => {
+    Alert.alert(
+      'Have you backed up ?',
+      'All your data will be wiped out from your local storage. \nSo double check if you have backed up or not.',
+      [
+        {
+          text: 'yes, I backed up',
+          style: 'destructive',
+          onPress: async () => await showFinalPopUp(),
+        },
+        {
+          text: 'cancel',
+          style: 'cancel',
+        },
+      ],
+    );
+  };
+
+  const showFinalPopUp = async () => {
+    Alert.alert('Are you sure ?', 'want to logout from app ?', [
+      {
+        text: 'yes, log out',
+        style: 'destructive',
+        onPress: async () => {
+          dispatch(clearAllChats());
+          dispatch(logout());
+        },
+      },
+      {
+        text: 'cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
 
   return (
     <View style={[styles.screenStyle, styles.mainDiv]}>
-      <ScrollView style={styles.listDiv}>
-        <SettingItem
-          title={'Appearence'}
-          itemIcon={'color-palette-outline'}
-          onPress={goToScreen.bind(
-            this,
-            ScreenNames.TopTabInnerScreens.Appearence,
-          )}
+      <View
+        style={[
+          styles.settingItem,
+          {
+            marginTop: hp(2),
+          },
+        ]}>
+        {/* <View> */}
+        <Image
+          source={require('../../../images/banana.png')}
+          style={{
+            height: hp(8),
+            width: hp(8),
+            borderRadius: 30,
+            alignSelf: 'center',
+            marginRight: wp(3),
+          }}
         />
-        <SettingItem
-          title={'Privacy and Security'}
-          itemIcon={'shield-outline'}
-          onPress={goToScreen.bind(
-            this,
-            ScreenNames.TopTabInnerScreens.PrivacyNSecurity,
-          )}
-        />
-        <SettingItem
-          title={'Backup and Restore'}
-          itemIcon={'cloud-upload-outline'}
-          onPress={goToScreen.bind(
-            this,
-            ScreenNames.TopTabInnerScreens.BackupNRestore,
-          )}
-        />
-        <SettingItem title={'Log out'} itemIcon={'exit-outline'} />
-      </ScrollView>
+        {/* <IconButton
+            name="pencil"
+            size={20}
+            color={themeRef.colors.primaryColor}
+            containerStyle={{
+              backgroundColor: themeRef.colors.appThemeColor,
+              height: hp(4),
+              width: hp(4),
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 16,
+              position: 'absolute',
+              bottom: hp(2),
+              // alignSelf: 'center',
+              marginLeft: wp(52),
+            }}
+          /> */}
+        {/* </View> */}
+        <View>
+          <Text style={[styles.userInfo, styles.fieldName]}>
+            name :{' '}
+            <Text style={styles.userInfo}>
+              {user.firstName} {user.lastName}
+            </Text>
+          </Text>
+          <Text style={[styles.userInfo, styles.fieldName]}>
+            username : <Text style={styles.userInfo}>{user.username}</Text>
+          </Text>
+          <Text style={[styles.userInfo, styles.fieldName]}>
+            phone : <Text style={styles.userInfo}>{user.phone}</Text>
+          </Text>
+        </View>
+        {/* <IconButton
+          name="pencil"
+          size={20}
+          color={themeRef.colors.primaryColor}
+          containerStyle={{
+            backgroundColor: themeRef.colors.appThemeColor,
+            height: hp(4),
+            width: hp(4),
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 16,
+            position: 'absolute',
+            // alignSelf: 'center',
+            right: wp(2),
+          }}
+        /> */}
+      </View>
+
+      <SettingItem
+        title={'Edit Profile'}
+        itemIcon={'create-outline'}
+        onPress={goToScreen.bind(
+          this,
+          ScreenNames.TopTabInnerScreens.ProfileSettings,
+        )}
+      />
+      <SettingItem
+        title={'Appearence'}
+        itemIcon={'color-palette-outline'}
+        onPress={goToScreen.bind(
+          this,
+          ScreenNames.TopTabInnerScreens.Appearence,
+        )}
+      />
+      <SettingItem
+        title={'Privacy and Security'}
+        itemIcon={'shield-outline'}
+        onPress={goToScreen.bind(
+          this,
+          ScreenNames.TopTabInnerScreens.PrivacyNSecurity,
+        )}
+      />
+      <SettingItem
+        title={'Backup and Restore'}
+        itemIcon={'cloud-upload-outline'}
+        onPress={goToScreen.bind(
+          this,
+          ScreenNames.TopTabInnerScreens.BackupNRestore,
+        )}
+      />
+      <SettingItem
+        title={'Log out'}
+        itemIcon={'exit-outline'}
+        onPress={logoutUser}
+      />
     </View>
   );
 };

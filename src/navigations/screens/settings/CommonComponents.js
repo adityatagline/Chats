@@ -1,30 +1,18 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  ScrollView,
-  TouchableOpacity,
-  NativeModules,
-  Appearance,
-} from 'react-native';
+import {memo} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation, useTheme} from '@react-navigation/native';
-import FontfamiliesNames from '../../../strings/FontfamiliesNames';
-import {fontSize} from '../../../styles/commonStyles';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {memo} from 'react';
+import FontfamiliesNames from '../../../strings/FontfamiliesNames';
+import {fontSize} from '../../../styles/commonStyles';
 
 export const PageName = memo(({name, customStyle}) => {
   const themeRef = useTheme();
   const styles = StyleSheet.create({
     pageHeading: {
-      // backgroundColor: "yellow",
-      // flex: 1,
-      // textAlign: "center",
       marginLeft: wp(10),
       fontSize: fontSize.heading,
       fontFamily: FontfamiliesNames.primaryFontBold,
@@ -39,7 +27,6 @@ export const SettingItem = memo(
     const themeRef = useTheme();
     const styles = StyleSheet.create({
       settingItem: {
-        // backgroundColor: "yellow",
         flexDirection: 'row',
         marginVertical: hp(1),
         paddingVertical: hp(1),
@@ -51,10 +38,10 @@ export const SettingItem = memo(
         paddingRight: wp(5),
       },
       settingItemLabel: {
-        // fontWeight: "bold",
         fontSize: fontSize.large,
         fontFamily: FontfamiliesNames.primaryFontSemiBold,
         color: themeRef.colors.secondaryColor,
+        flex: 1,
       },
     });
     return (
@@ -94,16 +81,7 @@ export const PageHeading = memo(
     };
 
     const styles = StyleSheet.create({
-      mainDiv: {
-        // backgroundColor: "red",
-        // marginTop: "50%",
-      },
-      backButtonIcon: {
-        // backgroundColor: "lightblue",
-        // paddingHorizontal: "3%",
-      },
       backButtonDiv: {
-        // backgroundColor: "lightblue",
         flexDirection: 'row',
         alignItems: 'center',
         alignSelf: 'flex-start',

@@ -32,6 +32,7 @@ export default SignupScreen = () => {
   const passwordRef2 = useRef(0);
   const [validationError, setValidationError] = useState('');
   const [verificationFunction, setVerificationFunction] = useState();
+  // console.log({verificationFunction});
   const [loading, setLoading] = useState('');
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -93,7 +94,7 @@ export default SignupScreen = () => {
     }
   };
   const submitPassword2 = (func, errors, value) => {
-    console.log(value);
+    // console.log(value);
     if (!!errors.phone) {
       phoneRef.current.focus();
       func({phone: true});
@@ -166,21 +167,23 @@ export default SignupScreen = () => {
 
   const signup = async values => {
     // Alert.alert('see', values.email.replaceAll('.', '-').replaceAll('@', '--'));
-    console.log('values');
-    console.log(values);
+    // console.log('values');
+    // console.log(values);
     setLoading('Registering you into our sweet record ..');
     const signupresponse = await signinToFirebase({
       email: values.email,
       password: values.password,
       phone: values.phone,
     });
+    // console.log({signupresponse});
+    setLoading('');
+
     if (!!signupresponse.isError) {
       Alert.alert('Oops', ErrorCodes[signupresponse.error].message);
       return;
     }
     setVerificationFunction({...signupresponse.response});
-    setLoading('');
-    console.log(signupresponse.response);
+    // console.log(signupresponse.response);
     // setShowOtpModal(true);
   };
 
@@ -218,10 +221,10 @@ export default SignupScreen = () => {
 
             <Formik
               initialValues={{
-                phone: '',
-                email: '',
-                password: '',
-                password2: '',
+                phone: '5555228243',
+                email: 'test@test.com',
+                password: '00000000aA',
+                password2: '00000000aA',
               }}
               validationSchema={SignupValidationSchema}>
               {({values, touched, errors, setFieldValue, setTouched}) => (

@@ -42,4 +42,7 @@ export const commonStyles = StyleSheet.create({
     marginVertical: 5,
     // paddingHorizontal: 25,
   },
+  topSpacer: {
+    marginTop: StatusBarHeight,
+  },
 });

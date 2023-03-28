@@ -32,97 +32,42 @@ import ScreenNames from '../../strings/ScreenNames';
 import {getUsernameFromEmail} from '../../components/CommonFunctions';
 import {storeFriends} from '../../../redux/chats/ChatSlice';
 
+export const getContacts = async (
+  setterFunc,
+  loaderFunc,
+  dispatch,
+  username,
+) => {
+  try {
+    const contacts = await getAll();
+    const response = await checkForUserInRecord([...contacts], username);
+    if (!response.isError) {
+      !!setterFunc && setterFunc([...response.users]);
+    }
+    !!loaderFunc && loaderFunc(false);
+    dispatch(storeFriends([...response.users]));
+  } catch (error) {
+    // console.log({error});
+    !!loaderFunc && loaderFunc(false);
+  }
+};
+
+export const askPermissionAsync = async (
+  setContactList,
+  loaderFunc,
+  dispatch,
+  username,
+) => {
+  try {
+    const permissionResult = await PermissionsAndroid.request(
+      'android.permission.READ_CONTACTS',
+    );
+    getContacts(setContactList, loaderFunc, dispatch, username);
+  } catch (error) {}
+};
+
 export default NewChatPage = () => {
   const themeRef = useTheme();
-  const navigation = useNavigation();
-  const dispatch = useDispatch();
-  const [contactList, setContactList] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [intervalID, setIntervalID] = useState();
-  const bookAnimation = useRef(
-    new Animated.ValueXY({
-      x: hp(40),
-      y: wp(44),
-    }),
-  ).current;
-
-  useEffect(() => {
-    if (isLoading) {
-      const id = animateBook(
-        bookAnimation,
-        {
-          x: hp(38),
-          y: wp(46),
-        },
-        {
-          x: hp(40),
-          y: wp(48),
-        },
-        {
-          x: hp(42),
-          y: wp(46),
-        },
-        {
-          x: hp(40),
-          y: wp(44),
-        },
-        4000,
-      );
-      setIntervalID(id);
-    } else {
-      !!intervalID && clearInterval(intervalID);
-    }
-  }, [isLoading]);
-
-  const askPermissionAsync = async () => {
-    try {
-      const permissionResult = await PermissionsAndroid.request(
-        'android.permission.READ_CONTACTS',
-      );
-      console.log('permissionResult');
-      console.log(permissionResult);
-      getContacts();
-    } catch (error) {}
-  };
-
-  const getContacts = async () => {
-    try {
-      const contacts = await getAll();
-      console.log({contacts});
-      const response = await checkForUserInRecord([...contacts]);
-      console.log({response});
-      if (!response.isError) {
-        setContactList([...response.users]);
-      }
-      setIsLoading(false);
-      dispatch(storeFriends([...response.users]));
-    } catch (error) {
-      console.log({contactsError: error});
-      setIsLoading(false);
-      // dispatch(
-      //   setLoadingState(pre => {
-      //     return {
-      //       ...pre,
-      //       loading: false,
-      //     };
-      //   }),
-      // );
-    }
-  };
-
-  const goToChatPage = item => {
-    navigation.replace(ScreenNames.ChatPage, {
-      userInfo: {...item},
-      username: getUsernameFromEmail(item.email),
-    });
-  };
-
-  useEffect(() => {
-    // console.log('useeff');
-    Platform.OS == 'android' && askPermissionAsync();
-    Platform.OS == 'ios' && getContacts();
-  }, []);
-
   const styles = StyleSheet.create({
     ...commonStyles,
     mainDiv: {
@@ -179,7 +124,91 @@ export default NewChatPage = () => {
       height: hp(4),
       width: hp(4),
     },
+    loadingText: {
+      position: 'absolute',
+      top: hp(50),
+      alignSelf: 'center',
+      color: themeRef.colors.appThemeColor,
+      fontFamily: FontfamiliesNames.primaryFontSemiBold,
+      fontSize: fontSize.medium,
+      width: wp(60),
+      textAlign: 'center',
+    },
   });
+
+  const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const chatSliceRef = useSelector(state => state.chatSlice);
+  const authenticationSliceRef = useSelector(
+    state => state.authenticationSlice,
+  );
+  const [contactList, setContactList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [intervalID, setIntervalID] = useState();
+  const bookAnimation = useRef(
+    new Animated.ValueXY({
+      x: hp(40),
+      y: wp(44),
+    }),
+  ).current;
+
+  useEffect(() => {
+    let arrayToSet = [];
+    for (const user in chatSliceRef.friends) {
+      arrayToSet.push({...chatSliceRef.friends[user]});
+    }
+    setContactList([...arrayToSet]);
+    if (isLoading) {
+      const id = animateBook(
+        bookAnimation,
+        {
+          x: hp(38),
+          y: wp(46),
+        },
+        {
+          x: hp(40),
+          y: wp(48),
+        },
+        {
+          x: hp(42),
+          y: wp(46),
+        },
+        {
+          x: hp(40),
+          y: wp(44),
+        },
+        4000,
+      );
+      setIntervalID(id);
+    } else {
+      !!intervalID && clearInterval(intervalID);
+    }
+  }, [isLoading]);
+
+  const goToChatPage = item => {
+    navigation.replace(ScreenNames.ChatPage, {
+      userInfo: {...item},
+      chatName: item.contactName,
+    });
+  };
+
+  useEffect(() => {
+    // console.log('useeff');
+    Platform.OS == 'android' &&
+      askPermissionAsync(
+        setContactList,
+        setIsLoading,
+        dispatch,
+        authenticationSliceRef.user.username,
+      );
+    Platform.OS == 'ios' &&
+      getContacts(
+        setContactList,
+        setIsLoading,
+        dispatch,
+        authenticationSliceRef.user.username,
+      );
+  }, []);
 
   const renderContact = ({item}) => {
     return (
@@ -231,7 +260,7 @@ export default NewChatPage = () => {
         />
         <Text style={styles.pageHeading}>Contacts</Text>
       </View>
-      {isLoading && (
+      {isLoading && contactList.length == 0 && (
         <Animated.View
           ref={bookAnimation}
           style={{
@@ -242,24 +271,18 @@ export default NewChatPage = () => {
           <Icon name="book" color={themeRef.colors.appThemeColor} size={50} />
         </Animated.View>
       )}
-      {isLoading && (
-        <Text
-          style={{
-            position: 'absolute',
-            top: hp(50),
-            alignSelf: 'center',
-            color: themeRef.colors.appThemeColor,
-            fontFamily: FontfamiliesNames.primaryFontSemiBold,
-            fontSize: fontSize.medium,
-            width: wp(60),
-            textAlign: 'center',
-          }}>
+      {isLoading && contactList.length == 0 && (
+        <Text style={styles.loadingText}>
           Checking for your new chat mate ..
         </Text>
       )}
-
-      {!isLoading && contactList.length != 0 && <SearchPage />}
-      {!isLoading && contactList.length != 0 && (
+      {contactList.length == 0 && !isLoading && (
+        <Text style={styles.loadingText}>
+          No one contact of yours are available on app.
+        </Text>
+      )}
+      {contactList.length != 0 && <SearchPage />}
+      {contactList.length != 0 && (
         <FlatList
           data={contactList}
           renderItem={renderContact}

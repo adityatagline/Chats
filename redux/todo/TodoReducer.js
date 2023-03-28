@@ -26,11 +26,11 @@ export const initialTodos = {
 };
 
 export default StoreReducer = (state = {...initialTodos}, action) => {
-  console.log(state, action);
+  // console.log(state, action);
   let arrayToReturn;
   switch (action.type) {
     case todoActionTypes.ADD_REMINDER:
-      console.log('adding');
+      // console.log('adding');
       return {
         ...state,
         reminders: [{...action.payload}, ...state.reminders],

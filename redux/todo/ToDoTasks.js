@@ -30,8 +30,8 @@ export default ToDoTasks = () => {
   };
 
   const readyForEdit = reminder => {
-    console.log('reminder');
-    console.log(reminder);
+    // console.log('reminder');
+    // console.log(reminder);
     setReminder(reminder.reminder);
     setEditReminderID(reminder.id);
   };

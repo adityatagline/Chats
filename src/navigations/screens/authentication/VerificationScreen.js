@@ -29,11 +29,12 @@ export default VerificationScreen = ({userDetails}) => {
   const navigation = useNavigation();
   const otpRef = useRef(0);
   const [verificationFunction, setVerificationFunction] = useState(
-    userDetails.sendOtpCode.response,
+    userDetails.sendOtpCode,
   );
+  // console.log({userDetails, verificationFunction});
   const [loading, setloading] = useState('');
-  console.log('userDetails');
-  console.log(userDetails);
+  // console.log('userDetails');
+  // console.log(userDetails);
   // console.log('verificationFunction');
   // console.log(verificationFunction);
   // : {signinUsingPhone: true};
@@ -51,14 +52,15 @@ export default VerificationScreen = ({userDetails}) => {
   };
 
   const submitOtp = async number => {
-    console.log('number');
-    console.log(number);
+    // console.log('number');
+    // console.log(number);
     setloading('Verifying otp ..');
     try {
+      // console.log({verificationFunction});
       const verifyOtp = await verificationFunction.confirm(number);
       setloading('');
-      console.log('verifyOtp');
-      console.log(verifyOtp);
+      // console.log('verifyOtp');
+      // console.log(verifyOtp);
       Alert.alert('Success!!');
       const setVerified = await verifyTheUser({...userDetails});
       const logout = await logoutFromAuth();
@@ -66,11 +68,19 @@ export default VerificationScreen = ({userDetails}) => {
         Alert.alert('Oops', ErrorCodes[logout.error].message);
         return;
       }
-      navigation.navigate(ScreenNames.LoginScreen);
+      // navigation.navigate(ScreenNames.LoginScreen);
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: ScreenNames.LoginScreen,
+          },
+        ],
+      });
     } catch (error) {
       // console.log('error-ajsdoajskdosjkdoasjk');
-      // console.log(error.code);
-      Alert.alert('Oops!!', ErrorCodes[error.code.toString()].message);
+      // console.log(error);
+      // Alert.alert('Oops!!', ErrorCodes[error.code.toString()].message);
     }
     setloading('');
   };

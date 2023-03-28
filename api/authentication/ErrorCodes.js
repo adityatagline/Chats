@@ -2,6 +2,9 @@ export default errorCodes = {
   ['auth/user-not-found']: {
     message: 'User not found !!',
   },
+  ['auth/noData']: {
+    message: 'User not found !!',
+  },
   ['auth/wrong-password']: {
     message: 'Wrong password !!',
   },

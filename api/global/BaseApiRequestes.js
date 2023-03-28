@@ -13,7 +13,7 @@ export const apiRequest = async (url, method, data, myHeaders) => {
     let requestOptions = {
       method: !!method ? method : 'GET',
       headers: headers,
-      body: method == 'GET' ? null : raw,
+      body: method == 'PUT' || method == 'ADD' ? raw : null,
       redirect: 'follow',
     };
 

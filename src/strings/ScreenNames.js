@@ -14,6 +14,7 @@ export default ScreenNames = {
     Appearence: 'Appearence',
     PrivacyNSecurity: 'PrivacyAndSecurity',
     BackupNRestore: 'BackupAndRestore',
+    ProfileSettings: 'ProfileSettings',
   },
   NewChatPage: 'NewChatPage',
   ChatPage: 'ChatPage',

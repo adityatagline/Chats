@@ -1,26 +1,17 @@
 import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, React} from 'react';
 import {Text, StyleSheet, View, Alert} from 'react-native';
 import {AppStatusBar} from '../../../components/AppStatusBar';
-import FloatingBackButton from '../../../components/FloatingBackButton';
 import HeadingLarge from '../../../components/HeadingLarge';
 import InputBox from '../../../components/InputBox';
 import SimpleButton from '../../../components/SimpleButton';
 import {commonStyles, fontSize} from '../../../styles/commonStyles';
-import auth from '@react-native-firebase/auth';
 import {
   addUserToDatabase,
-  loginWithEmail,
-  sendOtp,
+  checkUserName,
 } from '../../../../api/authentication/AuthenticationRequests';
 import {Formik} from 'formik';
-import {
-  LoginValidationSchema,
-  newUserDetails,
-  otpSchema,
-  phoneNumberSchema,
-} from './ValidationSchemas';
-import ScreenNames from '../../../strings/ScreenNames';
+import {newUserDetails} from './ValidationSchemas';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import ErrorCodes from '../../../../api/authentication/ErrorCodes';
@@ -29,27 +20,6 @@ import {storeUserDataInRedux} from '../../../../redux/authentication/Authenticat
 
 export default EnterDetails = () => {
   const themeRef = useTheme();
-  const navigation = useNavigation();
-  const route = useRoute();
-  const previousDetails = !!route.params && route.params.previousDetails;
-  console.log('previousDetails');
-  console.log(previousDetails);
-  const withGoogle = !!route.params && route.params.withGoogle;
-
-  const firstNameRef = useRef(0);
-  const lastNameRef = useRef(0);
-  const ageRef = useRef(0);
-
-  const dipatch = useDispatch();
-  // navigation.reset({
-  //   index:0,
-  //   routes:[{name:screenanem}]
-  // })
-
-  useEffect(() => {
-    firstNameRef?.current.focus();
-  }, []);
-
   const styles = StyleSheet.create({
     ...commonStyles,
     mainDiv: {
@@ -82,16 +52,61 @@ export default EnterDetails = () => {
     },
   });
 
+  const route = useRoute();
+  const previousDetails = !!route.params
+    ? route.params.previousDetails
+    : {isNewUser: true};
+
+  const userNameRef = useRef();
+  const firstNameRef = useRef();
+  const lastNameRef = useRef();
+  const ageRef = useRef();
+  const [isUsername, setIsUsername] = useState(false);
+
+  const dipatch = useDispatch();
+
+  useEffect(() => {
+    userNameRef?.current?.focus();
+  }, []);
+
   const focusField = (func, field) => {
     func({[field]: true});
   };
 
   const changeField = (func, field, text) => {
+    !!isUsername && setIsUsername(false);
     func(field, text);
   };
-  const submitDetail = (setTouched, errors, currentField) => {
+
+  const checkForUserNameAvaibility = async userName => {
+    // console.log({userName});
+    if (!userName) {
+      Alert.alert('Enter username first !!');
+      userNameRef.current.focus();
+      return;
+    }
+    try {
+      const response = await checkUserName(userName);
+      if (!response.isError) {
+        setIsUsername(true);
+        userNameRef.current.focus();
+        return false;
+      } else if (response.isError && response.error != 'noData') {
+        Alert.alert('Oops', 'Something went wrong.Please Try again');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      Alert.alert('Oops', 'Something went wrong.Please Try again');
+      return false;
+    }
+  };
+
+  const submitDetail = (errors, currentField) => {
     currentField.current.blur();
-    if (errors.firstName) {
+    if (errors.username) {
+      userNameRef.current.focus();
+    } else if (errors.firstName) {
       firstNameRef.current.focus();
     } else if (errors.lastName) {
       lastNameRef.current.focus();
@@ -103,21 +118,30 @@ export default EnterDetails = () => {
   };
 
   const addDetails = async values => {
-    const sendData = await addUserToDatabase(previousDetails.username, {
-      ...values,
-      ...previousDetails,
-      isNewUser: false,
-    });
+    const avaibility = await checkForUserNameAvaibility(values.username);
+    if (!avaibility) {
+      setIsUsername(true);
+      return;
+    }
+    const sendData = await addUserToDatabase(
+      previousDetails.username,
+      values.username,
+      {
+        ...previousDetails,
+        ...values,
+        isNewUser: false,
+      },
+    );
     if (sendData.isError) {
       Alert.alert('Oops !!', ErrorCodes[sendData.error].message);
       return;
     }
-    console.log('sendData');
-    console.log(sendData);
+    // console.log({sendData});
     dipatch(storeUserDataInRedux({userDetails: {...sendData.response}}));
   };
 
   const initialNewUserValues = {
+    username: '',
     firstName: !!previousDetails.firstName ? previousDetails.firstName : '',
     lastName: !!previousDetails.firstName ? previousDetails.lastName : '',
     age: '',
@@ -139,6 +163,45 @@ export default EnterDetails = () => {
               {previousDetails.isNewUser && (
                 <>
                   <InputBox
+                    label={'Username'}
+                    focusFunction={focusField.bind(
+                      this,
+                      setTouched,
+                      'username',
+                    )}
+                    value={values.username}
+                    focused={!!touched.username}
+                    inputRef={userNameRef}
+                    otherProps={{
+                      onChangeText: changeField.bind(
+                        this,
+                        setFieldValue,
+                        'username',
+                      ),
+                      onSubmitEditing: submitDetail.bind(
+                        this,
+                        errors,
+                        userNameRef,
+                      ),
+                      onBlur: checkForUserNameAvaibility.bind(
+                        this,
+                        values.username,
+                      ),
+                    }}
+                  />
+                  {!!errors.username && (
+                    <Text style={styles.error}>{errors.username}</Text>
+                  )}
+                  {!!isUsername && (
+                    <Text style={styles.error}>
+                      Sorry , this username is taken already. Plaease choose
+                      different one !!
+                    </Text>
+                  )}
+                  <Text style={styles.error}>
+                    Username must be unique and it can not changed in future !!
+                  </Text>
+                  <InputBox
                     label={'First Name'}
                     focusFunction={focusField.bind(
                       this,
@@ -156,7 +219,6 @@ export default EnterDetails = () => {
                       ),
                       onSubmitEditing: submitDetail.bind(
                         this,
-                        setTouched,
                         errors,
                         firstNameRef,
                       ),
@@ -183,7 +245,6 @@ export default EnterDetails = () => {
                       ),
                       onSubmitEditing: submitDetail.bind(
                         this,
-                        setTouched,
                         errors,
                         lastNameRef,
                       ),
@@ -204,12 +265,7 @@ export default EnterDetails = () => {
                         setFieldValue,
                         'age',
                       ),
-                      onSubmitEditing: submitDetail.bind(
-                        this,
-                        setTouched,
-                        errors,
-                        ageRef,
-                      ),
+                      onSubmitEditing: submitDetail.bind(this, errors, ageRef),
                     }}
                   />
                   {touched.age && !!errors.age && (
@@ -231,7 +287,6 @@ export default EnterDetails = () => {
             </>
           )}
         </Formik>
-
         <AppStatusBar dark={themeRef.dark == 'dark'} />
       </View>
     </KeyboardAwareScrollView>

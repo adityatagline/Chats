@@ -17,11 +17,17 @@ import {
 import FontfamiliesNames from '../../strings/FontfamiliesNames';
 import ScreenNames from '../../strings/ScreenNames';
 import TextButton from '../TextButton';
+import {imageUrlStrings} from '../../strings/ImageUrlStrings';
 
 export default HomepageChatsPage = ({chatArray}) => {
   const themeRef = useTheme();
   const chatSlice = useSelector(state => state.chatSlice);
-  const authenticationSlice = useSelector(state => state.authenticationSlice);
+  // console.log({chatSlice});
+  const authenticationSliceRef = useSelector(
+    state => state.authenticationSlice,
+  );
+  const chatSliceRef = useSelector(state => state.chatSlice);
+
   const navigation = useNavigation();
 
   const styles = StyleSheet.create({
@@ -29,7 +35,6 @@ export default HomepageChatsPage = ({chatArray}) => {
     mainDiv: {
       backgroundColor: themeRef.colors.primaryColor,
       flex: 1,
-      marginTop: hp(4),
       borderRadius: 30,
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 0,
@@ -49,7 +54,7 @@ export default HomepageChatsPage = ({chatArray}) => {
       // backgroundColor: 'red',
       marginVertical: hp(0.5),
       marginHorizontal: wp(5),
-      paddingVertical: hp(1),
+      paddingVertical: hp(0.5),
       flexDirection: 'row',
       paddingHorizontal: wp(3),
       alignItems: 'center',
@@ -71,8 +76,6 @@ export default HomepageChatsPage = ({chatArray}) => {
       fontFamily: FontfamiliesNames.primaryFontSemiBold,
       color: themeRef.colors.secondaryColor,
       fontSize: 15,
-      // overflow: 'hidden',
-      // hidden:
     },
     chattime: {
       fontFamily: FontfamiliesNames.primaryFontMedium,
@@ -99,18 +102,25 @@ export default HomepageChatsPage = ({chatArray}) => {
   };
 
   const goToChatScreen = item => {
+    let friendObj = !!chatSlice.friends[item.otherUser];
+    let chatname = item.chatName;
+
     navigation.navigate(ScreenNames.ChatPage, {
-      userInfo: {...chatSlice.friends[item.username]},
-      username: item.username,
+      userInfo: !!friendObj
+        ? {...chatSliceRef.friends[item.otherUser]}
+        : {username: item.otherUser},
+      username: item.otherUser,
+      chatName: chatname,
     });
-    console.log({item});
+    // console.log({item, frends: chatSlice.friends});
   };
 
   const renderHomePageChats = ({item}) => {
-    console.log({item});
+    // console.log({item});
     let chatname = item.chatName;
-    if (chatname.length > 15) {
-      chatname = chatname.slice(0, 15);
+
+    if (chatname.length > 20) {
+      chatname = chatname.slice(0, 20);
       chatname = chatname.split(' ');
       if (chatname.length > 1) {
         let temp = '';
@@ -134,23 +144,37 @@ export default HomepageChatsPage = ({chatArray}) => {
         ' ' +
         chattime.slice(chattime.length - 2, chattime.length);
     }
-    let chatmessage =
-      item.message.length > 15
+    let chatmessage = item.message.split('\n')[0];
+    chatmessage =
+      chatmessage.length > 15
         ? item.message.slice(0, 15) + '...'
         : item.message;
+    let photoUri =
+      !!chatSlice.friends[item.otherUser] &&
+      !!chatSlice.friends[item.otherUser].profilePhoto
+        ? {uri: chatSlice.friends[item.otherUser].profilePhoto}
+        : imageUrlStrings.profileSelected;
 
     return (
       <TouchableOpacity
         style={styles.chatDiv}
         onPress={goToChatScreen.bind(this, item)}>
         <Image
-          source={{uri: authenticationSlice.user.profilePhoto}}
-          style={styles.chatAvatar}
+          source={photoUri}
+          style={[
+            styles.chatAvatar,
+            !photoUri.uri && {
+              marginVertical: hp(1),
+              marginHorizontal: hp(1),
+              height: hp(5),
+              width: hp(5),
+            },
+          ]}
         />
         <View style={styles.chatDetails}>
           <Text style={styles.chatName}>{chatname}</Text>
           <Text style={styles.message}>
-            {item.from == authenticationSlice.user.username
+            {item.from == authenticationSliceRef.user.username
               ? 'You: ' + chatmessage
               : chatmessage}
           </Text>
@@ -159,9 +183,6 @@ export default HomepageChatsPage = ({chatArray}) => {
       </TouchableOpacity>
     );
   };
-
-  console.log('running ------------------');
-  console.log({frnds: chatSlice.friends});
 
   return (
     <View style={styles.mainDiv}>
@@ -175,7 +196,6 @@ export default HomepageChatsPage = ({chatArray}) => {
           showsVerticalScrollIndicator={false}
         />
       )}
-      {/* {chatSlice.homepageChats.length == 0 && ( */}
       <View style={styles.noChatsDiv}>
         <Text style={styles.noChatsText}>No Recent Chats ..</Text>
         <TextButton

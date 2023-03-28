@@ -30,13 +30,6 @@ export const TopTabNavigator = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const [currentScreen, setCurrentScreen] = useState('');
-  // const newCode = useNavigationState(state => {
-  //   console.log({state});
-  //   return state.routes.length;
-  // });
-
-  // .routes[0].state;
-  // setCurrentScreen(getStateObjStates.routeNames[getStateObjStates.index]);
 
   const styles = StyleSheet.create({
     infoButton: {
@@ -67,32 +60,37 @@ export const TopTabNavigator = () => {
       <TopTab.Navigator
         screenOptions={{
           tabBarStyle: {
-            backgroundColor: themeRef.colors.primaryColor,
+            backgroundColor: themeRef.colors.appThemeColor,
             position: 'absolute',
-            top: StatusBarHeight,
-            right: wp(10),
-            width: wp(30),
-            height: hp(6),
+            bottom: hp(1),
+            width: wp(90),
+            height: hp(9),
             elevation: 0,
-            shadowOpacity: 0,
-            // display: 'none',
-            // backgroundColor: 'yellow',
+            shadowOpacity: 0.5,
+            shadowColor: themeRef.colors.appThemeColor,
+            shadowOffset: {
+              height: 0,
+              width: 0,
+            },
+            shadowRadius: 7,
+            borderRadius: 40,
+            alignSelf: 'center',
+            justifyContent: 'center',
           },
           tabBarLabelStyle: {
-            // color:themeRef.colors.primaryColor
-            display: 'none',
+            fontFamily: FontfamiliesNames.primaryFontSemiBold,
+            fontSize: fontSize.extrasmall,
           },
           tabBarIndicatorStyle: {
-            backgroundColor: themeRef.colors.appThemeColor,
-            borderRadius: 500,
-            width: wp(2),
-            height: hp(1),
-            position: 'absolute',
-            left: wp(5.7),
-            display: 'none',
+            backgroundColor: themeRef.colors.primaryColor,
+            height: hp(7),
+            borderRadius: 40,
+            top: hp(1),
+            width: wp(25),
+            marginHorizontal: wp(2.5),
           },
           tabBarActiveTintColor: themeRef.colors.appThemeColor,
-          tabBarInactiveTintColor: themeRef.colors.card,
+          tabBarInactiveTintColor: themeRef.colors.primaryColor,
           tabBarPressColor: 'transparent',
           // headerShown: true,
         }}>
@@ -101,7 +99,7 @@ export const TopTabNavigator = () => {
           component={Home}
           options={{
             tabBarIcon: ({focused, color}) => {
-              console.log({focused});
+              // console.log({focused});
               return <IoniconsIcon name={'home'} size={25} color={color} />;
             },
           }}
