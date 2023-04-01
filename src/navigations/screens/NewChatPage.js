@@ -22,14 +22,10 @@ import {checkForUserInRecord} from '../../../api/chat/ChatRequests';
 import IconButton from '../../components/IconButton';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontfamiliesNames from '../../strings/FontfamiliesNames';
-import {imageUrlStrings} from '../../strings/ImageUrlStrings';
 import {useDispatch, useSelector} from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {animateBook} from '../../components/AnimationFunctions.';
-import {setLoadingState} from '../../../redux/loading/LoadingSlice';
-import {toggleTheme} from '../../../redux/theme/ThemeSlice';
 import ScreenNames from '../../strings/ScreenNames';
-import {getUsernameFromEmail} from '../../components/CommonFunctions';
 import {storeFriends} from '../../../redux/chats/ChatSlice';
 
 export const getContacts = async (
@@ -44,10 +40,9 @@ export const getContacts = async (
     if (!response.isError) {
       !!setterFunc && setterFunc([...response.users]);
     }
-    !!loaderFunc && loaderFunc(false);
     dispatch(storeFriends([...response.users]));
+    !!loaderFunc && loaderFunc(false);
   } catch (error) {
-    // console.log({error});
     !!loaderFunc && loaderFunc(false);
   }
 };
@@ -92,13 +87,12 @@ export default NewChatPage = () => {
     detailsDiv: {
       flex: 1,
       marginHorizontal: wp(3),
-      // justifyContent: 'center',
     },
     topBar: {
       flexDirection: 'row',
       marginBottom: hp(2),
-      // alignItems: 'center',
-      // justifyContent:
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     pageHeading: {
       fontSize: fontSize.extralarge,
@@ -106,7 +100,6 @@ export default NewChatPage = () => {
       marginLeft: wp(5),
       color: themeRef.colors.appThemeColor,
       flex: 1,
-      // backgroundColor: 'red',
       textAlign: 'center',
       marginRight: wp(15),
     },
@@ -193,7 +186,6 @@ export default NewChatPage = () => {
   };
 
   useEffect(() => {
-    // console.log('useeff');
     Platform.OS == 'android' &&
       askPermissionAsync(
         setContactList,
@@ -231,11 +223,6 @@ export default NewChatPage = () => {
           <Text style={styles.contactName}>{item.contactName}</Text>
           <Text style={styles.contactNumber}>{item.phone}</Text>
         </View>
-        {/* <Image
-          resizeMode="contain"
-          source={imageUrlStrings.newMessage}
-          style={styles.newChatIcon}
-        /> */}
         <TouchableOpacity onPress={goToChatPage.bind(this, item)}>
           <MaterialCommunityIcon
             name={'chat-plus-outline'}

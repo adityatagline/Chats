@@ -24,6 +24,7 @@ import ScreenNames from '../../../strings/ScreenNames';
 import {useDispatch, useSelector} from 'react-redux';
 import {logout} from '../../../../redux/authentication/AuthenticationSlice';
 import {clearAllChats} from '../../../../redux/chats/ChatSlice';
+import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 
 export default Settings = props => {
   const themeRef = useTheme();
@@ -133,7 +134,9 @@ export default Settings = props => {
         style: 'destructive',
         onPress: async () => {
           dispatch(clearAllChats());
-          dispatch(logout());
+          setTimeout(() => {
+            dispatch(logout());
+          }, 1000);
         },
       },
       {
@@ -154,7 +157,7 @@ export default Settings = props => {
         ]}>
         {/* <View> */}
         <Image
-          source={require('../../../images/banana.png')}
+          source={imageUrlStrings.profileSelected}
           style={{
             height: hp(8),
             width: hp(8),

@@ -1,11 +1,12 @@
-import {View, Text, StyleSheet} from 'react-native';
 import React from 'react';
-import {fontSize} from '../../../styles/commonStyles';
+import {View, StyleSheet} from 'react-native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import FontfamiliesNames from '../../../strings/FontfamiliesNames';
+import {fontSize} from '../../../styles/commonStyles';
+import {fontWeights} from '../../../strings/FontfamiliesNames';
+import BaseText from '../../../components/BaseText';
 
 const ChatMessageComponent = ({
   item,
@@ -83,23 +84,16 @@ const ChatMessageComponent = ({
           marginTop: position == 'Bottom' ? hp(2) : hp(0.25),
         },
       ]}>
-      {isGroup && (position == 'Bottom' || position == 'alone') ? (
-        <Text
-          style={[styles.senderName, {color: themeRef.colors.secondaryColor}]}>
-          {item.from}
-        </Text>
-      ) : (
-        item.from == currentUserInfo.username &&
-        (position == 'alone' || position == 'Bottom') && (
-          <Text
-            style={[
-              styles.senderName,
-              {color: themeRef.colors.secondaryColor},
-            ]}>
-            you
-          </Text>
-        )
-      )}
+      {(position == 'Bottom' || position == 'alone') &&
+        (isGroup || (!isGroup && item.from == currentUserInfo.username)) && (
+          <BaseText
+            size={fontSize.extrasmall}
+            weight={fontWeights.medium}
+            color={themeRef.colors.secondaryColor}
+            otherStyles={[styles.senderName]}>
+            {isGroup ? item.from : 'You'}
+          </BaseText>
+        )}
 
       <View
         style={[
@@ -112,18 +106,17 @@ const ChatMessageComponent = ({
                 : themeRef.colors.card,
           },
         ]}>
-        <Text
-          style={[
-            styles.message,
-            {
-              color:
-                item.from == currentUserInfo.username
-                  ? themeRef.colors.primaryColor
-                  : themeRef.colors.secondaryColor,
-            },
-          ]}>
+        <BaseText
+          size={fontSize.medium}
+          weight={fontWeights.semiBold}
+          color={
+            item.from == currentUserInfo.username
+              ? themeRef.colors.primaryColor
+              : themeRef.colors.secondaryColor
+          }
+          otherStyles={[styles.message]}>
           {item.message}
-        </Text>
+        </BaseText>
       </View>
     </View>
   );
@@ -131,8 +124,6 @@ const ChatMessageComponent = ({
 
 const styles = StyleSheet.create({
   senderName: {
-    fontSize: fontSize.extrasmall,
-    fontFamily: FontfamiliesNames.primaryFontMedium,
     marginHorizontal: wp(1),
     marginVertical: hp(0.5),
     textTransform: 'capitalize',
@@ -145,8 +136,6 @@ const styles = StyleSheet.create({
   message: {
     paddingVertical: hp(0.7),
     paddingHorizontal: wp(3),
-    fontSize: fontSize.medium,
-    fontFamily: FontfamiliesNames.primaryFontSemiBold,
   },
 });
 

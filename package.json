@@ -8,7 +8,8 @@
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint .",
-    "pod": "npx pod-install ios"
+    "pod": "npx pod-install ios",
+    "release-apk": "cd android && ./gradlew assembleRelease && open ./app/build/outputs/apk/release"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.17.11",

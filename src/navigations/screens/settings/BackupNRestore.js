@@ -20,7 +20,7 @@ export default BackupNRestore = () => {
         }}
         backNavigationScreen={ScreenNames.TopTabScreens.ProfileScreen}
       />
-      <ScrollView style={commonSettingsStyles.listDiv}>
+      <ScrollView style={commonSettingsStyles.listDiv} bounces={false}>
         <SettingItem
           title={'Backup to cloud'}
           itemIcon={'cloud-upload-outline'}
@@ -36,7 +36,7 @@ export default BackupNRestore = () => {
         }
         disableBackButton
       />
-      <ScrollView style={commonSettingsStyles.listDiv}>
+      <ScrollView style={commonSettingsStyles.listDiv} bounces={false}>
         <SettingItem
           title={'Restore from cloud'}
           itemIcon={'cloud-download-outline'}

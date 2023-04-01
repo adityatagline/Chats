@@ -1,47 +1,11 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-  Image,
-  Dimensions,
-  TextInput,
-  Animated,
-  FlatList,
-  Alert,
-  NetInfo,
-  Keyboard,
-} from 'react-native';
-import React from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  commonStyles,
-  dimensions,
-  fontSize,
-  StatusBarHeight,
-} from '../../../styles/commonStyles';
-import {useEffect} from 'react';
-import {useState} from 'react';
-import {animateNoChat, removeNoChat} from './ChatPageAnimationFuncs';
-import {useRef} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
+import {Animated} from 'react-native';
+import {useTheme} from '@react-navigation/native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
-import firestore from '@react-native-firebase/firestore';
-import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import IconButton from '../../../components/IconButton';
-import FontfamiliesNames from '../../../strings/FontfamiliesNames';
-import {useDispatch, useSelector} from 'react-redux';
-import {storeMessage} from '../../../../redux/chats/ChatSlice';
-import {sendMessageToFirestore} from '../../../../api/chat/firebaseSdkRequests';
-import {useNetInfo} from '@react-native-community/netinfo';
-import {KeyboardAvoidingView} from 'react-native';
-import ChatScreenHeaderComponent from './ChatScreenHeaderComponent';
-import ChatMessageComponent from './ChatMessageComponent';
 
 const FileSharingTrayComponent = ({visibility, setterFunc}) => {
   const themeRef = useTheme();
@@ -142,22 +106,20 @@ const FileSharingTrayComponent = ({visibility, setterFunc}) => {
       {!!isAdded ? (
         <Animated.View
           style={{
-            // position: 'absolute',
-            // bottom: hp(10),
-            alignSelf: 'center',
             height: fileSendingTray.x,
             width: fileSendingTray.y,
             backgroundColor: themeRef.colors.primaryColor,
+            alignSelf: 'center',
             justifyContent: 'center',
             borderRadius: 20,
             elevation: 4,
-            shadowColor: themeRef.colors.secondaryColor,
             shadowOffset: {
               height: 0,
               width: 0,
             },
             shadowOpacity: 0.3,
             shadowRadius: 5,
+            shadowColor: themeRef.colors.secondaryColor,
           }}>
           <Animated.View
             style={{

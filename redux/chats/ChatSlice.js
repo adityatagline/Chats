@@ -1,69 +1,10 @@
 import {createSlice} from '@reduxjs/toolkit';
+import {newUserDetails} from '../../src/navigations/screens/authentication/ValidationSchemas';
 const initialValues = {
-  homepageChats: [
-    // {
-    //   message:
-    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-    //   from: 'adityat-tagline--gmail-com',
-    //   to: 'yash-dhola-tagline--gmail-com',
-    //   time: '2023-02-05T05:26:24.160Z',
-    // },
-    // {
-    //   message: 'adjajs',
-    //   to: 'adityat-tagline--gmail-com',
-    //   from: 'yash-dhola-tagline--gmail-com',
-    //   time: '2023-02-09T05:26:24.160Z',
-    // },
-    // {
-    //   message: 'adjiucjnNAJN;audjs',
-    //   from: 'adityat-tagline--gmail-com',
-    //   to: 'kevin-tagline--gmail-com',
-    //   time: '2023-01-09T05:26:24.160Z',
-    // },
-    // {
-    //   message: 'adjSHDLUhaduhIUNAJN;audjs',
-    //   to: 'adityat-tagline--gmail-com',
-    //   from: 'kevin-tagline--gmail-com',
-    //   time: '2023-02-05T05:26:24.160Z',
-    // },
-    // {
-    //   message: 'adjasdlahscbacjk jacbaAJN;audjs',
-    //   from: 'adityat-tagline--gmail-com',
-    //   to: 'yash-dhola-tagline--gmail-com',
-    //   time: '2023-02-09T01:26:24.160Z',
-    // },
-    // {
-    //   message:
-    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-    //   to: 'adityat-tagline--gmail-com',
-    //   from: 'yash-dhola-tagline--gmail-com',
-    //   time: '2023-02-09T05:26:24.160Z',
-    // },
-    // {
-    //   message:
-    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-    //   from: 'adityat-tagline--gmail-com',
-    //   to: 'kevin-tagline--gmail-com',
-    //   time: '2023-02-09T05:26:24.160Z',
-    // },
-    // {
-    //   message:
-    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjsadjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-    //   to: 'adityat-tagline--gmail-com',
-    //   from: 'kevin-tagline--gmail-com',
-    //   time: '2023-02-09T05:26:24.160Z',
-    // },
-    // {
-    //   message:
-    //     'adjasdlahscbacjk jacbaiucjnacbihcAJSADIASHDLUhaduhIUNAJN;audjs',
-    //   to: 'adityat-tagline--gmail-com',
-    //   from: 'dhruvi-tagline--gmail-com',
-    //   time: '2023-02-09T05:26:24.160Z',
-    // },
-  ],
+  homepageChats: [],
   individualChats: {},
   friends: {},
-  unseenChats: [],
+  unseenChats: {},
 };
 
 const Chatslice = createSlice({
@@ -73,6 +14,10 @@ const Chatslice = createSlice({
     storeMessage: (state, action) => {
       let {otherUser} = action.payload.receiverObject;
       let personChat = state.individualChats[otherUser];
+      // let chatName = !!newState.friends[otherUser]
+      // ? newState.friends[otherUser].contactName
+      // : otherUser;
+      console.log({stored: {...action.payload.chatObject, otherUser}});
       if (!personChat) {
         personChat = [{...action.payload.chatObject, otherUser}];
       } else {
@@ -128,64 +73,89 @@ const Chatslice = createSlice({
       };
     },
     checkAndStoreNewMessages: (state, action) => {
+      let messageArray = [...action.payload.messageArray].sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      );
+      console.log({messageArray});
       let newState = {...state};
 
-      action.payload.messageArray.forEach(element => {
+      messageArray.forEach(element => {
         let {otherUser} = element;
-        console.log({otherUser});
+        // console.log({otherUser, element});
 
-        let chatName = !!newState.friends[otherUser]
-          ? newState.friends[otherUser].contactName
+        let chatName = !!state.friends[otherUser]
+          ? state.friends[otherUser].contactName
           : otherUser;
-        console.log({chatName});
+        // console.log({chatName});
 
         let itemFound = !!newState.individualChats[otherUser]
           ? newState.individualChats[otherUser].find(
               innerItem => innerItem.id == element.id,
             )
           : {};
-        console.log({itemFound});
+        // console.log({itemFound});
 
         let isExistInIndividual =
           !!newState.individualChats[otherUser] &&
           !!itemFound &&
           Object.keys({...itemFound}).length != 0;
 
-        console.log({isExistInIndividual});
-
         itemFound = newState.homepageChats.find(
           innerItem => innerItem.id == element.id,
         );
-        console.log({itemFound});
+        // console.log({itemFound});
 
         let isExistInHome =
           !!itemFound && Object.keys({...itemFound}).length != 0;
-        console.log({isExistInHome});
+        // console.log({isExistInHome});
 
         itemFound = newState.homepageChats.find(
           innerItem => innerItem.otherUser == element.otherUser,
         );
-        console.log({itemFound});
+        // console.log({itemFound});
 
         let isRecordExistInHome =
           !!itemFound && Object.keys({...itemFound}).length != 0;
-        console.log({isRecordExistInHome});
+
+        itemFound =
+          !!newState.unseenChats &&
+          (!!newState.unseenChats[otherUser]
+            ? !!newState.unseenChats[otherUser].find(
+                unseenObj => unseenObj.id == element.id,
+              )
+            : false);
+
+        let isExistinUnseenChats = !!itemFound;
+        // console.log({isRecordExistInHome});
+        console.log({
+          element,
+          otherUser,
+          chatName,
+          isExistInIndividual,
+          isExistInHome,
+          isRecordExistInHome,
+          friends: state.friends,
+          unseenChats: newState.unseenChats,
+        });
 
         if (!isExistInIndividual) {
-          console.log({isExistInIndividual});
+          // console.log({isExistInIndividual});
 
           newState = {
             ...newState,
             individualChats: {
               ...newState.individualChats,
               [otherUser]: !!newState.individualChats[otherUser]
-                ? [{...element}, ...newState.individualChats[otherUser]]
-                : [{...element}],
+                ? [
+                    {...element, chatName},
+                    ...newState.individualChats[otherUser],
+                  ]
+                : [{...element, chatName}],
             },
           };
         }
         if (!isExistInHome) {
-          console.log({isExistInHome, isRecordExistInHome});
+          // console.log({isExistInHome, isRecordExistInHome});
 
           let newArrayForHome = [];
           if (!isRecordExistInHome) {
@@ -204,18 +174,32 @@ const Chatslice = createSlice({
             homepageChats: [...newArrayForHome],
           };
         }
+        if (!isExistinUnseenChats) {
+          newState = {
+            ...newState,
+            unseenChats: {
+              ...newState.unseenChats,
+              [otherUser]: !!newState.unseenChats[otherUser]
+                ? [{...element}, ...newState.unseenChats[otherUser]]
+                : [{...element}],
+            },
+          };
+        }
       });
       return {...newState};
     },
     removeUnseenChats: (state, action) => {
       let newArrayToSet = [...state.unseenChats];
-      newArrayToSet = newArrayToSet.filter(item => item != action.payload);
+      newArrayToSet = newArrayToSet.filter(item =>
+        action.payload.idArray.includes(item.id),
+      );
+      // console.log({newArrayToSet});
       return {
         ...state,
         unseenChats: [...newArrayToSet],
       };
     },
-    clearAllChats: (state, actions) => {
+    clearAllChats: (state, action) => {
       return {
         ...initialValues,
       };

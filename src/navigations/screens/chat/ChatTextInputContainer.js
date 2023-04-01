@@ -1,49 +1,18 @@
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Platform,
-  Image,
-  Dimensions,
   TextInput,
-  Animated,
-  FlatList,
-  Alert,
-  NetInfo,
-  Keyboard,
 } from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  commonStyles,
-  dimensions,
-  fontSize,
-  StatusBarHeight,
-} from '../../../styles/commonStyles';
-import {useEffect} from 'react';
-import {useState} from 'react';
-import {animateNoChat, removeNoChat} from './ChatPageAnimationFuncs';
-import {useRef} from 'react';
+import {dimensions} from '../../../styles/commonStyles';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
-import firestore from '@react-native-firebase/firestore';
-import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import IconButton from '../../../components/IconButton';
-import FontfamiliesNames from '../../../strings/FontfamiliesNames';
-import {useDispatch, useSelector} from 'react-redux';
-import {storeMessage} from '../../../../redux/chats/ChatSlice';
-import {sendMessageToFirestore} from '../../../../api/chat/firebaseSdkRequests';
-import {useNetInfo} from '@react-native-community/netinfo';
-import {KeyboardAvoidingView} from 'react-native';
-import ChatScreenHeaderComponent from './ChatScreenHeaderComponent';
-import ChatMessageComponent from './ChatMessageComponent';
-import NoChatAnimatedCompoenet from './NoChatAnimatedComponent';
-import FileSharingTrayComponent from './FileSharingTrayComponent';
+import {useTheme} from '@react-navigation/native';
 
 const ChatTextInputContainer = ({
   userChatMessage,
@@ -56,10 +25,8 @@ const ChatTextInputContainer = ({
 
   const styles = StyleSheet.create({
     userTextInputContainer: {
-      // position: 'absolute',
       backgroundColor: themeRef.colors.primaryColor,
       flexDirection: 'row',
-      // left: 0,
       marginHorizontal: wp(4),
       marginTop: hp(1),
       paddingBottom: Platform.OS == 'ios' ? hp(0) : hp(2),
@@ -72,17 +39,17 @@ const ChatTextInputContainer = ({
       paddingHorizontal: wp(3),
       borderRadius: 15,
       fontSize: !!userChatMessage ? 16 : 14,
-      maxHeight: dimensions.height * 0.2,
+      maxHeight: hp(15),
       textAlignVertical: 'center',
       justifyContent: 'center',
       lineHeight: hp(2.7),
-      // alignItems: 'center',
       alignSelf: 'center',
+      color: 'black',
     },
     inputButton: {
-      marginHorizontal: '1%',
+      marginHorizontal: wp(1),
       alignSelf: 'flex-end',
-      paddingVertical: '2%',
+      paddingVertical: hp(1),
     },
   });
   return (

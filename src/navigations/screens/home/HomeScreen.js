@@ -27,6 +27,8 @@ export default HomeScreen = props => {
   const [isLoading, setisLoading] = useState(false);
   const [messageToBedeleted, setMessageToBedeleted] = useState([]);
 
+  console.log({unseenChats: chatSliceRef.unseenChats});
+
   useEffect(() => {
     setisLoading(true);
     getInitialData();
@@ -91,7 +93,6 @@ export default HomeScreen = props => {
         dispatch,
         authenticationSlice.user.username,
       ));
-    await getUserHomepageChats(authenticationSlice.user.username);
     setisLoading(false);
   };
 

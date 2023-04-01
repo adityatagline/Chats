@@ -1,5 +1,9 @@
 import {useTheme} from '@react-navigation/native';
 import {StyleSheet} from 'react-native';
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import {fontSize} from '../../../styles/commonStyles';
 

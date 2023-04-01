@@ -1,49 +1,13 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-  Image,
-  Dimensions,
-  TextInput,
-  Animated,
-  FlatList,
-  Alert,
-  NetInfo,
-  Keyboard,
-} from 'react-native';
-import React from 'react';
-import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  commonStyles,
-  dimensions,
-  fontSize,
-  StatusBarHeight,
-} from '../../../styles/commonStyles';
-import {useEffect} from 'react';
-import {useState} from 'react';
-import {animateNoChat, removeNoChat} from './ChatPageAnimationFuncs';
-import {useRef} from 'react';
+import React, {useRef, useEffect, useState} from 'react';
+import {StyleSheet, Animated} from 'react-native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
-import firestore from '@react-native-firebase/firestore';
-import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import IconButton from '../../../components/IconButton';
-import FontfamiliesNames from '../../../strings/FontfamiliesNames';
-import {useDispatch, useSelector} from 'react-redux';
-import {storeMessage} from '../../../../redux/chats/ChatSlice';
-import {sendMessageToFirestore} from '../../../../api/chat/firebaseSdkRequests';
-import {useNetInfo} from '@react-native-community/netinfo';
-import {KeyboardAvoidingView} from 'react-native';
-import ChatScreenHeaderComponent from './ChatScreenHeaderComponent';
-import ChatMessageComponent from './ChatMessageComponent';
+import {dimensions, fontSize} from '../../../styles/commonStyles';
+import {animateNoChat, removeNoChat} from './ChatPageAnimationFuncs';
 
-const NoChatAnimatedCompoenet = ({visibility}) => {
+const NoChatAnimatedCompoenet = ({visibility, themeRef}) => {
   const noChatRef = useRef(
     new Animated.ValueXY({x: 0, y: dimensions.height * 0.15}),
   ).current;
@@ -66,6 +30,7 @@ const NoChatAnimatedCompoenet = ({visibility}) => {
       ref={noChatRef}
       style={[
         styles.noChatText,
+        {color: themeRef.colors.secondaryColor},
         {
           opacity: noChatRef.x,
           top: noChatRef.y,
@@ -78,14 +43,12 @@ const NoChatAnimatedCompoenet = ({visibility}) => {
 
 const styles = StyleSheet.create({
   noChatText: {
-    fontSize: 14,
-    textAlign: 'center',
+    fontSize: fontSize.medium,
     backgroundColor: '#F0F0F0',
-    color: 'black',
     position: 'absolute',
     alignSelf: 'center',
-    paddingVertical: '2%',
-    paddingHorizontal: '4%',
+    paddingVertical: hp(1),
+    paddingHorizontal: wp(5),
     borderRadius: 12,
     overflow: 'hidden',
   },

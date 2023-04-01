@@ -29,21 +29,22 @@ export default PrivacySettings = () => {
         }}
         backNavigationScreen={ScreenNames.TopTabScreens.ProfileScreen}
       />
-      <ScrollView style={commonSettingsStyles.listDiv}>
+      <ScrollView style={commonSettingsStyles.listDiv} bounces={false}>
         <SettingItem
           title={'Blocked Contacts'}
           itemIcon={'remove-circle-outline'}
         />
         <SettingItem title={'Status settings'} itemIcon={'eye'} />
-      </ScrollView>
-      <PageHeading
-        middleComponenet={
-          <PageName name={'Security'} customStyle={{marginTop: hp(4)}} />
-        }
-        disableBackButton
-      />
-      <ScrollView style={commonSettingsStyles.listDiv}>
+
+        <PageHeading
+          middleComponenet={
+            <PageName name={'Security'} customStyle={{marginTop: hp(4)}} />
+          }
+          disableBackButton
+        />
+
         <SettingItem title={'Change password'} itemIcon={'sync'} />
+        <SettingItem title={'Change Phone number'} itemIcon={'sync'} />
       </ScrollView>
     </View>
   );

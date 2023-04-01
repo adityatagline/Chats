@@ -1,45 +1,15 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Platform,
-  Image,
-  Dimensions,
-  TextInput,
-  Animated,
-  FlatList,
-  Alert,
-  NetInfo,
-  Keyboard,
-} from 'react-native';
+import {View, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {
-  commonStyles,
-  dimensions,
-  fontSize,
-  StatusBarHeight,
-} from '../../../styles/commonStyles';
-import {useEffect} from 'react';
-import {useState} from 'react';
-import {animateNoChat, removeNoChat} from './ChatPageAnimationFuncs';
-import {useRef} from 'react';
+import {fontSize} from '../../../styles/commonStyles';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
-import firestore from '@react-native-firebase/firestore';
+import {useNavigation, useTheme} from '@react-navigation/native';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import IconButton from '../../../components/IconButton';
-import FontfamiliesNames from '../../../strings/FontfamiliesNames';
-import {useDispatch, useSelector} from 'react-redux';
-import {storeMessage} from '../../../../redux/chats/ChatSlice';
-import {sendMessageToFirestore} from '../../../../api/chat/firebaseSdkRequests';
-import {useNetInfo} from '@react-native-community/netinfo';
-import {KeyboardAvoidingView} from 'react-native';
+import {fontWeights} from '../../../strings/FontfamiliesNames';
+import BaseText from '../../../components/BaseText';
 
 const ChatScreenHeaderComponent = ({
   displayChatName,
@@ -47,8 +17,6 @@ const ChatScreenHeaderComponent = ({
   onInfoPress,
   chatProfilePhoto,
 }) => {
-  const navigation = useNavigation();
-
   const themeRef = useTheme();
   const styles = StyleSheet.create({
     pageHeadingContainer: {
@@ -65,13 +33,9 @@ const ChatScreenHeaderComponent = ({
       marginRight: wp(3),
       borderRadius: 17,
     },
-    chatName: {
-      flex: 1,
-      color: themeRef.colors.appThemeColor,
-      fontFamily: FontfamiliesNames.primaryFontBold,
-      fontSize: fontSize.big,
-    },
   });
+
+  const navigation = useNavigation();
 
   return (
     <View style={styles.pageHeadingContainer}>
@@ -100,10 +64,15 @@ const ChatScreenHeaderComponent = ({
               width: hp(4),
             },
           ]}
-          // borderRadius={17}
         />
       )}
-      <Text style={styles.chatName}>{displayChatName}</Text>
+      <BaseText
+        color={themeRef.colors.appThemeColor}
+        weight={fontWeights.bold}
+        size={fontSize.big}
+        otherStyles={{flex: 1}}>
+        {displayChatName}
+      </BaseText>
       <TouchableOpacity style={styles.backButton} onPress={onInfoPress}>
         <Icon
           name={'information-circle-outline'}

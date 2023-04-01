@@ -390,3 +390,24 @@ export const checkUserName = async userName => {
     };
   }
 };
+
+export const updateProfileOnFirebase = async (data, username) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
+    let updateRes = await apiRequest(url, 'PUT', {...data});
+    if (!!updateRes.isError) {
+      return {
+        ...updateRes,
+      };
+    }
+    return {
+      isError: false,
+      data: updateRes.data,
+    };
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};

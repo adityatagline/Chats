@@ -9,27 +9,19 @@ import {
   View,
 } from 'react-native';
 import {useSelector} from 'react-redux';
-import {commonStyles} from '../../styles/commonStyles';
+import {commonStyles, fontSize} from '../../styles/commonStyles';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import FontfamiliesNames from '../../strings/FontfamiliesNames';
+import FontfamiliesNames, {fontWeights} from '../../strings/FontfamiliesNames';
 import ScreenNames from '../../strings/ScreenNames';
 import TextButton from '../TextButton';
 import {imageUrlStrings} from '../../strings/ImageUrlStrings';
+import BaseText from '../BaseText';
 
 export default HomepageChatsPage = ({chatArray}) => {
   const themeRef = useTheme();
-  const chatSlice = useSelector(state => state.chatSlice);
-  // console.log({chatSlice});
-  const authenticationSliceRef = useSelector(
-    state => state.authenticationSlice,
-  );
-  const chatSliceRef = useSelector(state => state.chatSlice);
-
-  const navigation = useNavigation();
-
   const styles = StyleSheet.create({
     ...commonStyles,
     mainDiv: {
@@ -38,7 +30,6 @@ export default HomepageChatsPage = ({chatArray}) => {
       borderRadius: 30,
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 0,
-      // borderRadius: 30,
       overflow: 'hidden',
     },
     flatListContainer: {
@@ -51,7 +42,6 @@ export default HomepageChatsPage = ({chatArray}) => {
       borderRadius: 20,
     },
     chatDiv: {
-      // backgroundColor: 'red',
       marginVertical: hp(0.5),
       marginHorizontal: wp(5),
       paddingVertical: hp(0.5),
@@ -60,22 +50,11 @@ export default HomepageChatsPage = ({chatArray}) => {
       alignItems: 'center',
     },
     chatDetails: {
-      // backgroundColor: 'yellow',
       width: wp(50),
       marginHorizontal: wp(2),
       marginVertical: hp(0.5),
-    },
-    chatName: {
-      fontFamily: FontfamiliesNames.primaryFontBold,
-      textTransform: 'capitalize',
-      color: themeRef.colors.appThemeColor,
-      fontSize: 18,
-      marginBottom: hp(0.2),
-    },
-    message: {
-      fontFamily: FontfamiliesNames.primaryFontSemiBold,
-      color: themeRef.colors.secondaryColor,
-      fontSize: 15,
+      // backgroundColor: 'yellow',
+      flex: 1,
     },
     chattime: {
       fontFamily: FontfamiliesNames.primaryFontMedium,
@@ -88,14 +67,24 @@ export default HomepageChatsPage = ({chatArray}) => {
       justifyContent: 'center',
       alignItems: 'center',
     },
-    noChatsText: {
-      // backgroundColor: 'yellow',
-      color: themeRef.colors.secondaryColor,
-    },
     newChatButton: {
       color: themeRef.colors.appThemeColor,
     },
+    unseenMessageNumberContainer: {
+      backgroundColor: themeRef.colors.appThemeColor,
+      paddingVertical: hp(0.2),
+      paddingHorizontal: wp(1),
+      borderRadius: 7,
+      marginHorizontal: wp(2),
+    },
   });
+
+  const chatSlice = useSelector(state => state.chatSlice);
+  const authenticationSliceRef = useSelector(
+    state => state.authenticationSlice,
+  );
+  const chatSliceRef = useSelector(state => state.chatSlice);
+  const navigation = useNavigation();
 
   const goToNewChatPage = () => {
     navigation.navigate(ScreenNames.NewChatPage);
@@ -112,12 +101,14 @@ export default HomepageChatsPage = ({chatArray}) => {
       username: item.otherUser,
       chatName: chatname,
     });
-    // console.log({item, frends: chatSlice.friends});
   };
 
   const renderHomePageChats = ({item}) => {
     // console.log({item});
     let chatname = item.chatName;
+    let isUnseenMessages = !!chatSliceRef.unseenChats[item.otherUser]
+      ? chatSliceRef.unseenChats[item.otherUser].length
+      : 0;
 
     if (chatname.length > 20) {
       chatname = chatname.slice(0, 20);
@@ -144,11 +135,11 @@ export default HomepageChatsPage = ({chatArray}) => {
         ' ' +
         chattime.slice(chattime.length - 2, chattime.length);
     }
-    let chatmessage = item.message.split('\n')[0];
-    chatmessage =
-      chatmessage.length > 15
-        ? item.message.slice(0, 15) + '...'
-        : item.message;
+    let chatmessage = item.message;
+    let isSplitted = false;
+    if (item.message.includes('\n')) {
+      chatmessage = chatmessage.split('\n')[0];
+    }
     let photoUri =
       !!chatSlice.friends[item.otherUser] &&
       !!chatSlice.friends[item.otherUser].profilePhoto
@@ -172,14 +163,37 @@ export default HomepageChatsPage = ({chatArray}) => {
           ]}
         />
         <View style={styles.chatDetails}>
-          <Text style={styles.chatName}>{chatname}</Text>
-          <Text style={styles.message}>
+          <BaseText
+            weight={fontWeights.semiBold}
+            color={themeRef.colors.appThemeColor}
+            size={fontSize.big}>
+            {chatname}
+          </BaseText>
+          <BaseText
+            weight={fontWeights.medium}
+            color={themeRef.colors.secondaryColor}
+            otherProp={{
+              numberOfLines: 1,
+            }}>
             {item.from == authenticationSliceRef.user.username
               ? 'You: ' + chatmessage
               : chatmessage}
-          </Text>
+          </BaseText>
         </View>
-        <Text style={styles.chattime}>{chattime}</Text>
+        <View style={styles.unseenMessageNumberContainer}>
+          <BaseText
+            color={themeRef.colors.primaryColor}
+            size={fontSize.extrasmall}
+            weight={fontWeights.semiBold}>
+            {isUnseenMessages}
+          </BaseText>
+        </View>
+        <BaseText
+          color={themeRef.colors.secondaryColor}
+          size={fontSize.extrasmall}
+          weight={fontWeights.medium}>
+          {chattime}
+        </BaseText>
       </TouchableOpacity>
     );
   };
@@ -190,14 +204,16 @@ export default HomepageChatsPage = ({chatArray}) => {
         <FlatList
           data={chatSlice.homepageChats}
           renderItem={renderHomePageChats}
-          // bounces={false}
+          bounces={false}
           keyExtractor={(item, index) => index}
           contentContainerStyle={styles.flatListContainer}
           showsVerticalScrollIndicator={false}
         />
       )}
       <View style={styles.noChatsDiv}>
-        <Text style={styles.noChatsText}>No Recent Chats ..</Text>
+        <BaseText color={themeRef.colors.secondaryColor}>
+          No Recent Chats ..
+        </BaseText>
         <TextButton
           title={'Start new'}
           textStyle={styles.newChatButton}

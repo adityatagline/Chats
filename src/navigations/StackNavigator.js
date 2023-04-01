@@ -14,15 +14,13 @@ import NewChatPage from './screens/NewChatPage';
 import AppearenceSettings from './screens/settings/AppearenceSettings';
 import BackupNRestore from './screens/settings/BackupNRestore';
 import PrivacySettings from './screens/settings/PrivacySettings';
-import {setLoadingState} from '../../redux/loading/LoadingSlice';
-import {toggleTheme} from '../../redux/theme/ThemeSlice';
 import ChatScreen from './screens/chat/ChatScreen';
 import ProfileSettings from './screens/settings/ProfileSettings';
+import {clearAllChats} from '../../redux/chats/ChatSlice';
 
 export default StackNavigator = () => {
   const Stack = createNativeStackNavigator();
   const themeRef = useSelector(state => state.themeSlice);
-  const loadingRef = useSelector(state => state.loadingSlice);
   const authRef = useSelector(state => state.authenticationSlice);
   const dispatch = useDispatch();
 
@@ -33,13 +31,6 @@ export default StackNavigator = () => {
 
   useEffect(() => {
     if (!!themeRef.themeMode) {
-      // setLoadingState(pre => {
-      //   return {
-      //     ...pre,
-      //     loading: false,
-      //   };
-      // });
-      // console.log({themeRef});
       setTheme({
         colors:
           themeRef.themeMode == 'light'
@@ -49,6 +40,12 @@ export default StackNavigator = () => {
       });
     }
   }, [themeRef]);
+
+  useEffect(() => {
+    if (!authRef.isAuthenticated) {
+      dispatch(clearAllChats());
+    }
+  }, [authRef]);
 
   const AuthStack = () => (
     <Stack.Navigator
@@ -92,9 +89,6 @@ export default StackNavigator = () => {
     </Stack.Navigator>
   );
 
-  // if (loadingRef.loading && !theme) {
-  //   return <Text>loading</Text>;
-  // } else if (!!theme) {
   return (
     <NavigationContainer
       theme={
@@ -105,5 +99,4 @@ export default StackNavigator = () => {
       {!authRef.isAuthenticated ? <AuthStack /> : <MainStack />}
     </NavigationContainer>
   );
-  // }
 };

@@ -1,41 +1,28 @@
+import {useEffect, useRef, useState} from 'react';
+import {Alert, Text, StyleSheet, View, Platform} from 'react-native';
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {Formik} from 'formik';
-import {useEffect, useRef, useState} from 'react';
-import {
-  Text,
-  StyleSheet,
-  Alert,
-  Keyboard,
-  View,
-  TouchableHighlight,
-  TouchableOpacity,
-  Platform,
-} from 'react-native';
+import {useDispatch, useSelector} from 'react-redux';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scroll-view';
 import {AppStatusBar} from '../../../components/AppStatusBar';
 import HeadingLarge from '../../../components/HeadingLarge';
 import InputBox from '../../../components/InputBox';
 import SimpleButton from '../../../components/SimpleButton';
 import TextButton from '../../../components/TextButton';
+import LoadingPage from '../../../components/LoadingPage';
+import IconButton from '../../../components/IconButton';
 import {commonStyles} from '../../../styles/commonStyles';
 import {commonPageStyles} from './commonPageStyles';
+import {LoginValidationSchemaWithPhone} from './ValidationSchemas';
+import VerificationScreen from './VerificationScreen';
 import {
   loginWithPhone,
   loginWithGoogle,
   sendOtp,
 } from '../../../../api/authentication/AuthenticationRequests';
-import {
-  LoginValidationSchema,
-  LoginValidationSchemaWithPhone,
-} from './ValidationSchemas';
-import IconButton from '../../../components/IconButton';
-import ScreenNames from '../../../strings/ScreenNames';
 import ErrorCodes from '../../../../api/authentication/ErrorCodes';
-import {useDispatch, useSelector} from 'react-redux';
-import {setLoadingState} from '../../../../redux/loading/LoadingSlice';
-import LoadingPage from '../../../components/LoadingPage';
 import {storeUserDataInRedux} from '../../../../redux/authentication/AuthenticationSlice';
-import VerificationScreen from './VerificationScreen';
+import ScreenNames from '../../../strings/ScreenNames';
 
 export default LoginScreen = () => {
   const themeRef = useTheme();
@@ -48,14 +35,9 @@ export default LoginScreen = () => {
 
   useEffect(() => {
     phoneRef?.current.focus();
-    // phoneRef?.current.blur();
   }, []);
 
   const goToSinupPage = () => navigation.replace(ScreenNames.SignupScreen);
-
-  const toggleLoginScheme = () => {
-    phoneRef.current.blur();
-  };
 
   const changePhone = (func, text) => {
     func('phone', text);
@@ -73,6 +55,7 @@ export default LoginScreen = () => {
       phoneRef.current.focus();
     }
   };
+
   const submitPassword = (func, errors) => {
     if (!!errors.email) {
       phoneRef.current.focus();
@@ -114,22 +97,16 @@ export default LoginScreen = () => {
         );
       return;
     }
-    // console.log(loginResponse);
     if (!!loginResponse.response.isNewUser) {
       navigation.navigate(ScreenNames.EnterDetails, {
         previousDetails: {...loginResponse.response},
         withGoogle: true,
       });
     } else {
-      Alert.alert('Done !', 'Login SuccessFully');
       dispatch(
         storeUserDataInRedux({userDetails: {...loginResponse.response}}),
       );
     }
-  };
-
-  const testFun = () => {
-    phoneRef.current.focus();
   };
 
   const login = async values => {
@@ -138,9 +115,7 @@ export default LoginScreen = () => {
       phone: values.phone,
       password: values.password,
     });
-
     if (!!loginResponse.isError) {
-      // console.log({err: loginResponse.error});
       Alert.alert(
         'Oops !!',
         ErrorCodes[loginResponse.error.toString()].message,
@@ -148,12 +123,6 @@ export default LoginScreen = () => {
       setLoading('');
       return;
     }
-    // console.log('loginResponse');
-    // console.log(loginResponse);
-    // console.log({
-    //   phoneVerified: loginResponse.response.phoneVerified,
-    //   bool: !!loginResponse.response.phoneVerified,
-    // });
     if (!loginResponse.response.phoneVerified) {
       const sendCode = await sendOtp('+91' + values.phone);
       setLoading('');
@@ -163,7 +132,6 @@ export default LoginScreen = () => {
       });
       return;
     }
-
     if (loginResponse.response.isNewUser) {
       navigation.navigate(ScreenNames.EnterDetails, {
         previousDetails: {
@@ -178,8 +146,6 @@ export default LoginScreen = () => {
   };
 
   const showError = errors => {
-    // console.log('errors');
-    // console.log(errors);
     if (!!errors.phone) {
       Alert.alert(`Errors in phone !!`, errors.phone);
     } else if (!!errors.password) {
@@ -192,10 +158,6 @@ export default LoginScreen = () => {
     ...commonPageStyles(),
   });
 
-  // const dumyFun = props => {
-  //   console.log({props});
-  //   alert('pressed');
-  // };
   if (!!verificationFunction) {
     return (
       <VerificationScreen
@@ -212,11 +174,6 @@ export default LoginScreen = () => {
           contentContainerStyle={[styles.container, {flexGrow: 1}]}
           extraScrollHeight={5}
           scrollEnabled={false}>
-          {/* <TouchableOpacity
-          style={{marginTop: '10%'}}
-          onPress={dumyFun.bind(this, 'id')}>
-          <Text>Hello</Text>
-        </TouchableOpacity> */}
           <View style={[styles.mainDiv, styles.screenStyle]}>
             <HeadingLarge
               style={[styles.greetLarge]}
@@ -226,7 +183,6 @@ export default LoginScreen = () => {
               style={[styles.greetSmall]}
               text={'We missed You :)'}
             />
-
             <Formik
               initialValues={{
                 phone: Platform.OS == 'ios' ? '7778889990' : '5555228243',
@@ -236,13 +192,6 @@ export default LoginScreen = () => {
               {({values, touched, errors, setFieldValue, setTouched}) => (
                 <>
                   <View style={styles.formDiv}>
-                    {/* {console.log({
-                    values,
-                    touched,
-                    errors,
-                    setFieldValue,
-                    setTouched,
-                  })} */}
                     <InputBox
                       label={'Phone number'}
                       value={values.phone}

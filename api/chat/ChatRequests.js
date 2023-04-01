@@ -27,15 +27,16 @@ export const getUserHomepageChats = async username => {
 export const checkForUserInRecord = async (contactArray, currentUserName) => {
   // console.log('runnin');
   let contactArrayToReturn = [];
+  // console.log({contactArray});
   try {
     for (let i = 0; i < contactArray.length; i++) {
       let phonenumbers = contactArray[i].phoneNumbers;
       let contact = contactArray[i];
-      // console.log({contact});
-      // console.log({phonenumbersher: phonenumbers});
+
       if (!phonenumbers) {
         continue;
       }
+
       for (let j = 0; j < phonenumbers.length; j++) {
         let phonenumber = phonenumbers[j].number.replaceAll(' ', '');
         phonenumber = phonenumber.replaceAll('(', '');
@@ -49,9 +50,12 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
           phonenumber.length - 10,
           phonenumber.length,
         );
-        // console.log({phonenumberFinal: phonenumber});
         let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/credentials/${phonenumber}.json`;
         const response = await apiRequest(url, 'GET');
+
+        // url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${response.data.username}/isNewUser.json`;
+        // const response2 = await apiRequest(url, 'GET');
+        // if (!response2.data) {
 
         if (response.isError && response.error !== 'noData') {
           return {
@@ -60,6 +64,8 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
           };
         }
         // console.log({friendsAtHome2: response.data, currentUserName});
+
+        // }
 
         if (!response.isError && response.data.username != currentUserName) {
           // console.log({currentUserName});
@@ -86,7 +92,13 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
                 : '',
               contactName: `${
                 !!contact.givenName ? contact.givenName : ' - '
-              } ${!!contact.familyName ? contact.familyName : ' - '}`,
+              } ${
+                !!contact.familyName
+                  ? contact.familyName
+                  : !!contact.givenName
+                  ? ''
+                  : ' - '
+              }`,
             });
           }
         }

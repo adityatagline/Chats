@@ -72,6 +72,17 @@ export default ChatScreen = () => {
       : setChatContent([]);
   }, [chatSliceRef.individualChats[userInfo.username]]);
 
+  useEffect(() => {
+    const checkAndDeleteMessage = async () => {
+      let {unseenChats} = chatSliceRef;
+      // unseenChats = unseenChats.filter(
+      //   item => item.otherUser == userInfo.username,
+      // );
+      console.log({unseenChatsInChatScreen: unseenChats});
+    };
+    checkAndDeleteMessage();
+  }, [chatSliceRef.unseenChats]);
+
   const sendMessage = async message => {
     if (!message) {
       Alert.alert('Oops', 'Write something to send ..');
@@ -123,7 +134,10 @@ export default ChatScreen = () => {
         onOptionPress={() => {}}
         chatProfilePhoto={{}}
       />
-      <NoChatAnimatedCompoenet visibility={chatContent.length == 0} />
+      <NoChatAnimatedCompoenet
+        visibility={chatContent.length == 0}
+        themeRef={themeRef}
+      />
 
       <KeyboardAvoidingView
         style={[styles.chatListWrapperContainer]}

@@ -41,7 +41,7 @@ export const checkAndDeleteMessage = async (messageArray, currentUser) => {
         return;
       }
 
-      console.log({messageObj});
+      // console.log({messageObj});
       let isExistAtUser = await firestore()
         .collection('chats')
         .doc('individual')

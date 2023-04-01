@@ -5,3 +5,11 @@ export default fontFamilies = {
   primaryFontSemiBold: 'Quicksand-SemiBold',
   primaryFontBold: 'Quicksand-Bold',
 };
+
+export const fontWeights = {
+  light: 'Light',
+  medium: 'Medium',
+  regular: 'Regular',
+  semiBold: 'SemiBold',
+  bold: 'Bold',
+};
