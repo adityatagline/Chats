@@ -1,6 +1,6 @@
 import {databaseLinks} from '../../credentials/firebaseCredentials/FirebaseDatabaseLinks';
 import {apiRequest} from '../global/BaseApiRequestes';
-import firestore from '@react-native-firebase/firestore';
+import {deleteFromFBStorage} from './firebaseSdkRequests';
 
 export const getUserHomepageChats = async username => {
   try {
@@ -87,8 +87,8 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
               firstName: response2.data.firstName,
               lastName: response2.data.lastName,
               phone: response2.data.phone,
-              profilePhoto: !!response2.data.profilePhoto
-                ? response2.data.profilePhoto
+              profilePhoto: !!response2?.data?.profilePhotoObject
+                ? response2.data.profilePhotoObject.uri
                 : '',
               contactName: `${
                 !!contact.givenName ? contact.givenName : ' - '
@@ -124,6 +124,37 @@ export const sendMessgae = async (
 ) => {
   try {
   } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const updateProfilePhotoInDB = async (username, newProfileObj) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/profilePhotoObject.json`;
+    const getOldDetails = await apiRequest(url, 'GET');
+    let oldObject;
+    if (getOldDetails.isError && getOldDetails.error != 'noData') {
+      return {
+        ...getOldDetails,
+      };
+    }
+    if (!getOldDetails.isError) {
+      oldObject = getOldDetails.data;
+    }
+    const updateResponse = await apiRequest(url, 'PUT', {
+      ...newProfileObj,
+    });
+    if (!!oldObject && Object.keys(oldObject).length != 0) {
+      let path = oldObject.path;
+      const deleteOld = await deleteFromFBStorage(path);
+      console.log({deleteOld});
+    }
+    return updateResponse;
+  } catch (error) {
+    console.log({errorOnupdateProfilePhotoInDB: error});
     return {
       isError: true,
       error,

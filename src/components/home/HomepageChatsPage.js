@@ -19,6 +19,7 @@ import ScreenNames from '../../strings/ScreenNames';
 import TextButton from '../TextButton';
 import {imageUrlStrings} from '../../strings/ImageUrlStrings';
 import BaseText from '../BaseText';
+import ImageCompWithLoader from '../ImageCompWithLoader';
 
 export default HomepageChatsPage = ({chatArray}) => {
   const themeRef = useTheme();
@@ -37,9 +38,13 @@ export default HomepageChatsPage = ({chatArray}) => {
       paddingBottom: hp(7),
     },
     chatAvatar: {
-      height: hp(7),
-      width: hp(7),
-      borderRadius: 20,
+      height: hp(8),
+      width: hp(8),
+      borderRadius: 23,
+    },
+    noPhotoStyle: {
+      height: hp(5),
+      width: hp(5),
     },
     chatDiv: {
       marginVertical: hp(0.5),
@@ -110,6 +115,8 @@ export default HomepageChatsPage = ({chatArray}) => {
       ? chatSliceRef.unseenChats[item.otherUser].length
       : 0;
 
+    console.log({friend: chatSlice.friends?.[item.otherUser]});
+
     if (chatname.length > 20) {
       chatname = chatname.slice(0, 20);
       chatname = chatname.split(' ');
@@ -123,18 +130,33 @@ export default HomepageChatsPage = ({chatArray}) => {
       chatname = chatname + ' ..';
     }
 
-    let chattime =
-      new Date() - new Date(item.date) > 86400000
-        ? new Date(item.date).toLocaleDateString()
-        : new Date(item.date).toLocaleTimeString();
-    if (chattime.includes(':')) {
-      chattime =
-        (chattime.length < 11
-          ? '0' + chattime.slice(0, 4)
-          : chattime.slice(0, 5)) +
-        ' ' +
-        chattime.slice(chattime.length - 2, chattime.length);
+    let chattime;
+    let chatDate = new Date(item.date);
+    if (new Date() - chatDate > 86400000) {
+      chattime = chatDate.toLocaleDateString();
+    } else {
+      let part = 'am';
+
+      if (chatDate.getHours() >= 12) {
+        part = 'pm';
+        chattime =
+          chatDate.getHours() > 12
+            ? chatDate.getHours() - 12
+            : chatDate.getHours() == 0
+            ? 12
+            : chatDate.getHours();
+        if (Number(chattime) < 10) {
+          chattime = '0' + Number(chattime).toString();
+        }
+      } else {
+        chattime = chatDate.getHours();
+      }
+      chattime = `${chattime}:${
+        chatDate.getMinutes() < 10 ? '0' : ''
+      }${chatDate.getMinutes()} ${part}`;
+      // chattime = chattime + part;
     }
+
     let chatmessage = item.message;
     let isSplitted = false;
     if (item.message.includes('\n')) {
@@ -150,17 +172,13 @@ export default HomepageChatsPage = ({chatArray}) => {
       <TouchableOpacity
         style={styles.chatDiv}
         onPress={goToChatScreen.bind(this, item)}>
-        <Image
-          source={photoUri}
-          style={[
-            styles.chatAvatar,
-            !photoUri.uri && {
-              marginVertical: hp(1),
-              marginHorizontal: hp(1),
-              height: hp(5),
-              width: hp(5),
-            },
-          ]}
+        <ImageCompWithLoader
+          source={!!photoUri ? photoUri : imageUrlStrings.profileSelected}
+          ImageStyles={[styles.chatAvatar, !photoUri && styles.noPhotoStyle]}
+          containerStyles={{
+            marginRight: !!photoUri.uri ? wp(1) : wp(2),
+            marginLeft: !!photoUri.uri ? wp(0) : wp(2.5),
+          }}
         />
         <View style={styles.chatDetails}>
           <BaseText

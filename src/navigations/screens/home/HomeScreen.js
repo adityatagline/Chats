@@ -27,7 +27,7 @@ export default HomeScreen = props => {
   const [isLoading, setisLoading] = useState(false);
   const [messageToBedeleted, setMessageToBedeleted] = useState([]);
 
-  console.log({unseenChats: chatSliceRef.unseenChats});
+  // console.log({unseenChats: chatSliceRef.unseenChats});
 
   useEffect(() => {
     setisLoading(true);

@@ -25,6 +25,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {logout} from '../../../../redux/authentication/AuthenticationSlice';
 import {clearAllChats} from '../../../../redux/chats/ChatSlice';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
+import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 
 export default Settings = props => {
   const themeRef = useTheme();
@@ -148,24 +149,38 @@ export default Settings = props => {
 
   return (
     <View style={[styles.screenStyle, styles.mainDiv]}>
-      <View
-        style={[
-          styles.settingItem,
-          {
-            marginTop: hp(2),
-          },
-        ]}>
+      <View style={[styles.settingItem]}>
         {/* <View> */}
-        <Image
-          source={imageUrlStrings.profileSelected}
-          style={{
-            height: hp(8),
-            width: hp(8),
+        <ImageCompWithLoader
+          source={
+            !!user?.profilePhotoObject?.uri
+              ? {
+                  uri: user.profilePhotoObject.uri,
+                }
+              : imageUrlStrings.profileSelected
+          }
+          ImageStyles={{
+            height: hp(10),
+            width: hp(10),
             borderRadius: 30,
             alignSelf: 'center',
-            marginRight: wp(3),
           }}
+          containerStyles={{
+            marginRight: wp(5),
+            marginLeft: -wp(1.5),
+          }}
+          resizeMode="contain"
         />
+        {/* <Image
+          source={
+            !!user?.profilePhotoObject?.uri
+              ? {
+                  uri: user.profilePhotoObject.uri,
+                }
+              : imageUrlStrings.profileSelected
+          }
+          style={}
+        /> */}
         {/* <IconButton
             name="pencil"
             size={20}

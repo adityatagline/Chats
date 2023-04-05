@@ -10,6 +10,7 @@ import {useNavigation, useTheme} from '@react-navigation/native';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
 import BaseText from '../../../components/BaseText';
+import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 
 const ChatScreenHeaderComponent = ({
   displayChatName,
@@ -48,24 +49,18 @@ const ChatScreenHeaderComponent = ({
           color={themeRef.colors.appThemeColor}
         />
       </TouchableOpacity>
-      {!!chatProfilePhoto.uri ? (
-        <Image
-          source={chatProfilePhoto}
-          style={styles.chatImage}
-          borderRadius={17}
-        />
-      ) : (
-        <Image
-          source={imageUrlStrings.profileSelected}
-          style={[
-            styles.chatImage,
-            {
-              height: hp(4),
-              width: hp(4),
-            },
-          ]}
-        />
-      )}
+      <ImageCompWithLoader
+        source={chatProfilePhoto}
+        ImageStyles={[
+          styles.chatImage,
+          {
+            height: hp(4),
+            width: hp(4),
+          },
+        ]}
+        resizeMode="contain"
+        borderRadius={17}
+      />
       <BaseText
         color={themeRef.colors.appThemeColor}
         weight={fontWeights.bold}

@@ -1,4 +1,5 @@
 import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 
 export const sendMessageToFirestore = async (
   senderUsername,
@@ -76,4 +77,72 @@ export const checkAndDeleteMessage = async (messageArray, currentUser) => {
       }
     });
   } catch (error) {}
+};
+
+export const uploadProfilePic = async (imgObj, username) => {
+  try {
+    let extension = imgObj.filename.split('.').reverse()[0].toString();
+    // console.log({imgObj, username, extension});
+    let response = await uploadImageToFBStorage(
+      imgObj,
+      `/profilePhoto/${username}/profilePhoto${new Date().toString()}.${extension}`,
+    );
+    console.log({response});
+    if (response.isError) {
+      return {
+        isError: true,
+        error: response.error,
+      };
+    }
+    return {
+      isError: false,
+      data: response.data,
+    };
+  } catch (error) {
+    console.log({errorOnuploadProfilePic: error});
+
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const uploadImageToFBStorage = async (imgObj, path) => {
+  try {
+    const uploadResponse = await storage().ref(path).putFile(imgObj.path);
+    const downloadurl = await storage()
+      .ref(uploadResponse.metadata.fullPath)
+      .getDownloadURL();
+    return {
+      isError: false,
+      data: {
+        path: uploadResponse.metadata.fullPath,
+        uri: downloadurl,
+      },
+    };
+  } catch (error) {
+    console.log({errorOnuploadImageToFBStorage: error});
+
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const deleteFromFBStorage = async path => {
+  try {
+    const deleteResponse = await storage().ref(path).delete();
+    console.log({deleteResponse});
+    return {
+      isError: false,
+      data: deleteResponse,
+    };
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
 };

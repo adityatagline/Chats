@@ -17,7 +17,7 @@ const Chatslice = createSlice({
       // let chatName = !!newState.friends[otherUser]
       // ? newState.friends[otherUser].contactName
       // : otherUser;
-      console.log({stored: {...action.payload.chatObject, otherUser}});
+      // console.log({stored: {...action.payload.chatObject, otherUser}});
       if (!personChat) {
         personChat = [{...action.payload.chatObject, otherUser}];
       } else {
@@ -76,7 +76,7 @@ const Chatslice = createSlice({
       let messageArray = [...action.payload.messageArray].sort(
         (a, b) => new Date(a.date) - new Date(b.date),
       );
-      console.log({messageArray});
+      // console.log({messageArray});
       let newState = {...state};
 
       messageArray.forEach(element => {
@@ -127,16 +127,16 @@ const Chatslice = createSlice({
 
         let isExistinUnseenChats = !!itemFound;
         // console.log({isRecordExistInHome});
-        console.log({
-          element,
-          otherUser,
-          chatName,
-          isExistInIndividual,
-          isExistInHome,
-          isRecordExistInHome,
-          friends: state.friends,
-          unseenChats: newState.unseenChats,
-        });
+        // console.log({
+        //   element,
+        //   otherUser,
+        //   chatName,
+        //   isExistInIndividual,
+        //   isExistInHome,
+        //   isRecordExistInHome,
+        //   friends: state.friends,
+        //   unseenChats: newState.unseenChats,
+        // });
 
         if (!isExistInIndividual) {
           // console.log({isExistInIndividual});

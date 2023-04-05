@@ -45,8 +45,8 @@ export const loginWithGoogle = async () => {
         email: fireResponse.user.email,
         username: username,
         isNewUser: true,
-        profilePhoto: !!fireResponse.user.photoURL
-          ? fireResponse.user.photoURL
+        profilePhotoObject: !!fireResponse.user.photoURL
+          ? {uri: fireResponse.user.photoURL}
           : '',
       });
       if (!!sendUser.isError) {
@@ -58,20 +58,26 @@ export const loginWithGoogle = async () => {
     }
 
     let objectToReturn = {
-      email: fireResponse.user.email,
+      email: !user.isError ? user.data?.email : fireResponse.user.email,
       isNewUser: !!user.isError && user.error == 'noData' ? true : false,
-      emailVerified: fireResponse.user.emailVerified,
-      firstName: fireResponse.additionalUserInfo.profile.given_name,
-      lastName: fireResponse.additionalUserInfo.profile.family_name,
-      username,
+      emailVerified: !user.isError
+        ? user.data?.emailVerified
+        : fireResponse.user.emailVerified,
+      firstName: !user.isError
+        ? user.data?.firstName
+        : fireResponse.additionalUserInfo.profile.given_name,
+      lastName: !user.isError
+        ? user.data?.lastName
+        : fireResponse.additionalUserInfo.profile.family_name,
+      username: !user.isError ? user.data?.username : username,
     };
 
     if (!user.isError) {
       objectToReturn = {
         ...objectToReturn,
         ...user.data,
-        profilePhoto: !!fireResponse.user.photoURL
-          ? fireResponse.user.photoURL
+        profilePhotoObject: !!fireResponse.user.photoURL
+          ? {uri: fireResponse.user.photoURL}
           : '',
       };
     }

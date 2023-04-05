@@ -1,10 +1,12 @@
-import {ThemeProvider} from '@react-navigation/native';
 import {Dimensions, Pressable, StyleSheet, Text} from 'react-native';
 import {colorStrings} from '../strings/ColorStrings';
 import FontfamiliesNames from '../strings/FontfamiliesNames';
-import {themeColorName} from '../strings/ScreenNames';
 import {fontSize} from '../styles/commonStyles';
 const dimesions = Dimensions.get('screen');
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from 'react-native-responsive-screen';
 
 export default SimpleButton = ({
   title,
@@ -28,9 +30,8 @@ export default SimpleButton = ({
 };
 const styles = StyleSheet.create({
   mainDiv: {
-    width: dimesions.width * 0.8,
+    width: wp(80),
     alignSelf: 'center',
-    height: dimesions.height * 0.07,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 18,
@@ -41,7 +42,8 @@ const styles = StyleSheet.create({
       width: 0,
     },
     shadowOpacity: 0.5,
-    marginVertical: 10,
+    marginVertical: hp(1),
+    paddingVertical: hp(1.75),
   },
   text: {
     fontFamily: FontfamiliesNames.primaryFontBold,

@@ -1,5 +1,5 @@
 import {useTheme} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {
   Pressable,
   ScrollView,
@@ -21,11 +21,12 @@ const BaseModal = ({
   scrollContainerProps,
 }) => {
   const themeRef = useTheme();
-  const outerContainerOpacity = useRef(new Animated.Value(0.5)).current;
+  const [modalExistance, setModalExistance] = useState(false);
+  const outerContainerOpacity = useRef(new Animated.Value(0)).current;
   const innerContainerPosition = useRef(new Animated.Value(-hp(100))).current;
 
   const closeModal = () => {
-    Animated.sequence([
+    Animated.parallel([
       Animated.timing(innerContainerPosition, {
         toValue: -hp(100),
         duration: 400,
@@ -37,25 +38,24 @@ const BaseModal = ({
         useNativeDriver: true,
       }),
     ]).start();
+    setTimeout(() => {
+      setModalExistance(false);
+    }, 600);
   };
   const openModal = () => {
+    setModalExistance(true);
     Animated.parallel([
       Animated.timing(outerContainerOpacity, {
-        toValue: 0.5,
-        duration: 200,
+        toValue: 0.8,
+        duration: 500,
         useNativeDriver: true,
       }),
       Animated.timing(innerContainerPosition, {
         toValue: hp(3),
-        duration: 500,
+        duration: 300,
         useNativeDriver: false,
-        delay: 100,
       }),
     ]).start();
-
-    // setTimeout(() => {
-    //   closeModal();
-    // }, 3000);
   };
 
   useEffect(() => {
@@ -66,7 +66,7 @@ const BaseModal = ({
     }
   }, [visibility]);
 
-  return (
+  return !!modalExistance ? (
     <>
       <Animated.View
         style={[
@@ -119,7 +119,7 @@ const BaseModal = ({
         {/* <StatusBar translucent /> */}
       </Animated.View>
     </>
-  );
+  ) : null;
 };
 
 const styles = StyleSheet.create({});

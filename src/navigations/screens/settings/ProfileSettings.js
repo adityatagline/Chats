@@ -8,7 +8,11 @@ import {
   Alert,
 } from 'react-native';
 import React from 'react';
-import {fontSize, StatusBarHeight} from '../../../styles/commonStyles';
+import {
+  commonStyles,
+  fontSize,
+  StatusBarHeight,
+} from '../../../styles/commonStyles';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -16,7 +20,6 @@ import {
 import FontfamiliesNames, {
   fontWeights,
 } from '../../../strings/FontfamiliesNames';
-import {useNavigation, useTheme} from '@react-navigation/native';
 import {PageHeading, PageName} from './CommonComponents';
 import {useDispatch, useSelector} from 'react-redux';
 import InputBox from '../../../components/InputBox';
@@ -34,6 +37,13 @@ import BaseText from '../../../components/BaseText';
 import {updateProfileOnFirebase} from '../../../../api/authentication/AuthenticationRequests';
 import {changeUserDetails} from '../../../../redux/authentication/AuthenticationSlice';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
+import {useTheme} from '@react-navigation/native';
+import MediaPickerOptionModal from '../../../components/MediaPickerOptionModal';
+import {uploadProfilePic} from '../../../../api/chat/firebaseSdkRequests';
+import LoadingPage from '../../../components/LoadingPage';
+import {apiRequest} from '../../../../api/global/BaseApiRequestes';
+import {updateProfilePhotoInDB} from '../../../../api/chat/ChatRequests';
+import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 
 export default ProfileSettings = () => {
   const themeRef = useTheme();
@@ -84,13 +94,21 @@ export default ProfileSettings = () => {
       marginTop: hp(3),
       marginBottom: hp(2),
     },
+    profilePhoto: {
+      height: hp(12),
+      width: hp(12),
+      borderRadius: 35,
+      alignSelf: 'center',
+    },
   });
 
-  const dispath = useDispatch();
+  const dispatch = useDispatch();
   const user = useSelector(state => state.authenticationSlice).user;
-  const navigation = useNavigation();
+  console.log({userInAuth: user});
   const firstNameRef = useRef();
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [showPickerOption, setShowPickerOption] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     firstNameRef?.current?.focus();
@@ -105,6 +123,8 @@ export default ProfileSettings = () => {
       email: !!user.email ? user.email : '',
     },
   });
+
+  const openPickerModal = () => setShowPickerOption(true);
 
   const showFinalConfirmation = () => {
     Keyboard.dismiss();
@@ -128,8 +148,31 @@ export default ProfileSettings = () => {
       return;
     }
     if (!!response.data) {
-      dispath(changeUserDetails({userDetails: {...response.data}}));
+      dispatch(changeUserDetails({userDetails: {...response.data}}));
     }
+  };
+
+  const updatePhoto = async imageObj => {
+    setIsLoading(true);
+    console.log({imageObj});
+    setShowPickerOption(false);
+    const response = await uploadProfilePic({...imageObj}, user.username);
+    if (response.isError) {
+      Alert.alert('Oops', response.error);
+    }
+    console.log({fireStorageResponse: response});
+    const updateToDetails = await updateProfilePhotoInDB(user.username, {
+      ...response.data,
+    });
+    console.log({updateToDetails});
+    if (!updateToDetails.isError) {
+      dispatch(
+        changeUserDetails({
+          userDetails: {profilePhotoObject: {...updateToDetails.data}},
+        }),
+      );
+    }
+    setIsLoading(false);
   };
 
   const FieldArray = [
@@ -183,36 +226,41 @@ export default ProfileSettings = () => {
 
   return (
     <>
-      {!!showConfirmation && (
-        <BaseModal visibility={!!showConfirmation} canClosable>
-          <BaseText
-            size={fontSize.extralarge}
-            weight={fontWeights.bold}
-            color={themeRef.colors.appThemeColor}
-            otherStyles={[styles.confirmHeading]}>
-            Confirm Details
-          </BaseText>
-          {FieldArray.map(item => renderModalComponent({item}))}
-          <SimpleButton
-            title={'Confirm'}
-            containerStyle={styles.confirmBtnContainer}
-            onPress={updateUserProfile}
-          />
-          <TextButton
-            title={'cancel'}
-            textStyle={{
-              fontSize: fontSize.large,
-              textTransform: 'capitalize',
+      <BaseModal visibility={!!showConfirmation} canClosable>
+        <BaseText
+          size={fontSize.extralarge}
+          weight={fontWeights.bold}
+          color={themeRef.colors.appThemeColor}
+          otherStyles={[styles.confirmHeading]}>
+          Confirm Details
+        </BaseText>
+        {FieldArray.map(item => renderModalComponent({item}))}
+        <SimpleButton
+          title={'Confirm'}
+          containerStyle={styles.confirmBtnContainer}
+          onPress={updateUserProfile}
+        />
+        <TextButton
+          title={'cancel'}
+          textStyle={[
+            commonStyles.baseModalCancelBtn,
+            {
               color: themeRef.colors.errorColor,
-            }}
-            onPress={() => setShowConfirmation(false)}
-          />
-        </BaseModal>
+            },
+          ]}
+          onPress={() => setShowConfirmation(false)}
+        />
+      </BaseModal>
+      {!!isLoading && (
+        <LoadingPage dark={themeRef.dark} loadingText="Updating Profile .." />
       )}
+      <MediaPickerOptionModal
+        visibility={!!showPickerOption}
+        closeActions={() => setShowPickerOption(false)}
+        mediaType="photo"
+        afterChoosehandler={updatePhoto}
+      />
       <View style={[styles.mainDiv]}>
-        {/* {!!showConfirmation && ( */}
-
-        {/* )} */}
         <PageHeading
           middleComponenet={<PageName name={'Edit Profile'} />}
           backButtonProps={{
@@ -231,14 +279,16 @@ export default ProfileSettings = () => {
             style={{
               marginVertical: hp(2),
             }}>
-            <Image
-              source={imageUrlStrings.profileSelected}
-              style={{
-                height: hp(12),
-                width: hp(12),
-                borderRadius: 45,
-                alignSelf: 'center',
-              }}
+            <ImageCompWithLoader
+              source={
+                !!user?.profilePhotoObject?.uri
+                  ? {
+                      uri: user.profilePhotoObject.uri,
+                    }
+                  : imageUrlStrings.profileSelected
+              }
+              ImageStyles={styles.profilePhoto}
+              resizeMode="contain"
             />
             <IconButton
               name="pencil"
@@ -246,15 +296,18 @@ export default ProfileSettings = () => {
               color={themeRef.colors.primaryColor}
               containerStyle={{
                 backgroundColor: themeRef.colors.appThemeColor,
-                height: hp(4),
-                width: hp(4),
+                height: hp(5),
+                width: hp(5),
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: 16,
                 position: 'absolute',
                 bottom: hp(0),
                 marginLeft: wp(55),
+                borderWidth: 3,
+                borderColor: themeRef.colors.primaryColor,
               }}
+              onPress={openPickerModal}
             />
           </View>
           {FieldArray.map(item => renderFieldInput({item}))}

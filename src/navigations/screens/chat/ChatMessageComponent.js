@@ -118,6 +118,7 @@ const ChatMessageComponent = ({
           {item.message}
         </BaseText>
       </View>
+      {/* <BaseText>{new Date(item.date).toLocaleTimeString()}</BaseText> */}
     </View>
   );
 };

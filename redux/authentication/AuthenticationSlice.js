@@ -29,6 +29,7 @@ const AuthenticationSlice = createSlice({
       return {
         ...state,
         user: {
+          ...state.user,
           ...action.payload.userDetails,
         },
       };

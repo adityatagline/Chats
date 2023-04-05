@@ -155,6 +155,7 @@ export default ChatScreen = () => {
           style={styles.chatList}
           inverted
           contentContainerStyle={styles.chatListContainer}
+          showsVerticalScrollIndicator={false}
         />
 
         <FileSharingTrayComponent

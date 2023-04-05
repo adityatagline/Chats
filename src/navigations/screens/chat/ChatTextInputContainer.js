@@ -29,7 +29,7 @@ const ChatTextInputContainer = ({
       flexDirection: 'row',
       marginHorizontal: wp(4),
       marginTop: hp(1),
-      paddingBottom: Platform.OS == 'ios' ? hp(0) : hp(2),
+      paddingBottom: Platform.OS == 'ios' ? hp(0.5) : hp(2),
     },
     chatInput: {
       backgroundColor: '#F0F0F0',

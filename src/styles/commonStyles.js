@@ -45,4 +45,9 @@ export const commonStyles = StyleSheet.create({
   topSpacer: {
     marginTop: StatusBarHeight,
   },
+  baseModalCancelBtn: {
+    fontSize: fontSize.extralarge,
+    textTransform: 'capitalize',
+    marginVertical: hp(1),
+  },
 });

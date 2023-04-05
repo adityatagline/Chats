@@ -62,6 +62,12 @@
 	<string>App needed permission for reading contacts.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>App needed permission for location.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>App needed permission to use photo library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>App needed permission to use camera.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>App needed permission to use microphone.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
