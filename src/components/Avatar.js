@@ -1,17 +1,17 @@
-import { useTheme } from '@react-navigation/native';
+import {useTheme} from '@react-navigation/native';
 import {memo} from 'react';
 import {Image, StyleSheet, View} from 'react-native';
 
 const Avatar = ({
   source,
   imageStyle,
-  borderRadius = 25,
+  borderRadius = 100,
   resizeMode = 'cover',
   imageSize = 60,
   haveBorder = true,
   containerStyle,
 }) => {
-  const themeRef = useTheme()
+  const themeRef = useTheme();
   const styles = StyleSheet.create({
     avatar: {
       height: imageSize,

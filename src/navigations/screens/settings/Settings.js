@@ -162,7 +162,7 @@ export default Settings = props => {
           ImageStyles={{
             height: hp(10),
             width: hp(10),
-            borderRadius: 30,
+            borderRadius: wp(8.5),
             alignSelf: 'center',
           }}
           containerStyles={{

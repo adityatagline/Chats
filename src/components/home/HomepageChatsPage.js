@@ -41,11 +41,12 @@ export default HomepageChatsPage = ({chatArray}) => {
     chatAvatar: {
       height: hp(6),
       width: hp(6),
-      borderRadius: 23,
+      borderRadius: wp(5),
     },
     noPhotoStyle: {
       height: hp(5),
       width: hp(5),
+      borderRadius: wp(4.5),
     },
     chatDiv: {
       marginVertical: hp(0.5),
@@ -124,7 +125,7 @@ export default HomepageChatsPage = ({chatArray}) => {
       ? chatSliceRef.unseenChats[item.otherUser].length
       : 0;
 
-    console.log({friend: chatSlice.friends?.[item.otherUser]});
+    // console.log({friend: chatSlice.friends?.[item.otherUser]});
 
     if (chatname.length > 20) {
       chatname = chatname.slice(0, 20);
@@ -182,7 +183,7 @@ export default HomepageChatsPage = ({chatArray}) => {
         : imageUrlStrings.profileSelected;
     }
 
-    console.log({photoUri});
+    // console.log({photoUri});
 
     return (
       <TouchableOpacity

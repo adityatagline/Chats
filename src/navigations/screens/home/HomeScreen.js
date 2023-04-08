@@ -33,7 +33,7 @@ export default HomeScreen = props => {
   const [isLoading, setisLoading] = useState(false);
   const [messageToBedeleted, setMessageToBedeleted] = useState([]);
   const [strangerArray, setStrangerArray] = useState([]);
-  console.log({chatSliceRef});
+  // console.log({chatSliceRef});
 
   // console.log({unseenChats: chatSliceRef.unseenChats});
 
@@ -49,14 +49,14 @@ export default HomeScreen = props => {
     }
     userArrayOfStranger.forEach(async element => {
       const response = await getStrangerInfoFromDB(element);
-      console.log({responseFormFb: response, userArrayOfStranger, element});
+      // console.log({responseFormFb: response, userArrayOfStranger, element});
       if (
         !response.isError &&
         !!response.data &&
         !chatSliceRef?.strangers[element] &&
         !!element
       ) {
-        console.log('runnning for dispatch');
+        // console.log('runnning for dispatch');
         dispatch(storeStranger({userInfo: response.data}));
       }
     });
@@ -80,7 +80,7 @@ export default HomeScreen = props => {
             arrayToCheck.push({
               ...data,
             });
-            console.log({data, strangerArray});
+            // console.log({data, strangerArray});
             if (
               !chatSliceRef.friends?.[data.otherUser] &&
               !strangerArray.includes(data.otherUser) &&

@@ -23,29 +23,43 @@ import {
 } from 'react-native-image-crop-picker';
 import {useEffect} from 'react';
 
-const openMediaPickerModal = async (mode, mediaType, selectionLimit = 1) => {
+export const openMediaPickerModal = async (
+  mode,
+  mediaType,
+  selectionLimit = 1,
+) => {
   console.log({mode, mediaType, selectionLimit});
   try {
+    let pickerConfig = {
+      mediaType,
+      selectionLimit,
+      // cropping: true,
+      multiple: selectionLimit > 1,
+      maxFiles: selectionLimit,
+    };
+    if (mediaType == 'photo') {
+      pickerConfig.cropping = true;
+    }
     if (mode == 'library') {
-      const pickerResponse = await openPicker({
-        mediaType,
-        selectionLimit,
-        cropping: true,
-        multiple: selectionLimit != 1,
-        maxFiles: selectionLimit,
-      });
+      const pickerResponse = await openPicker(pickerConfig);
       if (selectionLimit > 1) {
-        return pickerResponse;
+        return [...pickerResponse].map(item => {
+          let returnObj = {...item};
+          if (item.filename == undefined || item.filename == 'undefined') {
+            returnObj['filename'] = item.path
+              .split('/')
+              .reverse()[0]
+              .toString();
+          }
+          return {...returnObj};
+        });
       } else {
-        const {
-          filename,
-          sourceURL,
-          height,
-          width,
-          path,
-          localIdentifier,
-          size,
-        } = pickerResponse;
+        let {filename, sourceURL, height, width, path, localIdentifier, size} =
+          pickerResponse;
+        if (!filename || filename == undefined) {
+          filename = path.split('/').reverse()[0];
+        }
+        console.log({filename});
         return {
           filename,
           sourceURL,
@@ -57,8 +71,9 @@ const openMediaPickerModal = async (mode, mediaType, selectionLimit = 1) => {
         };
       }
     } else {
+      let permission;
       if (Platform.OS == 'android') {
-        const permission = await PermissionsAndroid.request(
+        permission = await PermissionsAndroid.request(
           'android.permission.CAMERA',
         );
       }
@@ -69,16 +84,22 @@ const openMediaPickerModal = async (mode, mediaType, selectionLimit = 1) => {
         );
         return;
       }
-      // console.log({permission});
       const cameraResponse = await openCamera({
         mediaType,
         cropping: true,
       });
-      const {filename, sourceURL, height, width, path, localIdentifier, size} =
+      let {filename, sourceURL, height, width, path, localIdentifier, size} =
         cameraResponse;
-      return {filename, sourceURL, height, width, path, localIdentifier, size};
+      if (!filename || filename == undefined) {
+        filename = path.split('/').reverse()[0];
+      }
+      return [
+        {filename, sourceURL, height, width, path, localIdentifier, size},
+      ];
     }
   } catch (error) {
+    // console.log({error});
+
     if (error.code != 'E_PICKER_CANCELLED') {
       Alert.alert('Oops', error.message);
     }
@@ -102,18 +123,25 @@ const MediaPickerOptionModal = ({
   });
 
   const openModal = async mode => {
-    const pickerResponse = await openMediaPickerModal(
-      mode,
-      mediaType,
-      selectionLimit,
-    );
-    const cropped = await openCropper({
-      height: 480,
-      width: 480,
-      path: pickerResponse.path,
-    });
-    console.log({cropped});
-    await afterChoosehandler(cropped);
+    try {
+      const pickerResponse = await openMediaPickerModal(
+        mode,
+        mediaType,
+        selectionLimit,
+      );
+      let mediaObj = pickerResponse;
+      if (selectionLimit == 1 && mediaType == 'photo') {
+        mediaObj = await openCropper({
+          height: 480,
+          width: 480,
+          path: pickerResponse[0].path,
+        });
+      }
+      console.log({mediaObj});
+      await afterChoosehandler(mediaObj);
+    } catch (error) {
+      // console.log({error});
+    }
   };
 
   return (

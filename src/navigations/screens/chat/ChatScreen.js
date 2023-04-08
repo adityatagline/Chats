@@ -11,8 +11,14 @@ import {
 import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
-import {storeMessage} from '../../../../redux/chats/ChatSlice';
-import {sendMessageToFirestore} from '../../../../api/chat/firebaseSdkRequests';
+import {
+  changeMediaStatus,
+  storeMessage,
+} from '../../../../redux/chats/ChatSlice';
+import {
+  sendMessageToFirestore,
+  uploadFileToFirebase,
+} from '../../../../api/chat/firebaseSdkRequests';
 import {useNetInfo} from '@react-native-community/netinfo';
 import {KeyboardAvoidingView} from 'react-native';
 import ChatScreenHeaderComponent from './ChatScreenHeaderComponent';
@@ -21,9 +27,12 @@ import NoChatAnimatedCompoenet from './NoChatAnimatedComponent';
 import FileSharingTrayComponent from './FileSharingTrayComponent';
 import ChatTextInputContainer from './ChatTextInputContainer';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
-import MediaPickerOptionModal from '../../../components/MediaPickerOptionModal';
+import MediaPickerOptionModal, {
+  openMediaPickerModal,
+} from '../../../components/MediaPickerOptionModal';
 import {array} from 'yup';
-import {uploadImageToFBStorage} from '../../../../api/chat/firebaseSdkRequests';
+import IconButton from '../../../components/IconButton';
+import {openPicker} from 'react-native-image-crop-picker';
 
 export default ChatScreen = () => {
   const themeRef = useTheme();
@@ -69,6 +78,7 @@ export default ChatScreen = () => {
 
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
+  // console.log({chatContent});
 
   useEffect(() => {
     !!chatSliceRef.individualChats[userInfo.username] &&
@@ -77,24 +87,26 @@ export default ChatScreen = () => {
       : setChatContent([]);
   }, [chatSliceRef.individualChats[userInfo.username]]);
 
-  // useEffect(() => {
-  //   // const backAction = () => {
-  //   //   Alert.alert('Hold on!', 'Are you sure you want to go back?', [
-  //   //     {
-  //   //       text: 'Cancel',
-  //   //       onPress: () => null,
-  //   //       style: 'cancel',
-  //   //     },
-  //   //     {text: 'YES', onPress: () => BackHandler.exitApp()},
-  //   //   ]);
-  //   //   return true;
-  //   // };
-  //   // const backHandler = BackHandler.addEventListener(
-  //   //   'hardwareBackPress',
-  //   //   backAction,
-  //   // );
-  //   // return () => backHandler.remove();
-  // }, []);
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        // console.log({showPickerOptions, isFileSendingTrayOpen});
+        if (!!showPickerOptions || !!isFileSendingTrayOpen) {
+          // console.log('running');
+          !!showPickerOptions
+            ? setShowPickerOptions('')
+            : !!isFileSendingTrayOpen
+            ? setIsFileSendingTrayOpen(false)
+            : null;
+          return true;
+        } else {
+          return false;
+        }
+      },
+    );
+    return () => backHandler.remove();
+  }, [showPickerOptions, isFileSendingTrayOpen]);
 
   useEffect(() => {
     const checkAndDeleteMessage = async () => {
@@ -102,7 +114,7 @@ export default ChatScreen = () => {
       // unseenChats = unseenChats.filter(
       //   item => item.otherUser == userInfo.username,
       // );
-      console.log({unseenChatsInChatScreen: unseenChats});
+      // console.log({unseenChatsInChatScreen: unseenChats});
     };
     checkAndDeleteMessage();
   }, [chatSliceRef.unseenChats]);
@@ -146,29 +158,27 @@ export default ChatScreen = () => {
 
   const sendMedia = async (type, assetsArray) => {
     console.log({type, assetsArray});
-
-    switch (type) {
-      case 'photo':
-        assetsArray.forEach(async element => {
-          let uploadedObj = await uploadImageToFBStorage(
-            element,
-            `chatsImages/${currentUserInfo.username}/${userInfo.username}/${element.filename}`,
-          );
-          if (!uploadedObj.isError) {
-            await sendMediaMessage(uploadedObj.data, type);
-          }
-        });
-        break;
-
-      default:
-        break;
-    }
+    setIsFileSendingTrayOpen(false);
+    setShowPickerOptions('');
+    assetsArray.forEach(async element => {
+      let {filename} = element;
+      if (!filename || filename == undefined || filename == 'undefined') {
+        filename = element.path.split('/').reverse()[0];
+      }
+      let uploadedObj = await uploadFileToFirebase(
+        element,
+        `chats${type}/${currentUserInfo.username}/${userInfo.username}/${element.filename}`,
+      );
+      if (!uploadedObj.isError) {
+        await sendMediaMessage(uploadedObj.data, type);
+      }
+    });
   };
 
   const sendMediaMessage = async (mediaObj, type) => {
-    console.log({mediaObj});
+    // console.log({mediaObj});
     const mediaName = mediaObj.path.split('/').reverse()[0];
-    console.log({mediaName});
+    // console.log({mediaName});
     let objToGenID = {
       su: currentUserInfo.username,
       ru: userInfo.username,
@@ -201,21 +211,38 @@ export default ChatScreen = () => {
     setShowPickerOptions('photo');
   };
 
+  const openVideoPicker = () => {
+    setShowPickerOptions('video');
+  };
+
+  const handleDownload = (downloadObj, chatObj) => {
+    // console.log({downloadObj, chatObj});
+    dispatch(changeMediaStatus({downloadObj, chatObj}));
+  };
+
   const RenderChatComp = ({item, index, chatArray}) => (
     <ChatMessageComponent
-      {...{item, index, chatArray, currentUserInfo, themeRef, isGroup: false}}
+      {...{
+        item,
+        index,
+        chatArray,
+        currentUserInfo,
+        themeRef,
+        isGroup: false,
+        handleDownload,
+      }}
     />
   );
 
-  console.log({
-    chatContent,
-  });
+  // console.log({
+  //   chatContent,
+  // });
 
   return (
     <>
       <MediaPickerOptionModal
         afterChoosehandler={res => {
-          sendMedia('photo', res);
+          sendMedia(showPickerOptions, res);
         }}
         closeActions={() => setShowPickerOptions()}
         selectionLimit={3}
@@ -267,6 +294,7 @@ export default ChatScreen = () => {
             visibility={isFileSendingTrayOpen}
             setterFunc={setIsFileSendingTrayOpen}
             onImagePress={openImagePicker}
+            onVideoPress={openVideoPicker}
           />
 
           <ChatTextInputContainer
@@ -275,6 +303,10 @@ export default ChatScreen = () => {
             toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
             isFileSendingTrayOpen={isFileSendingTrayOpen}
             sendMessage={sendMessage}
+            onPressCamera={async () => {
+              let photoObj = await openMediaPickerModal('camera', 'photo', 1);
+              let upload = await sendMedia('photo', photoObj);
+            }}
           />
         </KeyboardAvoidingView>
       </SafeAreaView>

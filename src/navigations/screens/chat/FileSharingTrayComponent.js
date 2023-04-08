@@ -8,7 +8,12 @@ import {
 import IconButton from '../../../components/IconButton';
 import MediaPickerOptionModal from '../../../components/MediaPickerOptionModal';
 
-const FileSharingTrayComponent = ({visibility, setterFunc, onImagePress}) => {
+const FileSharingTrayComponent = ({
+  visibility,
+  setterFunc,
+  onImagePress,
+  onVideoPress,
+}) => {
   const themeRef = useTheme();
   const styles = StyleSheet.create({
     mainDiv: {
@@ -151,12 +156,15 @@ const FileSharingTrayComponent = ({visibility, setterFunc, onImagePress}) => {
               color={themeRef.colors.appThemeColor}
               onPress={onImagePress}
             />
-            <IconButton name={'film'} color={themeRef.colors.appThemeColor} />
+            <IconButton
+              name={'film'}
+              color={themeRef.colors.appThemeColor}
+              onPress={onVideoPress}
+            />
             <IconButton
               name={'document'}
               color={themeRef.colors.appThemeColor}
             />
-            <IconButton name={'folder'} color={themeRef.colors.appThemeColor} />
             <IconButton
               name={'location'}
               color={themeRef.colors.appThemeColor}

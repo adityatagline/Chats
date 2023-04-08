@@ -167,7 +167,7 @@ export const getStrangerInfoFromDB = async starngerUsername => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${starngerUsername}.json`;
     let response = await apiRequest(url, 'GET');
-    console.log({url, response});
+    // console.log({url, response});
     if (!!response.isError) {
       return {...response};
     }
@@ -192,29 +192,41 @@ export const getStrangerInfoFromDB = async starngerUsername => {
   }
 };
 
-export const downloadMediaToDevice = async item => {
+export const downloadMediaToDevice = async (item, handleDownload) => {
   try {
-    // let conf = {
-    //   path: item.uri,
-    // };
-    const iOS = RNFetchBlob.ios;
-    console.log('running donwloads', item);
     let dirs = RNFetchBlob.fs.dirs;
-    const task = RNFetchBlob.config({
-      path:
-        dirs.DocumentDir +
-        `/${item.otherUser}/${item.mediaType}/${item.mediaName}`,
+    const path =
+      dirs.DownloadDir +
+      `/chats/media/${item.otherUser}/${item.mediaType}/${item.mediaName}`;
+    RNFetchBlob.config({
       IOSBackgroundTask: true,
+      addAndroidDownloads: {
+        path,
+        notification: true,
+        useDownloadManager: true,
+      },
     })
       .fetch('GET', item.uri)
-      .then(res => {
-        console.log({downloadResponse: res});
-        iOS.previewDocument(res.path());
+      .then(Response => {
+        console.log({Response, path: Response.path()});
+        handleDownload(
+          {
+            isError: false,
+            data: {
+              path: Response.path(),
+              data: Response.data,
+            },
+          },
+          item,
+        );
       });
   } catch (error) {
-    return {
-      isError: true,
-      error,
-    };
+    handleDownload(
+      {
+        isError: true,
+        error,
+      },
+      item,
+    );
   }
 };

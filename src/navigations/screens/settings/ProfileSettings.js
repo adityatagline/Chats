@@ -97,14 +97,14 @@ export default ProfileSettings = () => {
     profilePhoto: {
       height: hp(12),
       width: hp(12),
-      borderRadius: 35,
+      borderRadius: wp(10),
       alignSelf: 'center',
     },
   });
 
   const dispatch = useDispatch();
   const user = useSelector(state => state.authenticationSlice).user;
-  console.log({userInAuth: user});
+  // console.log({userInAuth: user});
   const firstNameRef = useRef();
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showPickerOption, setShowPickerOption] = useState(false);
@@ -155,17 +155,17 @@ export default ProfileSettings = () => {
   const updatePhoto = async imageObj => {
     try {
       setIsLoading(true);
-      console.log({imageObj});
+      // console.log({imageObj});
       setShowPickerOption(false);
       const response = await uploadProfilePic({...imageObj}, user.username);
       if (response.isError) {
         Alert.alert('Oops', response.error);
       }
-      console.log({fireStorageResponse: response});
+      // console.log({fireStorageResponse: response});
       const updateToDetails = await updateProfilePhotoInDB(user.username, {
         ...response.data,
       });
-      console.log({updateToDetails});
+      // console.log({updateToDetails});
       if (!updateToDetails.isError) {
         dispatch(
           changeUserDetails({
@@ -175,7 +175,7 @@ export default ProfileSettings = () => {
       }
       setIsLoading(false);
     } catch (error) {
-      console.log({errorinupdatePhoto: error});
+      // console.log({errorinupdatePhoto: error});
     }
   };
 
@@ -305,7 +305,7 @@ export default ProfileSettings = () => {
                 width: hp(5),
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: 16,
+                borderRadius: wp(4.3),
                 position: 'absolute',
                 bottom: hp(0),
                 marginLeft: wp(55),

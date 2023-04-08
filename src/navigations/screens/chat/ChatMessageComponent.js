@@ -10,6 +10,7 @@ import BaseText from '../../../components/BaseText';
 import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 import IconButton from '../../../components/IconButton';
 import {downloadMediaToDevice} from '../../../../api/chat/ChatRequests';
+import IonIcon from 'react-native-vector-icons/Ionicons';
 
 const ChatMessageComponent = ({
   item,
@@ -18,9 +19,10 @@ const ChatMessageComponent = ({
   currentUserInfo,
   themeRef,
   isGroup,
+  handleDownload,
 }) => {
   let position;
-  console.log({item});
+  // console.log({item});
 
   switch (index) {
     case 0:
@@ -78,7 +80,14 @@ const ChatMessageComponent = ({
   if (!!item.mediaType) {
     return (
       <RenderMediaComponent
-        {...{item, currentUserInfo, themeRef, isGroup, position}}
+        {...{
+          item,
+          currentUserInfo,
+          themeRef,
+          isGroup,
+          position,
+          handleDownload,
+        }}
       />
     );
   }
@@ -135,12 +144,25 @@ const ChatMessageComponent = ({
   );
 };
 
+const DownloadBtn = ({themeRef, item, handleDownload}) => (
+  <IconButton
+    name={'download-outline'}
+    size={25}
+    color={themeRef.colors.appThemeColor}
+    containerStyle={{
+      marginHorizontal: wp(2),
+    }}
+    onPress={downloadMediaToDevice.bind(this, item, handleDownload)}
+  />
+);
+
 const RenderMediaComponent = ({
   item,
   currentUserInfo,
   themeRef,
   isGroup,
   position,
+  handleDownload,
 }) => {
   switch (item.mediaType) {
     case 'photo':
@@ -160,7 +182,9 @@ const RenderMediaComponent = ({
             },
           ]}>
           <ImageCompWithLoader
-            source={{uri: item.uri}}
+            source={{
+              uri: item.uri,
+            }}
             ImageStyles={{
               height: hp(15),
               width: wp(50),
@@ -170,19 +194,42 @@ const RenderMediaComponent = ({
               borderRadius: 15,
             }}
           />
-          <IconButton
-            name={'download-outline'}
-            size={25}
-            color={themeRef.colors.appThemeColor}
-            containerStyle={{
-              marginHorizontal: wp(2),
-            }}
-            onPress={downloadMediaToDevice.bind(this, item)}
-          />
+          {!item.isDownloaded && (
+            <DownloadBtn {...{themeRef, item, handleDownload}} />
+          )}
         </View>
       );
-      break;
 
+    case 'file':
+    case 'video':
+      return (
+        <View
+          style={{
+            marginVertical: position == 'alone' ? hp(1) : hp(0),
+            marginTop: position == 'Bottom' ? hp(2) : hp(0.5),
+            marginBottom: position == 'Top' ? hp(2) : hp(0.5),
+            justifyContent: 'flex-start',
+            flexDirection:
+              item.from == currentUserInfo.username ? 'row-reverse' : 'row',
+            alignItems: 'center',
+          }}>
+          <BaseText
+            color={themeRef.colors.primaryColor}
+            weight={fontWeights.semiBold}
+            otherStyles={{
+              backgroundColor: themeRef.colors.appThemeColor,
+              paddingHorizontal: wp(4),
+              paddingVertical: hp(1),
+              borderRadius: 15,
+              overflow: 'hidden',
+            }}>
+            {item.mediaName}
+          </BaseText>
+          {!item.isDownloaded && (
+            <DownloadBtn {...{themeRef, item, handleDownload}} />
+          )}
+        </View>
+      );
     default:
       break;
   }

@@ -20,6 +20,7 @@ const ChatTextInputContainer = ({
   toggleFileTray,
   isFileSendingTrayOpen,
   sendMessage,
+  onPressCamera,
 }) => {
   const themeRef = useTheme();
 
@@ -59,6 +60,7 @@ const ChatTextInputContainer = ({
           name={'camera-outline'}
           size={25}
           color={themeRef.colors.secondaryColor}
+          onPress={onPressCamera}
         />
       </TouchableOpacity>
       <TextInput

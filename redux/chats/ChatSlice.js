@@ -190,9 +190,9 @@ const Chatslice = createSlice({
       return {...newState};
     },
     storeStranger: (state, action) => {
-      console.log('running storeStranger');
+      // console.log('running storeStranger');
       const {userInfo} = action.payload;
-      console.log({infoInRed: userInfo});
+      // console.log({infoInRed: userInfo});
       if (!!state.strangers[userInfo.username]) {
         return {...state};
       } else {
@@ -206,6 +206,32 @@ const Chatslice = createSlice({
               : {...state.strangers, [userInfo.username]: {...userInfo}},
         };
       }
+    },
+    changeMediaStatus: (state, action) => {
+      // console.log({changeMediaStatus: action});
+      let {downloadObj, chatObj} = action.payload;
+      downloadObj = downloadObj.data;
+      console.log({downloadObj});
+      let newArrayToSet = [...state.individualChats[chatObj.otherUser]].map(
+        item => {
+          if (item.id == chatObj.id) {
+            return {
+              ...item,
+              uri: 'file:///' + downloadObj.path,
+              isDownloaded: true,
+            };
+          } else {
+            return {...item};
+          }
+        },
+      );
+      return {
+        ...state,
+        individualChats: {
+          ...state.individualChats,
+          [chatObj.otherUser]: [...newArrayToSet],
+        },
+      };
     },
     removeUnseenChats: (state, action) => {
       let newArrayToSet = [...state.unseenChats];
@@ -233,5 +259,6 @@ export const {
   checkAndStoreNewMessages,
   removeUnseenChats,
   storeStranger,
+  changeMediaStatus,
 } = Chatslice.actions;
 export default Chatslice.reducer;

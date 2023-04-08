@@ -38,7 +38,7 @@ const ChatScreenHeaderComponent = ({
   });
 
   const navigation = useNavigation();
-  console.log({chatProfilePhoto});
+  // console.log({chatProfilePhoto});
 
   return (
     <View style={styles.pageHeadingContainer}>
@@ -55,7 +55,7 @@ const ChatScreenHeaderComponent = ({
         source={chatProfilePhoto}
         ImageStyles={[styles.chatImage]}
         ImageProps={{
-          borderRadius: 16,
+          borderRadius: wp(4),
         }}
       />
       <BaseText

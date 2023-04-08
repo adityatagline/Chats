@@ -85,7 +85,7 @@ export const uploadProfilePic = async (imgObj, username) => {
   try {
     let filename = !!imgObj.filename ? imgObj.filename : imgObj.path;
     let extension = filename.split('.').reverse()[0].toString();
-    let response = await uploadImageToFBStorage(
+    let response = await uploadFileToFirebase(
       imgObj,
       `/profilePhoto/${username}/profilePhoto${new Date().toString()}.${extension}`,
     );
@@ -101,7 +101,7 @@ export const uploadProfilePic = async (imgObj, username) => {
       data: response.data,
     };
   } catch (error) {
-    console.log({errorinuploadProfilePic: error});
+    // console.log({errorinuploadProfilePic: error});
 
     return {
       isError: true,
@@ -110,8 +110,9 @@ export const uploadProfilePic = async (imgObj, username) => {
   }
 };
 
-export const uploadImageToFBStorage = async (imgObj, path) => {
+export const uploadFileToFirebase = async (imgObj, path) => {
   try {
+    console.log({imgObj});
     const uploadResponse = await storage().ref(path).putFile(imgObj.path);
     const downloadurl = await storage()
       .ref(uploadResponse.metadata.fullPath)
@@ -124,7 +125,7 @@ export const uploadImageToFBStorage = async (imgObj, path) => {
       },
     };
   } catch (error) {
-    console.log({errorinuploadImageToFBStorage: error});
+    // console.log({errorinuploadFileToFirebase: error});
     return {
       isError: true,
       error,

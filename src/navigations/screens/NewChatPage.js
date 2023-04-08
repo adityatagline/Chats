@@ -209,7 +209,7 @@ export default NewChatPage = () => {
           <Image
             source={{uri: item.profilePhoto}}
             style={styles.profilePhoto}
-            borderRadius={20}
+            borderRadius={wp(6)}
           />
         ) : (
           <Icon
