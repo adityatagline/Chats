@@ -5,6 +5,7 @@ const initialValues = {
   individualChats: {},
   friends: {},
   unseenChats: {},
+  strangers: {},
 };
 
 const Chatslice = createSlice({
@@ -188,6 +189,24 @@ const Chatslice = createSlice({
       });
       return {...newState};
     },
+    storeStranger: (state, action) => {
+      console.log('running storeStranger');
+      const {userInfo} = action.payload;
+      console.log({infoInRed: userInfo});
+      if (!!state.strangers[userInfo.username]) {
+        return {...state};
+      } else {
+        return {
+          ...state,
+          strangers:
+            Object.keys(state.strangers).length == 0
+              ? {
+                  [userInfo.username]: {...userInfo},
+                }
+              : {...state.strangers, [userInfo.username]: {...userInfo}},
+        };
+      }
+    },
     removeUnseenChats: (state, action) => {
       let newArrayToSet = [...state.unseenChats];
       newArrayToSet = newArrayToSet.filter(item =>
@@ -213,5 +232,6 @@ export const {
   clearAllChats,
   checkAndStoreNewMessages,
   removeUnseenChats,
+  storeStranger,
 } = Chatslice.actions;
 export default Chatslice.reducer;

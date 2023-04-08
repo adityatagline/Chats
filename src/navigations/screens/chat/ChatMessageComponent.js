@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, StyleSheet} from 'react-native';
+import {View, StyleSheet, Image} from 'react-native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -7,6 +7,9 @@ import {
 import {fontSize} from '../../../styles/commonStyles';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
 import BaseText from '../../../components/BaseText';
+import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
+import IconButton from '../../../components/IconButton';
+import {downloadMediaToDevice} from '../../../../api/chat/ChatRequests';
 
 const ChatMessageComponent = ({
   item,
@@ -17,6 +20,7 @@ const ChatMessageComponent = ({
   isGroup,
 }) => {
   let position;
+  console.log({item});
 
   switch (index) {
     case 0:
@@ -71,6 +75,14 @@ const ChatMessageComponent = ({
     ] = 0;
   }
 
+  if (!!item.mediaType) {
+    return (
+      <RenderMediaComponent
+        {...{item, currentUserInfo, themeRef, isGroup, position}}
+      />
+    );
+  }
+
   return (
     <View
       style={[
@@ -121,6 +133,59 @@ const ChatMessageComponent = ({
       {/* <BaseText>{new Date(item.date).toLocaleTimeString()}</BaseText> */}
     </View>
   );
+};
+
+const RenderMediaComponent = ({
+  item,
+  currentUserInfo,
+  themeRef,
+  isGroup,
+  position,
+}) => {
+  switch (item.mediaType) {
+    case 'photo':
+      return (
+        <View
+          style={[
+            {
+              // backgroundColor: 'yellow',
+              // maxWidth: wp(80),
+              marginVertical: position == 'alone' ? hp(1) : hp(0),
+              marginTop: position == 'Bottom' ? hp(2) : hp(0.5),
+              marginBottom: position == 'Top' ? hp(2) : hp(0.5),
+              justifyContent: 'flex-start',
+              flexDirection:
+                item.from == currentUserInfo.username ? 'row-reverse' : 'row',
+              alignItems: 'center',
+            },
+          ]}>
+          <ImageCompWithLoader
+            source={{uri: item.uri}}
+            ImageStyles={{
+              height: hp(15),
+              width: wp(50),
+            }}
+            resizeMode="cover"
+            ImageProps={{
+              borderRadius: 15,
+            }}
+          />
+          <IconButton
+            name={'download-outline'}
+            size={25}
+            color={themeRef.colors.appThemeColor}
+            containerStyle={{
+              marginHorizontal: wp(2),
+            }}
+            onPress={downloadMediaToDevice.bind(this, item)}
+          />
+        </View>
+      );
+      break;
+
+    default:
+      break;
+  }
 };
 
 const styles = StyleSheet.create({

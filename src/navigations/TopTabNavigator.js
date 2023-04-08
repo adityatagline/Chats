@@ -30,7 +30,7 @@ export const TopTabNavigator = () => {
     ChatsHeading: {
       fontSize: fontSize.heading + 5,
       position: 'absolute',
-      top: hp(0.5) + StatusBarHeight,
+      top: hp(1) + StatusBarHeight,
       fontFamily: FontfamiliesNames.primaryFontBold,
       left: wp(10),
       color: themeRef.colors.appThemeColor,

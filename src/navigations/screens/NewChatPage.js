@@ -209,7 +209,7 @@ export default NewChatPage = () => {
           <Image
             source={{uri: item.profilePhoto}}
             style={styles.profilePhoto}
-            borderRadius={22}
+            borderRadius={20}
           />
         ) : (
           <Icon

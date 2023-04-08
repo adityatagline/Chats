@@ -153,26 +153,30 @@ export default ProfileSettings = () => {
   };
 
   const updatePhoto = async imageObj => {
-    setIsLoading(true);
-    console.log({imageObj});
-    setShowPickerOption(false);
-    const response = await uploadProfilePic({...imageObj}, user.username);
-    if (response.isError) {
-      Alert.alert('Oops', response.error);
+    try {
+      setIsLoading(true);
+      console.log({imageObj});
+      setShowPickerOption(false);
+      const response = await uploadProfilePic({...imageObj}, user.username);
+      if (response.isError) {
+        Alert.alert('Oops', response.error);
+      }
+      console.log({fireStorageResponse: response});
+      const updateToDetails = await updateProfilePhotoInDB(user.username, {
+        ...response.data,
+      });
+      console.log({updateToDetails});
+      if (!updateToDetails.isError) {
+        dispatch(
+          changeUserDetails({
+            userDetails: {profilePhotoObject: {...updateToDetails.data}},
+          }),
+        );
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.log({errorinupdatePhoto: error});
     }
-    console.log({fireStorageResponse: response});
-    const updateToDetails = await updateProfilePhotoInDB(user.username, {
-      ...response.data,
-    });
-    console.log({updateToDetails});
-    if (!updateToDetails.isError) {
-      dispatch(
-        changeUserDetails({
-          userDetails: {profilePhotoObject: {...updateToDetails.data}},
-        }),
-      );
-    }
-    setIsLoading(false);
   };
 
   const FieldArray = [
@@ -259,6 +263,7 @@ export default ProfileSettings = () => {
         closeActions={() => setShowPickerOption(false)}
         mediaType="photo"
         afterChoosehandler={updatePhoto}
+        isProfilePhoto
       />
       <View style={[styles.mainDiv]}>
         <PageHeading

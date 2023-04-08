@@ -10,9 +10,15 @@ import {
 import SearchPage from '../../../components/home/search/SearchPage';
 import HomepageChatsPage from '../../../components/home/HomepageChatsPage';
 import {commonStyles} from '../../../styles/commonStyles';
-import {getUserHomepageChats} from '../../../../api/chat/ChatRequests';
+import {
+  getStrangerInfoFromDB,
+  getUserHomepageChats,
+} from '../../../../api/chat/ChatRequests';
 import firestore from '@react-native-firebase/firestore';
-import {checkAndStoreNewMessages} from '../../../../redux/chats/ChatSlice';
+import {
+  checkAndStoreNewMessages,
+  storeStranger,
+} from '../../../../redux/chats/ChatSlice';
 import {askPermissionAsync, getContacts} from '../NewChatPage';
 import LoadingPage, {BaseLoader} from '../../../components/LoadingPage';
 import {checkAndDeleteMessage} from '../../../../api/chat/firebaseSdkRequests';
@@ -26,6 +32,8 @@ export default HomeScreen = props => {
   const dispatch = useDispatch();
   const [isLoading, setisLoading] = useState(false);
   const [messageToBedeleted, setMessageToBedeleted] = useState([]);
+  const [strangerArray, setStrangerArray] = useState([]);
+  console.log({chatSliceRef});
 
   // console.log({unseenChats: chatSliceRef.unseenChats});
 
@@ -34,6 +42,25 @@ export default HomeScreen = props => {
     getInitialData();
     isFocused && props.setterFunction(route.name);
   }, [isFocused]);
+
+  const getStarngersUserInfo = async userArrayOfStranger => {
+    if (userArrayOfStranger.length == 0) {
+      return;
+    }
+    userArrayOfStranger.forEach(async element => {
+      const response = await getStrangerInfoFromDB(element);
+      console.log({responseFormFb: response, userArrayOfStranger, element});
+      if (
+        !response.isError &&
+        !!response.data &&
+        !chatSliceRef?.strangers[element] &&
+        !!element
+      ) {
+        console.log('runnning for dispatch');
+        dispatch(storeStranger({userInfo: response.data}));
+      }
+    });
+  };
 
   useEffect(() => {
     if (!chatSliceRef.friends) {
@@ -47,10 +74,25 @@ export default HomeScreen = props => {
         .onSnapshot(res => {
           const docChanges = res.docChanges();
           let arrayToCheck = [];
+          let usersArray = [];
           docChanges.forEach(item => {
+            const data = item.doc.data();
             arrayToCheck.push({
-              ...item.doc.data(),
+              ...data,
             });
+            console.log({data, strangerArray});
+            if (
+              !chatSliceRef.friends?.[data.otherUser] &&
+              !strangerArray.includes(data.otherUser) &&
+              !usersArray.includes(data.otherUser)
+            ) {
+              usersArray.push(data.otherUser);
+            }
+          });
+          usersArray.forEach(userOfChats => {
+            if (!strangerArray.includes(userOfChats)) {
+              setStrangerArray(pre => [...pre, userOfChats]);
+            }
           });
           dispatch(
             checkAndStoreNewMessages({
@@ -61,9 +103,11 @@ export default HomeScreen = props => {
           setMessageToBedeleted([...arrayToCheck]);
         });
 
+      getStarngersUserInfo([...strangerArray]);
+
       return () => firestoreListner();
     } catch (error) {}
-  }, []);
+  }, [strangerArray]);
 
   useEffect(() => {
     const deleteMessages = async () => {

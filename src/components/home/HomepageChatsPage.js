@@ -20,6 +20,7 @@ import TextButton from '../TextButton';
 import {imageUrlStrings} from '../../strings/ImageUrlStrings';
 import BaseText from '../BaseText';
 import ImageCompWithLoader from '../ImageCompWithLoader';
+import {useEffect} from 'react';
 
 export default HomepageChatsPage = ({chatArray}) => {
   const themeRef = useTheme();
@@ -38,8 +39,8 @@ export default HomepageChatsPage = ({chatArray}) => {
       paddingBottom: hp(7),
     },
     chatAvatar: {
-      height: hp(8),
-      width: hp(8),
+      height: hp(6),
+      width: hp(6),
       borderRadius: 23,
     },
     noPhotoStyle: {
@@ -78,7 +79,7 @@ export default HomepageChatsPage = ({chatArray}) => {
     unseenMessageNumberContainer: {
       backgroundColor: themeRef.colors.appThemeColor,
       paddingVertical: hp(0.2),
-      paddingHorizontal: wp(1),
+      paddingHorizontal: wp(1.5),
       borderRadius: 7,
       marginHorizontal: wp(2),
     },
@@ -90,6 +91,14 @@ export default HomepageChatsPage = ({chatArray}) => {
   );
   const chatSliceRef = useSelector(state => state.chatSlice);
   const navigation = useNavigation();
+  const [homepageChats, setHomepageChats] = useState([]);
+  // console.log({homepageChats})
+
+  useEffect(() => {
+    if (chatSliceRef.homepageChats.length != 0) {
+      setHomepageChats([...chatSliceRef.homepageChats]);
+    }
+  }, [chatSliceRef.homepageChats, chatSliceRef.strangers]);
 
   const goToNewChatPage = () => {
     navigation.navigate(ScreenNames.NewChatPage);
@@ -158,7 +167,6 @@ export default HomepageChatsPage = ({chatArray}) => {
     }
 
     let chatmessage = item.message;
-    let isSplitted = false;
     if (item.message.includes('\n')) {
       chatmessage = chatmessage.split('\n')[0];
     }
@@ -166,7 +174,15 @@ export default HomepageChatsPage = ({chatArray}) => {
       !!chatSlice.friends[item.otherUser] &&
       !!chatSlice.friends[item.otherUser].profilePhoto
         ? {uri: chatSlice.friends[item.otherUser].profilePhoto}
+        : undefined;
+
+    if (!photoUri) {
+      photoUri = !!chatSliceRef?.strangers?.[item.otherUser]
+        ? {uri: chatSliceRef?.strangers?.[item.otherUser].profilePhoto}
         : imageUrlStrings.profileSelected;
+    }
+
+    console.log({photoUri});
 
     return (
       <TouchableOpacity
@@ -201,14 +217,14 @@ export default HomepageChatsPage = ({chatArray}) => {
         <View style={styles.unseenMessageNumberContainer}>
           <BaseText
             color={themeRef.colors.primaryColor}
-            size={fontSize.extrasmall}
+            size={fontSize.tiny}
             weight={fontWeights.semiBold}>
             {isUnseenMessages}
           </BaseText>
         </View>
         <BaseText
           color={themeRef.colors.secondaryColor}
-          size={fontSize.extrasmall}
+          size={fontSize.tiny}
           weight={fontWeights.medium}>
           {chattime}
         </BaseText>
@@ -218,9 +234,9 @@ export default HomepageChatsPage = ({chatArray}) => {
 
   return (
     <View style={styles.mainDiv}>
-      {chatSlice.homepageChats.length != 0 && (
+      {homepageChats.length != 0 && (
         <FlatList
-          data={chatSlice.homepageChats}
+          data={homepageChats}
           renderItem={renderHomePageChats}
           bounces={false}
           keyExtractor={(item, index) => index}

@@ -1,3 +1,4 @@
+import RNFetchBlob from 'rn-fetch-blob';
 import {databaseLinks} from '../../credentials/firebaseCredentials/FirebaseDatabaseLinks';
 import {apiRequest} from '../global/BaseApiRequestes';
 import {deleteFromFBStorage} from './firebaseSdkRequests';
@@ -150,11 +151,67 @@ export const updateProfilePhotoInDB = async (username, newProfileObj) => {
     if (!!oldObject && Object.keys(oldObject).length != 0) {
       let path = oldObject.path;
       const deleteOld = await deleteFromFBStorage(path);
-      console.log({deleteOld});
+      // console.log({deleteOld});
     }
     return updateResponse;
   } catch (error) {
-    console.log({errorOnupdateProfilePhotoInDB: error});
+    // console.log({errorOnupdateProfilePhotoInDB: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const getStrangerInfoFromDB = async starngerUsername => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${starngerUsername}.json`;
+    let response = await apiRequest(url, 'GET');
+    console.log({url, response});
+    if (!!response.isError) {
+      return {...response};
+    }
+    const {firstName, lastName} = response.data;
+    let dataToReturn = {
+      username: starngerUsername,
+      firstName,
+      lastName,
+      profilePhoto: !!response?.data?.profilePhotoObject
+        ? response.data.profilePhotoObject.uri
+        : '',
+    };
+    return {
+      isError: false,
+      data: dataToReturn,
+    };
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const downloadMediaToDevice = async item => {
+  try {
+    // let conf = {
+    //   path: item.uri,
+    // };
+    const iOS = RNFetchBlob.ios;
+    console.log('running donwloads', item);
+    let dirs = RNFetchBlob.fs.dirs;
+    const task = RNFetchBlob.config({
+      path:
+        dirs.DocumentDir +
+        `/${item.otherUser}/${item.mediaType}/${item.mediaName}`,
+      IOSBackgroundTask: true,
+    })
+      .fetch('GET', item.uri)
+      .then(res => {
+        console.log({downloadResponse: res});
+        iOS.previewDocument(res.path());
+      });
+  } catch (error) {
     return {
       isError: true,
       error,

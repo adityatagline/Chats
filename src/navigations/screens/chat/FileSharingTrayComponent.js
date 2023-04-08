@@ -1,14 +1,36 @@
 import React, {useEffect, useState, useRef} from 'react';
-import {Animated} from 'react-native';
+import {Animated, StyleSheet} from 'react-native';
 import {useTheme} from '@react-navigation/native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import IconButton from '../../../components/IconButton';
+import MediaPickerOptionModal from '../../../components/MediaPickerOptionModal';
 
-const FileSharingTrayComponent = ({visibility, setterFunc}) => {
+const FileSharingTrayComponent = ({visibility, setterFunc, onImagePress}) => {
   const themeRef = useTheme();
+  const styles = StyleSheet.create({
+    mainDiv: {
+      backgroundColor: themeRef.colors.primaryColor,
+      alignSelf: 'center',
+      justifyContent: 'center',
+      borderRadius: 20,
+      elevation: 4,
+      shadowOffset: {
+        height: 0,
+        width: 0,
+      },
+      shadowOpacity: 0.3,
+      shadowRadius: 5,
+      shadowColor: themeRef.colors.secondaryColor,
+    },
+    trayDiv: {
+      flexDirection: 'row',
+      justifyContent: 'space-evenly',
+      alignItems: 'center',
+    },
+  });
   const [isAdded, setIsAdded] = useState(false);
 
   const fileSendingTray = useRef(
@@ -105,35 +127,30 @@ const FileSharingTrayComponent = ({visibility, setterFunc}) => {
     <>
       {!!isAdded ? (
         <Animated.View
-          style={{
-            height: fileSendingTray.x,
-            width: fileSendingTray.y,
-            backgroundColor: themeRef.colors.primaryColor,
-            alignSelf: 'center',
-            justifyContent: 'center',
-            borderRadius: 20,
-            elevation: 4,
-            shadowOffset: {
-              height: 0,
-              width: 0,
+          style={[
+            styles.mainDiv,
+            {
+              height: fileSendingTray.x,
+              width: fileSendingTray.y,
             },
-            shadowOpacity: 0.3,
-            shadowRadius: 5,
-            shadowColor: themeRef.colors.secondaryColor,
-          }}>
+          ]}>
           <Animated.View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-evenly',
-              alignItems: 'center',
-              opacity: fileSendingTrayScaleAndOpacity.y,
-              transform: [
-                {
-                  scale: fileSendingTrayScaleAndOpacity.x,
-                },
-              ],
-            }}>
-            <IconButton name={'image'} color={themeRef.colors.appThemeColor} />
+            style={[
+              styles.trayDiv,
+              {
+                opacity: fileSendingTrayScaleAndOpacity.y,
+                transform: [
+                  {
+                    scale: fileSendingTrayScaleAndOpacity.x,
+                  },
+                ],
+              },
+            ]}>
+            <IconButton
+              name={'image'}
+              color={themeRef.colors.appThemeColor}
+              onPress={onImagePress}
+            />
             <IconButton name={'film'} color={themeRef.colors.appThemeColor} />
             <IconButton
               name={'document'}

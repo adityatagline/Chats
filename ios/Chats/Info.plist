@@ -58,16 +58,16 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>App needed permission to use camera.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>App needed permission for reading contacts.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>App needed permission for location.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>App needed permission to use photo library.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>App needed permission to use camera.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>App needed permission to use microphone.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>App needed permission to use photo library.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>AntDesign.ttf</string>
@@ -101,8 +101,12 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>

@@ -1,4 +1,4 @@
-import {StyleSheet, Platform, FlatList, Alert} from 'react-native';
+import {StyleSheet, Platform, FlatList, Alert, BackHandler} from 'react-native';
 import React from 'react';
 import {commonStyles, dimensions} from '../../../styles/commonStyles';
 import {useEffect} from 'react';
@@ -20,6 +20,10 @@ import ChatMessageComponent from './ChatMessageComponent';
 import NoChatAnimatedCompoenet from './NoChatAnimatedComponent';
 import FileSharingTrayComponent from './FileSharingTrayComponent';
 import ChatTextInputContainer from './ChatTextInputContainer';
+import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
+import MediaPickerOptionModal from '../../../components/MediaPickerOptionModal';
+import {array} from 'yup';
+import {uploadImageToFBStorage} from '../../../../api/chat/firebaseSdkRequests';
 
 export default ChatScreen = () => {
   const themeRef = useTheme();
@@ -64,6 +68,7 @@ export default ChatScreen = () => {
   const [chatContent, setChatContent] = useState([]);
 
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
+  const [showPickerOptions, setShowPickerOptions] = useState('');
 
   useEffect(() => {
     !!chatSliceRef.individualChats[userInfo.username] &&
@@ -71,6 +76,25 @@ export default ChatScreen = () => {
       ? setChatContent([...chatSliceRef.individualChats[userInfo.username]])
       : setChatContent([]);
   }, [chatSliceRef.individualChats[userInfo.username]]);
+
+  // useEffect(() => {
+  //   // const backAction = () => {
+  //   //   Alert.alert('Hold on!', 'Are you sure you want to go back?', [
+  //   //     {
+  //   //       text: 'Cancel',
+  //   //       onPress: () => null,
+  //   //       style: 'cancel',
+  //   //     },
+  //   //     {text: 'YES', onPress: () => BackHandler.exitApp()},
+  //   //   ]);
+  //   //   return true;
+  //   // };
+  //   // const backHandler = BackHandler.addEventListener(
+  //   //   'hardwareBackPress',
+  //   //   backAction,
+  //   // );
+  //   // return () => backHandler.remove();
+  // }, []);
 
   useEffect(() => {
     const checkAndDeleteMessage = async () => {
@@ -120,57 +144,140 @@ export default ChatScreen = () => {
     // console.log({response});
   };
 
+  const sendMedia = async (type, assetsArray) => {
+    console.log({type, assetsArray});
+
+    switch (type) {
+      case 'photo':
+        assetsArray.forEach(async element => {
+          let uploadedObj = await uploadImageToFBStorage(
+            element,
+            `chatsImages/${currentUserInfo.username}/${userInfo.username}/${element.filename}`,
+          );
+          if (!uploadedObj.isError) {
+            await sendMediaMessage(uploadedObj.data, type);
+          }
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const sendMediaMessage = async (mediaObj, type) => {
+    console.log({mediaObj});
+    const mediaName = mediaObj.path.split('/').reverse()[0];
+    console.log({mediaName});
+    let objToGenID = {
+      su: currentUserInfo.username,
+      ru: userInfo.username,
+      m: mediaName,
+      t: new Date().toString(),
+    };
+    let id = JSON.stringify(objToGenID);
+
+    let chatObject = {
+      from: currentUserInfo.username,
+      date: new Date().toString(),
+      mediaName,
+      uri: mediaObj.uri,
+      isSending: true,
+      id,
+      message: '',
+      mediaType: type,
+    };
+    let receiverObject = {otherUser: userInfo.username};
+    // console.log({chatObject});
+    dispatch(storeMessage({chatObject, receiverObject}));
+    const response = await sendMessageToFirestore(
+      currentUserInfo.username,
+      userInfo.username,
+      {...chatObject},
+    );
+  };
+
+  const openImagePicker = () => {
+    setShowPickerOptions('photo');
+  };
+
   const RenderChatComp = ({item, index, chatArray}) => (
     <ChatMessageComponent
       {...{item, index, chatArray, currentUserInfo, themeRef, isGroup: false}}
     />
   );
 
+  console.log({
+    chatContent,
+  });
+
   return (
-    <SafeAreaView style={[commonStyles.screenStyle, styles.mainDiv]}>
-      <ChatScreenHeaderComponent
-        displayChatName={displayChatName}
-        onInfoPress={() => {}}
-        onOptionPress={() => {}}
-        chatProfilePhoto={{}}
+    <>
+      <MediaPickerOptionModal
+        afterChoosehandler={res => {
+          sendMedia('photo', res);
+        }}
+        closeActions={() => setShowPickerOptions()}
+        selectionLimit={3}
+        mediaType={showPickerOptions}
+        visibility={!!showPickerOptions}
       />
-      <NoChatAnimatedCompoenet
-        visibility={chatContent.length == 0}
-        themeRef={themeRef}
-      />
-
-      <KeyboardAvoidingView
-        style={[styles.chatListWrapperContainer]}
-        behavior={Platform.OS == 'android' ? 'height' : 'padding'}>
-        <FlatList
-          data={[...chatContent]}
-          renderItem={({item, index}) => (
-            <RenderChatComp
-              item={item}
-              index={index}
-              chatArray={[...chatContent]}
-            />
-          )}
-          keyExtractor={(_, index) => index}
-          style={styles.chatList}
-          inverted
-          contentContainerStyle={styles.chatListContainer}
-          showsVerticalScrollIndicator={false}
+      {/* <ReviewModal
+        type={showPickerOptions}
+        visibility={assetsArray.length != 0}
+      /> */}
+      <SafeAreaView style={[commonStyles.screenStyle, styles.mainDiv]}>
+        <ChatScreenHeaderComponent
+          displayChatName={displayChatName}
+          onInfoPress={() => {}}
+          onOptionPress={() => {}}
+          chatProfilePhoto={
+            !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
+              ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
+              : !!chatSliceRef?.strangers[userInfo.username]?.profilePhoto
+              ? {uri: chatSliceRef?.strangers[userInfo.username]?.profilePhoto}
+              : imageUrlStrings.profileSelected
+          }
+        />
+        <NoChatAnimatedCompoenet
+          visibility={chatContent.length == 0}
+          themeRef={themeRef}
         />
 
-        <FileSharingTrayComponent
-          visibility={isFileSendingTrayOpen}
-          setterFunc={setIsFileSendingTrayOpen}
-        />
+        <KeyboardAvoidingView
+          style={[styles.chatListWrapperContainer]}
+          behavior={Platform.OS == 'android' ? 'height' : 'padding'}>
+          <FlatList
+            data={[...chatContent]}
+            renderItem={({item, index}) => (
+              <RenderChatComp
+                item={item}
+                index={index}
+                chatArray={[...chatContent]}
+              />
+            )}
+            keyExtractor={(_, index) => index}
+            style={styles.chatList}
+            inverted
+            contentContainerStyle={styles.chatListContainer}
+            showsVerticalScrollIndicator={false}
+          />
 
-        <ChatTextInputContainer
-          userChatMessage={userChatMessage}
-          setUserChatMessage={setUserChatMessage}
-          toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
-          isFileSendingTrayOpen={isFileSendingTrayOpen}
-          sendMessage={sendMessage}
-        />
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          <FileSharingTrayComponent
+            visibility={isFileSendingTrayOpen}
+            setterFunc={setIsFileSendingTrayOpen}
+            onImagePress={openImagePicker}
+          />
+
+          <ChatTextInputContainer
+            userChatMessage={userChatMessage}
+            setUserChatMessage={setUserChatMessage}
+            toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
+            isFileSendingTrayOpen={isFileSendingTrayOpen}
+            sendMessage={sendMessage}
+          />
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </>
   );
 };

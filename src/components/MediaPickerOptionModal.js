@@ -3,27 +3,59 @@ import {fontWeights} from '../strings/FontfamiliesNames';
 import {commonStyles, fontSize} from '../styles/commonStyles';
 import BaseModal from './BaseModal';
 import BaseText from './BaseText';
-import {Alert, PermissionsAndroid, Platform, StyleSheet} from 'react-native';
+import {
+  Alert,
+  BackHandler,
+  PermissionsAndroid,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import SimpleButton from './SimpleButton';
 import TextButton from './TextButton';
-import {openCamera, openPicker} from 'react-native-image-crop-picker';
+import {
+  openCamera,
+  openCropper,
+  openPicker,
+} from 'react-native-image-crop-picker';
+import {useEffect} from 'react';
 
 const openMediaPickerModal = async (mode, mediaType, selectionLimit = 1) => {
-  // console.log({mode, mediaType, selectionLimit});
+  console.log({mode, mediaType, selectionLimit});
   try {
     if (mode == 'library') {
       const pickerResponse = await openPicker({
         mediaType,
         selectionLimit,
         cropping: true,
+        multiple: selectionLimit != 1,
+        maxFiles: selectionLimit,
       });
-      const {filename, sourceURL, height, width, path, localIdentifier, size} =
-        pickerResponse;
-      return {filename, sourceURL, height, width, path, localIdentifier, size};
+      if (selectionLimit > 1) {
+        return pickerResponse;
+      } else {
+        const {
+          filename,
+          sourceURL,
+          height,
+          width,
+          path,
+          localIdentifier,
+          size,
+        } = pickerResponse;
+        return {
+          filename,
+          sourceURL,
+          height,
+          width,
+          path,
+          localIdentifier,
+          size,
+        };
+      }
     } else {
       if (Platform.OS == 'android') {
         const permission = await PermissionsAndroid.request(
@@ -59,6 +91,7 @@ const MediaPickerOptionModal = ({
   closeActions,
   mediaType,
   selectionLimit,
+  isProfilePhoto,
 }) => {
   const themeRef = useTheme();
   const styles = StyleSheet.create({
@@ -74,8 +107,13 @@ const MediaPickerOptionModal = ({
       mediaType,
       selectionLimit,
     );
-    // console.log({pickerResponse});
-    await afterChoosehandler({...pickerResponse});
+    const cropped = await openCropper({
+      height: 480,
+      width: 480,
+      path: pickerResponse.path,
+    });
+    console.log({cropped});
+    await afterChoosehandler(cropped);
   };
 
   return (

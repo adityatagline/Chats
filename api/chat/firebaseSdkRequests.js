@@ -80,14 +80,16 @@ export const checkAndDeleteMessage = async (messageArray, currentUser) => {
 };
 
 export const uploadProfilePic = async (imgObj, username) => {
+  // console.log({imgObj});
+  // return;
   try {
-    let extension = imgObj.filename.split('.').reverse()[0].toString();
-    // console.log({imgObj, username, extension});
+    let filename = !!imgObj.filename ? imgObj.filename : imgObj.path;
+    let extension = filename.split('.').reverse()[0].toString();
     let response = await uploadImageToFBStorage(
       imgObj,
       `/profilePhoto/${username}/profilePhoto${new Date().toString()}.${extension}`,
     );
-    console.log({response});
+    // console.log({response});
     if (response.isError) {
       return {
         isError: true,
@@ -99,7 +101,7 @@ export const uploadProfilePic = async (imgObj, username) => {
       data: response.data,
     };
   } catch (error) {
-    console.log({errorOnuploadProfilePic: error});
+    console.log({errorinuploadProfilePic: error});
 
     return {
       isError: true,
@@ -122,8 +124,7 @@ export const uploadImageToFBStorage = async (imgObj, path) => {
       },
     };
   } catch (error) {
-    console.log({errorOnuploadImageToFBStorage: error});
-
+    console.log({errorinuploadImageToFBStorage: error});
     return {
       isError: true,
       error,
@@ -134,7 +135,7 @@ export const uploadImageToFBStorage = async (imgObj, path) => {
 export const deleteFromFBStorage = async path => {
   try {
     const deleteResponse = await storage().ref(path).delete();
-    console.log({deleteResponse});
+    // console.log({deleteResponse});
     return {
       isError: false,
       data: deleteResponse,

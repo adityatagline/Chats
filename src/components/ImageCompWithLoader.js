@@ -23,6 +23,7 @@ const ImageCompWithLoader = ({
             width: '100%',
             alignSelf: 'center',
             justifyContent: 'center',
+            zIndex: -1000,
           }}
         />
       )}

@@ -8,6 +8,7 @@ export const StatusBarHeight = NativeModules.StatusBarManager.HEIGHT;
 export const dimensions = Dimensions.get('screen');
 
 export const fontSize = {
+  tiny: 11,
   extrasmall: 13,
   small: 14,
   medium: 16,

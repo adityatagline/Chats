@@ -23,6 +23,8 @@ const ChatScreenHeaderComponent = ({
     pageHeadingContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      paddingTop: hp(1),
+      paddingBottom: hp(0.5),
     },
     backButton: {
       paddingHorizontal: wp(1.5),
@@ -32,11 +34,11 @@ const ChatScreenHeaderComponent = ({
       height: hp(5),
       width: hp(5),
       marginRight: wp(3),
-      borderRadius: 17,
     },
   });
 
   const navigation = useNavigation();
+  console.log({chatProfilePhoto});
 
   return (
     <View style={styles.pageHeadingContainer}>
@@ -51,15 +53,10 @@ const ChatScreenHeaderComponent = ({
       </TouchableOpacity>
       <ImageCompWithLoader
         source={chatProfilePhoto}
-        ImageStyles={[
-          styles.chatImage,
-          {
-            height: hp(4),
-            width: hp(4),
-          },
-        ]}
-        resizeMode="contain"
-        borderRadius={17}
+        ImageStyles={[styles.chatImage]}
+        ImageProps={{
+          borderRadius: 16,
+        }}
       />
       <BaseText
         color={themeRef.colors.appThemeColor}
