@@ -19,7 +19,10 @@ import {
 import {useNavigation, useTheme} from '@react-navigation/native';
 import {useEffect, useRef, useState} from 'react';
 import {getAll} from 'react-native-contacts';
-import {checkForUserInRecord} from '../../../api/chat/ChatRequests';
+import {
+  checkForUserInRecord,
+  createNewGroupInDB,
+} from '../../../api/chat/ChatRequests';
 import IconButton from '../../components/IconButton';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import FontfamiliesNames, {fontWeights} from '../../strings/FontfamiliesNames';
@@ -34,20 +37,28 @@ import {groupNameValidation} from './authentication/ValidationSchemas';
 import BaseText from '../../components/BaseText';
 import AvatarListHorizontal from '../../components/AvatarListHorizontal';
 import IonIcon from 'react-native-vector-icons/Ionicons';
+import SimpleButton from '../../components/SimpleButton';
+import {commonPageStyles} from './authentication/commonPageStyles';
 
 export const getContacts = async (
   setterFunc,
   loaderFunc,
   dispatch,
-  username,
+  currentUser,
 ) => {
   try {
+    console.log({currentUser});
     const contacts = await getAll();
-    const response = await checkForUserInRecord([...contacts], username);
+    const response = await checkForUserInRecord(
+      [...contacts],
+      currentUser.username,
+    );
     if (!response.isError) {
       !!setterFunc && setterFunc([...response.users]);
+      dispatch(storeFriends([{...currentUser}, ...response.users]));
+    } else {
+      dispatch(storeFriends([{...currentUser}]));
     }
-    dispatch(storeFriends([...response.users]));
     !!loaderFunc && loaderFunc(false);
   } catch (error) {
     !!loaderFunc && loaderFunc(false);
@@ -58,13 +69,13 @@ export const askPermissionAsync = async (
   setContactList,
   loaderFunc,
   dispatch,
-  username,
+  currentUser,
 ) => {
   try {
     const permissionResult = await PermissionsAndroid.request(
       'android.permission.READ_CONTACTS',
     );
-    getContacts(setContactList, loaderFunc, dispatch, username);
+    getContacts(setContactList, loaderFunc, dispatch, currentUser);
   } catch (error) {}
 };
 
@@ -144,7 +155,7 @@ export default NewChatPage = () => {
   );
 
   const groupNameRef = useRef();
-  const {values, error, setFieldValue, setTouched, touched} = useFormik({
+  const {values, errors, setFieldValue, setTouched, touched} = useFormik({
     validationSchema: groupNameValidation,
     initialValues: {groupName: ''},
   });
@@ -192,7 +203,7 @@ export default NewChatPage = () => {
     } else {
       !!intervalID && clearInterval(intervalID);
     }
-  }, [isLoading]);
+  }, [isLoading, chatSliceRef.friends]);
 
   const onAddPressHandler = item => {
     if (isCreatingGroup) {
@@ -200,11 +211,8 @@ export default NewChatPage = () => {
         Alert.alert('Oops', 'Maximum 25 members are allowed in group.');
         return;
       }
-      let itemIncluded = memebersSelected.find(
-        member => item.username == member.username,
-      );
-      if (!itemIncluded || Object.keys(itemIncluded).length == 0) {
-        setMemebersSelected(pre => [item, ...pre]);
+      if (!memebersSelected.includes(item.username)) {
+        setMemebersSelected(pre => [item.username, ...pre]);
       }
     } else {
       navigation.replace(ScreenNames.ChatPage, {
@@ -216,7 +224,7 @@ export default NewChatPage = () => {
 
   const onRemoveHandler = item => {
     let newArrayToSet = [...memebersSelected].filter(
-      memeber => memeber.username != item.username,
+      memeber => memeber != item.username,
     );
     setMemebersSelected([...newArrayToSet]);
   };
@@ -232,26 +240,43 @@ export default NewChatPage = () => {
     setTouched({});
   };
 
+  const createGroup = async () => {
+    if (!values.groupName || !!errors.groupName) {
+      Alert.alert('Oops', 'Enter valid group name.');
+      return;
+    }
+    const response = await createNewGroupInDB(
+      memebersSelected,
+      values.groupName,
+      authenticationSliceRef.user,
+    );
+    if (!!response.isError) {
+      console.log({errorInGroup: response.error});
+    }
+    navigation.navigate(ScreenNames.TopTabScreens.HomeScreen);
+  };
+
   useEffect(() => {
     Platform.OS == 'android' &&
       askPermissionAsync(
         setContactList,
         setIsLoading,
         dispatch,
-        authenticationSliceRef.user.username,
+        authenticationSliceRef.user,
       );
     Platform.OS == 'ios' &&
       getContacts(
         setContactList,
         setIsLoading,
         dispatch,
-        authenticationSliceRef.user.username,
+        authenticationSliceRef.user,
       );
   }, []);
 
   useEffect(() => {
     if (!!isCreatingGroup) {
       groupNameRef.current.focus();
+      setMemebersSelected([authenticationSliceRef.user.username]);
     } else {
       setMemebersSelected([]);
     }
@@ -268,6 +293,9 @@ export default NewChatPage = () => {
   );
 
   const renderContact = ({item}) => {
+    if (memebersSelected.includes(item.username)) {
+      return;
+    }
     return (
       <View style={styles.userContactDiv}>
         {!!item.profilePhoto ? (
@@ -342,6 +370,9 @@ export default NewChatPage = () => {
               onPress={() => setIsCreatingGroup(false)}
             />
           </View>
+          <BaseText otherStyles={commonPageStyles().error}>
+            {errors.groupName}
+          </BaseText>
           <PageLabels
             label={
               memebersSelected.length != 0
@@ -358,6 +389,7 @@ export default NewChatPage = () => {
               uriField={'profilePhoto'}
               themeRef={themeRef}
               onRemoveHandler={onRemoveHandler}
+              onlyUsername
             />
           )}
         </>
@@ -385,7 +417,7 @@ export default NewChatPage = () => {
       )}
 
       {contactList.length != 0 && (
-        <SearchPage containerStyle={{marginTop: hp(2)}} />
+        <SearchPage containerStyle={{marginVertical: hp(2)}} />
       )}
       {!isCreatingGroup && (
         <TouchableOpacity
@@ -416,6 +448,14 @@ export default NewChatPage = () => {
           contentContainerStyle={{
             paddingTop: hp(1),
           }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+      {isCreatingGroup && (
+        <SimpleButton
+          title={'Create group'}
+          containerStyle={{marginVertical: hp(2)}}
+          onPress={createGroup}
         />
       )}
     </View>

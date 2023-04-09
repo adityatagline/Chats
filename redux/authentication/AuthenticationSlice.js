@@ -15,6 +15,7 @@ const AuthenticationSlice = createSlice({
         checkForDetails: true,
         user: {
           ...action.payload.userDetails,
+          contactName: 'You',
         },
       };
     },

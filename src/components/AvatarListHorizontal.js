@@ -8,6 +8,8 @@ import {
 import {fontWeights} from '../strings/FontfamiliesNames';
 import {fontSize} from '../styles/commonStyles';
 import IconButton from './IconButton';
+import {imageUrlStrings} from '../strings/ImageUrlStrings';
+import {useSelector} from 'react-redux';
 
 const AvatarListHorizontal = ({
   listArray,
@@ -16,7 +18,10 @@ const AvatarListHorizontal = ({
   haveRemoveBtn = false,
   onRemoveHandler,
   themeRef,
+  onlyUsername = false,
 }) => {
+  const {friends} = useSelector(state => state.chatSlice);
+  const {user} = useSelector(state => state.authenticationSlice);
   const RenderAvatar = ({item}) => {
     // console.log({item});
     return (
@@ -25,12 +30,18 @@ const AvatarListHorizontal = ({
           width: wp(17),
           //   backgroundColor: 'yellow',
           marginHorizontal: wp(1),
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           alignItems: 'center',
         }}>
         <View>
           <ImageCompWithLoader
-            source={{uri: item[uriField]}}
+            source={
+              !!item[uriField]
+                ? {
+                    uri: item[uriField],
+                  }
+                : imageUrlStrings.profileSelected
+            }
             resizeMode="contain"
             ImageStyles={{
               height: wp(12),
@@ -38,25 +49,27 @@ const AvatarListHorizontal = ({
               borderRadius: hp(2.5),
             }}
           />
-          <IconButton
-            name={'close'}
-            color={themeRef.colors.primaryColor}
-            size={20}
-            containerStyle={{
-              backgroundColor: themeRef.colors.appThemeColor,
-              position: 'absolute',
-              borderRadius: hp(1.6),
-              height: hp(4),
-              width: hp(4),
-              alignItems: 'center',
-              justifyContent: 'center',
-              bottom: 0,
-              right: -hp(1),
-              borderWidth: 2,
-              borderColor: themeRef.colors.primaryColor,
-            }}
-            onPress={onRemoveHandler.bind(this, item)}
-          />
+          {item.username != user.username && (
+            <IconButton
+              name={'close'}
+              color={themeRef.colors.primaryColor}
+              size={20}
+              containerStyle={{
+                backgroundColor: themeRef.colors.appThemeColor,
+                position: 'absolute',
+                borderRadius: hp(1.6),
+                height: hp(4),
+                width: hp(4),
+                alignItems: 'center',
+                justifyContent: 'center',
+                bottom: 0,
+                right: -hp(1),
+                borderWidth: 2,
+                borderColor: themeRef.colors.primaryColor,
+              }}
+              onPress={onRemoveHandler.bind(this, item)}
+            />
+          )}
         </View>
         <BaseText
           otherProp={{
@@ -79,7 +92,7 @@ const AvatarListHorizontal = ({
     <View style={styles.mainDiv}>
       <FlatList
         data={listArray}
-        renderItem={RenderAvatar}
+        renderItem={({item}) => <RenderAvatar item={friends[item]} />}
         keyExtractor={(item, index) => index + 'avatar'}
         horizontal
         showsHorizontalScrollIndicator={false}

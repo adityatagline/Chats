@@ -61,7 +61,10 @@ export default VerificationScreen = ({userDetails}) => {
       setloading('');
       // console.log('verifyOtp');
       // console.log(verifyOtp);
-      Alert.alert('Success!!');
+      Alert.alert(
+        'Success!!',
+        'Your acccount verified successfully.\nNow you can log in.\nThank you for choosing us.',
+      );
       const setVerified = await verifyTheUser({...userDetails});
       const logout = await logoutFromAuth();
       if (logout.isError) {
@@ -77,10 +80,15 @@ export default VerificationScreen = ({userDetails}) => {
           },
         ],
       });
+      886645;
     } catch (error) {
-      // console.log('error-ajsdoajskdosjkdoasjk');
-      // console.log(error);
-      // Alert.alert('Oops!!', ErrorCodes[error.code.toString()].message);
+      console.log('error-ajsdoajskdosjkdoasjk');
+      console.log(error);
+      if (!!ErrorCodes[error?.code?.toString()]?.message) {
+        Alert.alert('Oops!!', ErrorCodes[error.code.toString()].message);
+      } else {
+        Alert.alert('Oops!!', 'Verification failed.\nPlease try again');
+      }
     }
     setloading('');
   };

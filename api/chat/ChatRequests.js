@@ -1,7 +1,7 @@
 import RNFetchBlob from 'rn-fetch-blob';
 import {databaseLinks} from '../../credentials/firebaseCredentials/FirebaseDatabaseLinks';
 import {apiRequest} from '../global/BaseApiRequestes';
-import {deleteFromFBStorage} from './firebaseSdkRequests';
+import {deleteFromFBStorage, sendGPMessageToFB} from './firebaseSdkRequests';
 
 export const getUserHomepageChats = async username => {
   try {
@@ -118,20 +118,6 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
   }
 };
 
-export const sendMessgae = async (
-  senderUserInfo,
-  receiverUserInfo,
-  chatObject,
-) => {
-  try {
-  } catch (error) {
-    return {
-      isError: true,
-      error,
-    };
-  }
-};
-
 export const updateProfilePhotoInDB = async (username, newProfileObj) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/profilePhotoObject.json`;
@@ -228,5 +214,77 @@ export const downloadMediaToDevice = async (item, handleDownload) => {
       },
       item,
     );
+  }
+};
+
+export const createNewGroupInDB = async (
+  memberArray,
+  groupName,
+  currentUser,
+) => {
+  try {
+    let randomGroupId =
+      groupName + 'id' + Math.floor(Math.random() * 66666666666);
+    let url = `${
+      databaseLinks.REALTIME_DATBASE_ROOT
+    }/groups/${randomGroupId.toString()}.json`;
+    let response = await apiRequest(url, 'PUT', {
+      name: groupName,
+      id: randomGroupId,
+      members: memberArray,
+    });
+    if (!!response.isError) {
+      return response;
+    }
+    console.log({response});
+
+    for (let i = 0; i < memberArray.length; i++) {
+      let member = memberArray[i];
+      url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${member}/groups.json`;
+      let memberGroups = await apiRequest(url, 'GET');
+      let newArrayToSet = [];
+      console.log({memberGroups});
+
+      if (!!memberGroups.isError && memberGroups.error == 'noData') {
+        newArrayToSet = [randomGroupId];
+      } else if (!!memberGroups.isError && memberGroups.error != 'noData') {
+        response = memberGroups;
+        return;
+      } else {
+        newArrayToSet = [...memberGroups.data, randomGroupId];
+      }
+      let setGroups = await apiRequest(url, 'PUT', newArrayToSet);
+      response = setGroups;
+      console.log({setGroups});
+      if (!!setGroups.isError) {
+        return;
+      }
+    }
+    let objToGenID = {
+      su: currentUser.username,
+      gp: randomGroupId,
+      m:
+        `${currentUser.username} created this group`.length > 10
+          ? `${currentUser.username} created this group`.slice(0, 10)
+          : `${currentUser.username} created this group`,
+      t: new Date().toString(),
+    };
+    let msgid = JSON.stringify(objToGenID);
+    let sendInitialMessage = await sendGPMessageToFB(randomGroupId, {
+      message: `${currentUser.username} created this group`,
+      messageType: 'announcement',
+      from: currentUser.username,
+      date: new Date().toString(),
+      groupId: randomGroupId,
+      id: msgid,
+    });
+    response = sendInitialMessage;
+    return response;
+  } catch (error) {
+    console.log({error});
+    return {
+      isError: true,
+      error,
+    };
   }
 };

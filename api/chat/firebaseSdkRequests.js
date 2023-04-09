@@ -36,6 +36,28 @@ export const sendMessageToFirestore = async (
   }
 };
 
+export const sendGPMessageToFB = async (groupId, chatObject) => {
+  try {
+    const sendInGroup = await firestore()
+      .collection('groupChats')
+      .doc(groupId)
+      .collection('chats')
+      .doc(chatObject.id)
+      .set({...chatObject});
+
+    return {
+      isError: false,
+      data: sendInGroup,
+    };
+  } catch (error) {
+    // console.log({firebaseErrr: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
 export const checkAndDeleteMessage = async (messageArray, currentUser) => {
   try {
     messageArray.forEach(async messageObj => {

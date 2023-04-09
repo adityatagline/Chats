@@ -142,14 +142,14 @@ export default HomeScreen = props => {
         undefined,
         undefined,
         dispatch,
-        authenticationSlice.user.username,
+        authenticationSlice.user,
       ));
     Platform.OS == 'ios' &&
       (await getContacts(
         undefined,
         undefined,
         dispatch,
-        authenticationSlice.user.username,
+        authenticationSlice.user,
       ));
     setisLoading(false);
   };
