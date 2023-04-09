@@ -1,6 +1,11 @@
-import {useIsFocused, useRoute, useTheme} from '@react-navigation/native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+  useTheme,
+} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, TouchableOpacity, View} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {AppStatusBar} from '../../../components/AppStatusBar';
 import {
@@ -9,7 +14,11 @@ import {
 } from 'react-native-responsive-screen';
 import SearchPage from '../../../components/home/search/SearchPage';
 import HomepageChatsPage from '../../../components/home/HomepageChatsPage';
-import {commonStyles} from '../../../styles/commonStyles';
+import {
+  StatusBarHeight,
+  commonStyles,
+  fontSize,
+} from '../../../styles/commonStyles';
 import {
   getStrangerInfoFromDB,
   getUserHomepageChats,
@@ -22,11 +31,16 @@ import {
 import {askPermissionAsync, getContacts} from '../NewChatPage';
 import LoadingPage, {BaseLoader} from '../../../components/LoadingPage';
 import {checkAndDeleteMessage} from '../../../../api/chat/firebaseSdkRequests';
+import IonIcon from 'react-native-vector-icons/Ionicons';
+import BaseText from '../../../components/BaseText';
+import {fontWeights} from '../../../strings/FontfamiliesNames';
+import ScreenNames from '../../../strings/ScreenNames';
 
 export default HomeScreen = props => {
   const themeRef = useTheme();
   const authenticationSlice = useSelector(state => state.authenticationSlice);
   const chatSliceRef = useSelector(state => state.chatSlice);
+  const navigation = useNavigation();
   const route = useRoute();
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
@@ -151,6 +165,14 @@ export default HomeScreen = props => {
       flexDirection: 'row',
       marginHorizontal: wp(7),
     },
+    newChatBtn: {
+      backgroundColor: themeRef.colors.appThemeColor,
+      shadowColor: themeRef.colors.appThemeColor,
+      position: 'absolute',
+      top: hp(1.75) + StatusBarHeight,
+      right: wp(14),
+      alignSelf: 'center',
+    },
   });
 
   return (
@@ -162,6 +184,17 @@ export default HomeScreen = props => {
             dark={themeRef.dark}
           />
         )}
+        <TouchableOpacity
+          style={[commonStyles.iconWithTextBtn, styles.newChatBtn]}
+          onPress={() => navigation.navigate(ScreenNames.NewChatPage)}>
+          <IonIcon name="add" size={20} color={themeRef.colors.primaryColor} />
+          <BaseText
+            size={fontSize.small}
+            color={themeRef.colors.primaryColor}
+            weight={fontWeights.bold}>
+            New
+          </BaseText>
+        </TouchableOpacity>
         <View style={styles.searchDiv}>
           <SearchPage />
         </View>

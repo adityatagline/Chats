@@ -23,6 +23,7 @@ export default InputBox = ({
   focusFunction,
   inputRef,
   isPassword = false,
+  mainContainerStyle,
 }) => {
   const themeRef = useTheme();
   const labelRef = useRef(new Animated.ValueXY({x: 55, y: 5})).current;
@@ -112,7 +113,7 @@ export default InputBox = ({
   });
 
   return (
-    <View style={[styles.mainDiv]}>
+    <View style={[styles.mainDiv, mainContainerStyle]}>
       <Animated.View
         ref={labelRef}
         style={[

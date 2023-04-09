@@ -9,7 +9,7 @@ import {useState} from 'react';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import {fontSize} from '../../../styles/commonStyles';
 
-export default SearchPage = ({isLeft}) => {
+export default SearchPage = ({isLeft, containerStyle}) => {
   const themeRef = useTheme();
   const [searchText, setSearchText] = useState('');
 
@@ -41,7 +41,7 @@ export default SearchPage = ({isLeft}) => {
   });
 
   return (
-    <View style={styles.mainDiv}>
+    <View style={[styles.mainDiv, containerStyle]}>
       <IconButton
         name={'search'}
         color={themeRef.colors.appThemeColor}

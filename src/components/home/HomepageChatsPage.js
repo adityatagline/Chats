@@ -167,7 +167,10 @@ export default HomepageChatsPage = ({chatArray}) => {
       // chattime = chattime + part;
     }
 
-    let chatmessage = item.message;
+    let chatmessage =
+      !!item.mediaType || !item.message
+        ? `sent ${item.mediaType}`
+        : item.message;
     if (item.message.includes('\n')) {
       chatmessage = chatmessage.split('\n')[0];
     }
@@ -245,17 +248,18 @@ export default HomepageChatsPage = ({chatArray}) => {
           showsVerticalScrollIndicator={false}
         />
       )}
-      <View style={styles.noChatsDiv}>
-        <BaseText color={themeRef.colors.secondaryColor}>
-          No Recent Chats ..
-        </BaseText>
-        <TextButton
-          title={'Start new'}
-          textStyle={styles.newChatButton}
-          onPress={goToNewChatPage}
-        />
-      </View>
-      {/* )} */}
+      {homepageChats.length == 0 && (
+        <View style={styles.noChatsDiv}>
+          <BaseText color={themeRef.colors.secondaryColor}>
+            No Recent Chats ..
+          </BaseText>
+          <TextButton
+            title={'Start new'}
+            textStyle={styles.newChatButton}
+            onPress={goToNewChatPage}
+          />
+        </View>
+      )}
     </View>
   );
 };

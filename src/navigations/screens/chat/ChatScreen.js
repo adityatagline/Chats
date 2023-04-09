@@ -1,5 +1,5 @@
 import {StyleSheet, Platform, FlatList, Alert, BackHandler} from 'react-native';
-import React from 'react';
+import React, {useContext} from 'react';
 import {commonStyles, dimensions} from '../../../styles/commonStyles';
 import {useEffect} from 'react';
 import {useState} from 'react';
@@ -33,6 +33,7 @@ import MediaPickerOptionModal, {
 import {array} from 'yup';
 import IconButton from '../../../components/IconButton';
 import {openPicker} from 'react-native-image-crop-picker';
+import {FirebaseStreamTaskContext} from '../../../../context/FirebaseStreamTaskContext';
 
 export default ChatScreen = () => {
   const themeRef = useTheme();
@@ -78,6 +79,7 @@ export default ChatScreen = () => {
 
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
+  const taskContextRef = useContext(FirebaseStreamTaskContext);
   // console.log({chatContent});
 
   useEffect(() => {
@@ -168,10 +170,9 @@ export default ChatScreen = () => {
       let uploadedObj = await uploadFileToFirebase(
         element,
         `chats${type}/${currentUserInfo.username}/${userInfo.username}/${element.filename}`,
+        taskContextRef,
+        sendMediaMessage,
       );
-      if (!uploadedObj.isError) {
-        await sendMediaMessage(uploadedObj.data, type);
-      }
     });
   };
 

@@ -1,5 +1,7 @@
 import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
+import {useContext} from 'react';
+import {FirebaseStreamTaskContext} from '../../context/FirebaseStreamTaskContext';
 
 export const sendMessageToFirestore = async (
   senderUsername,
@@ -110,22 +112,24 @@ export const uploadProfilePic = async (imgObj, username) => {
   }
 };
 
-export const uploadFileToFirebase = async (imgObj, path) => {
+export const uploadFileToFirebase = async (
+  imgObj,
+  path,
+  contextRef,
+  sendMediaMessage,
+) => {
   try {
-    console.log({imgObj});
-    const uploadResponse = await storage().ref(path).putFile(imgObj.path);
-    const downloadurl = await storage()
-      .ref(uploadResponse.metadata.fullPath)
-      .getDownloadURL();
-    return {
-      isError: false,
-      data: {
-        path: uploadResponse.metadata.fullPath,
-        uri: downloadurl,
-      },
-    };
+    console.log({imgObj, contextRef});
+
+    const uploadResponse = storage().ref(path).putFile(imgObj.path);
+    console.log('running upload');
+    contextRef.addTask(uploadResponse);
+    console.log('running upload');
+    uploadResponse.on('state_changed', async stateDetails => {
+      contextRef.updateTask(uploadResponse, stateDetails, sendMediaMessage);
+    });
   } catch (error) {
-    // console.log({errorinuploadFileToFirebase: error});
+    console.log({errorinuploadFileToFirebase: error});
     return {
       isError: true,
       error,

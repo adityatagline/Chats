@@ -1,16 +1,19 @@
 import * as Yup from 'yup';
 
 const emailValidationRule = Yup.string()
+  .trim()
   .email('Enter valid e-mail address !!')
   .required('Enter e-mail address !!');
 
 const phoneValidationRule = Yup.string()
+  .trim()
   .required('Enter phone number !!')
   .matches(/[\d]{10}/, 'Enter 10 digit mobile number !!')
   .min(10)
   .max(10);
 
 const passwordValidationRule = Yup.string()
+  .trim()
   .min(8, 'Password must have atleast 8 characters !!')
   .max(20, 'Password must be less than 20 characters !!')
   .required('Enter password !!')
@@ -19,14 +22,17 @@ const passwordValidationRule = Yup.string()
   .matches(/[\d]/, 'Password must have atleast one digit');
 
 const otpValidationRule = Yup.string()
+  .trim()
   .required('Enter otp !!')
   .matches(/[\d]{6}/, 'Enter 6 digit otp number !!')
   .max(6);
 
-const confirmPasswordValidationRule =
-  Yup.string().required('Enter password !!');
+const confirmPasswordValidationRule = Yup.string()
+  .trim()
+  .required('Enter password !!');
 
 const fnameValidationRule = Yup.string()
+  .trim()
   .required('Enter First Name !!')
   .matches(
     /^\S*$/,
@@ -37,6 +43,7 @@ const fnameValidationRule = Yup.string()
   .max(15);
 
 const lnameValidationRule = Yup.string()
+  .trim()
   .required('Enter Last Name !!')
   .matches(
     /^\S*$/,
@@ -47,11 +54,21 @@ const lnameValidationRule = Yup.string()
   .max(15);
 
 const unameValidationRule = Yup.string()
+  .trim()
   .required('Enter username !!')
   .min(6, 'Minimum 6 charachters are required')
   .max(20, 'Maximum 20 characters are allowed');
 
+export const groupNameValidation = Yup.object({
+  groupName: Yup.string()
+    .trim()
+    .required('Enter group name !!')
+    .min(6, 'Minimum 6 charachters are required')
+    .max(20, 'Maximum 20 characters are allowed'),
+});
+
 const ageValidationRule = Yup.string()
+  .trim()
   .required('Enter age !!')
   .matches(/^\d*$/, 'Enter your age !!')
   .min(1)

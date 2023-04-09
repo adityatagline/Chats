@@ -8,6 +8,7 @@ import {
   Image,
   Animated,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import SearchPage from '../../components/home/search/SearchPage';
 import {commonStyles, fontSize} from '../../styles/commonStyles';
@@ -21,12 +22,18 @@ import {getAll} from 'react-native-contacts';
 import {checkForUserInRecord} from '../../../api/chat/ChatRequests';
 import IconButton from '../../components/IconButton';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontfamiliesNames from '../../strings/FontfamiliesNames';
+import FontfamiliesNames, {fontWeights} from '../../strings/FontfamiliesNames';
 import {useDispatch, useSelector} from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {animateBook} from '../../components/AnimationFunctions.';
 import ScreenNames from '../../strings/ScreenNames';
 import {storeFriends} from '../../../redux/chats/ChatSlice';
+import InputBox from '../../components/InputBox';
+import {useFormik} from 'formik';
+import {groupNameValidation} from './authentication/ValidationSchemas';
+import BaseText from '../../components/BaseText';
+import AvatarListHorizontal from '../../components/AvatarListHorizontal';
+import IonIcon from 'react-native-vector-icons/Ionicons';
 
 export const getContacts = async (
   setterFunc,
@@ -90,7 +97,7 @@ export default NewChatPage = () => {
     },
     topBar: {
       flexDirection: 'row',
-      marginBottom: hp(2),
+      // marginBottom: hp(2),
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -135,8 +142,17 @@ export default NewChatPage = () => {
   const authenticationSliceRef = useSelector(
     state => state.authenticationSlice,
   );
+
+  const groupNameRef = useRef();
+  const {values, error, setFieldValue, setTouched, touched} = useFormik({
+    validationSchema: groupNameValidation,
+    initialValues: {groupName: ''},
+  });
+
   const [contactList, setContactList] = useState([]);
+  const [memebersSelected, setMemebersSelected] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(true);
   const [intervalID, setIntervalID] = useState();
   const bookAnimation = useRef(
     new Animated.ValueXY({
@@ -178,11 +194,42 @@ export default NewChatPage = () => {
     }
   }, [isLoading]);
 
-  const goToChatPage = item => {
-    navigation.replace(ScreenNames.ChatPage, {
-      userInfo: {...item},
-      chatName: item.contactName,
-    });
+  const onAddPressHandler = item => {
+    if (isCreatingGroup) {
+      if (memebersSelected.length == 25) {
+        Alert.alert('Oops', 'Maximum 25 members are allowed in group.');
+        return;
+      }
+      let itemIncluded = memebersSelected.find(
+        member => item.username == member.username,
+      );
+      if (!itemIncluded || Object.keys(itemIncluded).length == 0) {
+        setMemebersSelected(pre => [item, ...pre]);
+      }
+    } else {
+      navigation.replace(ScreenNames.ChatPage, {
+        userInfo: {...item},
+        chatName: item.contactName,
+      });
+    }
+  };
+
+  const onRemoveHandler = item => {
+    let newArrayToSet = [...memebersSelected].filter(
+      memeber => memeber.username != item.username,
+    );
+    setMemebersSelected([...newArrayToSet]);
+  };
+  const focusFunc = (isBlur = false) => {
+    if (isBlur) {
+      setTouched({});
+      return;
+    }
+    setTouched({groupName: true});
+  };
+
+  const submitName = () => {
+    setTouched({});
   };
 
   useEffect(() => {
@@ -201,6 +248,24 @@ export default NewChatPage = () => {
         authenticationSliceRef.user.username,
       );
   }, []);
+
+  useEffect(() => {
+    if (!!isCreatingGroup) {
+      groupNameRef.current.focus();
+    } else {
+      setMemebersSelected([]);
+    }
+  }, [isCreatingGroup]);
+
+  const PageLabels = ({label}) => (
+    <BaseText
+      color={themeRef.colors.secondaryColor}
+      weight={fontWeights.semiBold}
+      size={fontSize.medium}
+      otherStyles={{marginLeft: wp(5), marginVertical: hp(1.5)}}>
+      {label}
+    </BaseText>
+  );
 
   const renderContact = ({item}) => {
     return (
@@ -223,9 +288,9 @@ export default NewChatPage = () => {
           <Text style={styles.contactName}>{item.contactName}</Text>
           <Text style={styles.contactNumber}>{item.phone}</Text>
         </View>
-        <TouchableOpacity onPress={goToChatPage.bind(this, item)}>
+        <TouchableOpacity onPress={onAddPressHandler.bind(this, item)}>
           <MaterialCommunityIcon
-            name={'chat-plus-outline'}
+            name={isCreatingGroup ? 'plus-circle' : 'chat-plus-outline'}
             size={25}
             color={themeRef.colors.appThemeColor}
             style={{
@@ -247,6 +312,56 @@ export default NewChatPage = () => {
         />
         <Text style={styles.pageHeading}>Contacts</Text>
       </View>
+      {!!isCreatingGroup && (
+        <>
+          <PageLabels label={'Create Group'} />
+          <View style={[commonStyles.rowCenter]}>
+            <InputBox
+              label={'Group Name'}
+              focusFunction={focusFunc}
+              focused={!!touched.groupName}
+              value={values.groupName}
+              inputRef={groupNameRef}
+              mainContainerStyle={{
+                marginTop: hp(1.5),
+                width: wp(75),
+              }}
+              otherProps={{
+                onChangeText: setFieldValue.bind(this, 'groupName'),
+                onSubmitEditing: submitName,
+              }}
+            />
+            <IconButton
+              name={'close-circle'}
+              color={themeRef.colors.appThemeColor}
+              size={35}
+              containerStyle={{
+                marginTop: hp(1.5),
+                marginHorizontal: wp(2),
+              }}
+              onPress={() => setIsCreatingGroup(false)}
+            />
+          </View>
+          <PageLabels
+            label={
+              memebersSelected.length != 0
+                ? `${memebersSelected.length} ${
+                    memebersSelected.length == 1 ? 'Member' : 'Members'
+                  } in group`
+                : 'No members selected'
+            }
+          />
+          {memebersSelected.length != 0 && (
+            <AvatarListHorizontal
+              listArray={memebersSelected}
+              nameField={'contactName'}
+              uriField={'profilePhoto'}
+              themeRef={themeRef}
+              onRemoveHandler={onRemoveHandler}
+            />
+          )}
+        </>
+      )}
       {isLoading && contactList.length == 0 && (
         <Animated.View
           ref={bookAnimation}
@@ -268,14 +383,38 @@ export default NewChatPage = () => {
           No one contact of yours are available on app.
         </Text>
       )}
-      {contactList.length != 0 && <SearchPage />}
+
+      {contactList.length != 0 && (
+        <SearchPage containerStyle={{marginTop: hp(2)}} />
+      )}
+      {!isCreatingGroup && (
+        <TouchableOpacity
+          style={[
+            commonStyles.iconWithTextBtn,
+            {
+              backgroundColor: themeRef.colors.appThemeColor,
+              shadowColor: themeRef.colors.appThemeColor,
+              alignSelf: 'center',
+              marginVertical: hp(2),
+            },
+          ]}
+          onPress={() => setIsCreatingGroup(true)}>
+          <IonIcon name="add" size={20} color={themeRef.colors.primaryColor} />
+          <BaseText
+            size={fontSize.small}
+            color={themeRef.colors.primaryColor}
+            weight={fontWeights.bold}>
+            Create new Group
+          </BaseText>
+        </TouchableOpacity>
+      )}
       {contactList.length != 0 && (
         <FlatList
           data={contactList}
           renderItem={renderContact}
           keyExtractor={(item, index) => index}
           contentContainerStyle={{
-            paddingTop: hp(3),
+            paddingTop: hp(1),
           }}
         />
       )}

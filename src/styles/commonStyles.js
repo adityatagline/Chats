@@ -51,4 +51,26 @@ export const commonStyles = StyleSheet.create({
     textTransform: 'capitalize',
     marginVertical: hp(1),
   },
+  rowCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWithTextBtn: {
+    flexDirection: 'row',
+    paddingVertical: hp(0.5),
+    paddingHorizontal: wp(4),
+    borderRadius: hp(2),
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    elevation: 4,
+    shadowColor: 'black',
+    shadowOpacity: 0.2,
+    shadowOffset: {
+      height: 0,
+      width: 0,
+    },
+    shadowRadius: 5,
+  },
 });
