@@ -28,7 +28,7 @@ export const openMediaPickerModal = async (
   mediaType,
   selectionLimit = 1,
 ) => {
-  console.log({mode, mediaType, selectionLimit});
+  // console.log({mode, mediaType, selectionLimit});
   try {
     let pickerConfig = {
       mediaType,
@@ -59,7 +59,7 @@ export const openMediaPickerModal = async (
         if (!filename || filename == undefined) {
           filename = path.split('/').reverse()[0];
         }
-        console.log({filename});
+        // console.log({filename});
         return {
           filename,
           sourceURL,
@@ -137,7 +137,7 @@ const MediaPickerOptionModal = ({
           path: pickerResponse[0].path,
         });
       }
-      console.log({mediaObj});
+      // console.log({mediaObj});
       await afterChoosehandler(mediaObj);
     } catch (error) {
       // console.log({error});

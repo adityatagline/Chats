@@ -46,7 +46,7 @@ const AvatarListHorizontal = ({
             ImageStyles={{
               height: wp(12),
               width: wp(12),
-              borderRadius: hp(2.5),
+              borderRadius: 500,
             }}
           />
           {item.username != user.username && (
@@ -57,13 +57,13 @@ const AvatarListHorizontal = ({
               containerStyle={{
                 backgroundColor: themeRef.colors.appThemeColor,
                 position: 'absolute',
-                borderRadius: hp(1.6),
-                height: hp(4),
-                width: hp(4),
+                borderRadius: 500,
+                height: hp(3.5),
+                width: hp(3.5),
                 alignItems: 'center',
                 justifyContent: 'center',
                 bottom: 0,
-                right: -hp(1),
+                right: -hp(1.5),
                 borderWidth: 2,
                 borderColor: themeRef.colors.primaryColor,
               }}

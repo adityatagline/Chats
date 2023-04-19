@@ -6,6 +6,8 @@ const initialValues = {
   friends: {},
   unseenChats: {},
   strangers: {},
+  groups: {},
+  // groupChats: {},
 };
 
 const Chatslice = createSlice({
@@ -73,12 +75,17 @@ const Chatslice = createSlice({
         },
       };
     },
+    storeGroups: (state, action) => {
+      let {groups} = action.payload;
+      return {...state, groups};
+    },
     checkAndStoreNewMessages: (state, action) => {
       let messageArray = [...action.payload.messageArray].sort(
         (a, b) => new Date(a.date) - new Date(b.date),
       );
       // console.log({messageArray});
       let newState = {...state};
+      let {userInfo} = action.payload;
 
       messageArray.forEach(element => {
         let {otherUser} = element;
@@ -118,7 +125,9 @@ const Chatslice = createSlice({
         let isRecordExistInHome =
           !!itemFound && Object.keys({...itemFound}).length != 0;
 
+        // console.log({element, userInfo});
         itemFound =
+          // element.from != userInfo.username &&
           !!newState.unseenChats &&
           (!!newState.unseenChats[otherUser]
             ? !!newState.unseenChats[otherUser].find(
@@ -141,17 +150,15 @@ const Chatslice = createSlice({
 
         if (!isExistInIndividual) {
           // console.log({isExistInIndividual});
-
+          let individualArray = state?.individualChats[otherUser] ?? [];
+          individualArray = [{...element, chatName}, ...individualArray].sort(
+            (a, b) => new Date(b.date) - new Date(a.date),
+          );
           newState = {
             ...newState,
             individualChats: {
               ...newState.individualChats,
-              [otherUser]: !!newState.individualChats[otherUser]
-                ? [
-                    {...element, chatName},
-                    ...newState.individualChats[otherUser],
-                  ]
-                : [{...element, chatName}],
+              [otherUser]: individualArray,
             },
           };
         }
@@ -170,12 +177,15 @@ const Chatslice = createSlice({
             );
             newArrayForHome = [{...element, chatName}, ...newArrayForHome];
           }
+          newArrayForHome = newArrayForHome.sort(
+            (a, b) => new Date(b.date) - new Date(a.date),
+          );
           newState = {
             ...newState,
             homepageChats: [...newArrayForHome],
           };
         }
-        if (!isExistinUnseenChats) {
+        if (!isExistinUnseenChats && element.from != userInfo.username) {
           newState = {
             ...newState,
             unseenChats: {
@@ -188,6 +198,96 @@ const Chatslice = createSlice({
         }
       });
       return {...newState};
+    },
+    storeMessageToGroup: (state, action) => {
+      // console.log({state});
+      let newState = {...state};
+      let {message, groupInfo, userInfo} = action.payload;
+      if (!state?.groups?.[message.groupId]?.name) {
+        return newState;
+      }
+      let isInclude =
+        !!state?.individualChats[message.groupId] &&
+        state.individualChats[message.groupId].find(
+          item => item.id == message.id,
+        );
+      isInclude = !!isInclude && Object.keys(isInclude).length != 0;
+      if (!!isInclude) {
+        return newState;
+      }
+      let individualArray = state?.individualChats[message.groupId] ?? [];
+      individualArray = [{...message}, ...individualArray];
+      individualArray = individualArray.sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      );
+      let isIncludeInHome = state?.homepageChats?.find(
+        item => item.id == message.id,
+      );
+      isIncludeInHome =
+        !!isIncludeInHome && Object.keys(isIncludeInHome).length != 0;
+      let isRecordInHome = state?.homepageChats.find(
+        item => item.groupId == message.groupId,
+      );
+      isRecordInHome =
+        !!isRecordInHome && Object.keys(isRecordInHome).length != 0;
+      let homechatArray = [...state.homepageChats];
+      if (isRecordInHome) {
+        homechatArray = homechatArray.filter(item => {
+          if (
+            !item?.groupId ||
+            (!!item?.groupId && item?.groupId != message.groupId)
+          ) {
+            return item;
+          }
+        });
+      }
+      let lastMessage = individualArray.reverse()[0];
+      homechatArray = [
+        ...homechatArray,
+        {...lastMessage, chatName: groupInfo.name},
+      ];
+      homechatArray = homechatArray.sort(
+        (a, b) => new Date(b.date) - new Date(a.date),
+      );
+
+      let isGroupExists =
+        !!state?.groups?.[message.groupId] &&
+        Object.keys(state.groups[message.groupId]).length != 0;
+      // console.log({individualArray});
+      if (!isGroupExists) {
+        newState = {
+          ...newState,
+          groups: {
+            ...newState.groups,
+            [message.groupId]: {...groupInfo},
+          },
+        };
+      }
+      let isIncludedInUnseen =
+        !!state?.unseenChats?.[message.groupId] &&
+        state?.unseenChats?.[message.groupId].find(
+          item => item.id == message.id,
+        );
+      isIncludedInUnseen =
+        !!isIncludedInUnseen && Object.keys(isIncludedInUnseen).length != 0;
+      let unseenChatArray = state?.unseenChats[message.groupId] ?? [];
+      if (!isIncludeInHome && message.from != userInfo.username) {
+        unseenChatArray = [...unseenChatArray, {...message}];
+      }
+      // console.log({isInclude, isIncludeInHome, isRecordInHome, isGroupExists});
+      newState = {
+        ...newState,
+        individualChats: {
+          ...newState.individualChats,
+          [message.groupId]: individualArray,
+        },
+        homepageChats: homechatArray,
+        unseenChats: {
+          ...state.unseenChats,
+          [message.groupId]: unseenChatArray,
+        },
+      };
+      return newState;
     },
     storeStranger: (state, action) => {
       // console.log('running storeStranger');
@@ -211,7 +311,7 @@ const Chatslice = createSlice({
       // console.log({changeMediaStatus: action});
       let {downloadObj, chatObj} = action.payload;
       downloadObj = downloadObj.data;
-      console.log({downloadObj});
+      // console.log({downloadObj});
       let newArrayToSet = [...state.individualChats[chatObj.otherUser]].map(
         item => {
           if (item.id == chatObj.id) {
@@ -260,5 +360,7 @@ export const {
   removeUnseenChats,
   storeStranger,
   changeMediaStatus,
+  storeMessageToGroup,
+  storeGroups,
 } = Chatslice.actions;
 export default Chatslice.reducer;

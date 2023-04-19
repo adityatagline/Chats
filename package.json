@@ -9,7 +9,9 @@
     "test": "jest",
     "lint": "eslint .",
     "pod": "npx pod-install ios",
-    "release-apk": "cd android && ./gradlew assembleRelease && open ./app/build/outputs/apk/release"
+    "release-apk": "cd android && ./gradlew assembleRelease && open ./app/build/outputs/apk/release",
+    "clean-install": "rm -rf node_modules && rm -rf yarn.lock && rm -rf package-lock.json && rm -rf ios/Pods && rm -rf ios/Podfile.lock && yarn install && npx pod-install",
+    "clean-android":"cd android && ./gradlew clean && cd .. && yarn android"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.17.11",

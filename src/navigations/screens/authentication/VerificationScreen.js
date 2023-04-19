@@ -82,8 +82,8 @@ export default VerificationScreen = ({userDetails}) => {
       });
       886645;
     } catch (error) {
-      console.log('error-ajsdoajskdosjkdoasjk');
-      console.log(error);
+      // console.log('error-ajsdoajskdosjkdoasjk');
+      // console.log(error);
       if (!!ErrorCodes[error?.code?.toString()]?.message) {
         Alert.alert('Oops!!', ErrorCodes[error.code.toString()].message);
       } else {

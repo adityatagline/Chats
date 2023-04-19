@@ -221,10 +221,14 @@ export default SignupScreen = () => {
 
             <Formik
               initialValues={{
-                phone: '5555228243',
-                email: 'test@test.com',
-                password: '00000000aA',
-                password2: '00000000aA',
+                phone: '',
+                //  '5555228243',
+                email: '',
+                //  'test@test.com',
+                password: '',
+                //  '00000000aA',
+                password2: '',
+                //  '00000000aA',
               }}
               validationSchema={SignupValidationSchema}>
               {({values, touched, errors, setFieldValue, setTouched}) => (

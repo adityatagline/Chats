@@ -68,6 +68,7 @@ export const PageHeading = memo(
     backButtonProps,
     backButtonStyle,
     backNavigationScreen,
+    mainContainerStyle,
   }) => {
     const navigation = useNavigation();
     const themeRef = useTheme();
@@ -97,7 +98,7 @@ export const PageHeading = memo(
     });
 
     return (
-      <View style={styles.mainDiv}>
+      <View style={[mainContainerStyle]}>
         {!disableBackButton && (
           <TouchableOpacity
             onPress={navigatwBack}

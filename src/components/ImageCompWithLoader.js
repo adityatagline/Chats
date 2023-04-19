@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {ActivityIndicator, Platform, View, Image} from 'react-native';
+import {ActivityIndicator, Platform, View, Image, Animated} from 'react-native';
 
 const ImageCompWithLoader = ({
   source,
@@ -27,7 +27,7 @@ const ImageCompWithLoader = ({
           }}
         />
       )}
-      <Image
+      <Animated.Image
         resizeMode={resizeMode}
         source={source}
         style={ImageStyles}

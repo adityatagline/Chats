@@ -187,6 +187,8 @@ export default LoginScreen = () => {
               initialValues={{
                 phone: Platform.OS == 'ios' ? '7778889990' : '5555228243',
                 password: '00000000aA',
+                // phone: "",
+                // password: '',
               }}
               validationSchema={LoginValidationSchemaWithPhone}>
               {({values, touched, errors, setFieldValue, setTouched}) => (

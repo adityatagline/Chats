@@ -6,50 +6,88 @@ export const FirebaseStreamTaskContext = createContext({
   tasks: {},
   addTask: task => {},
   updateTask: async (task, stateDetails, senderFun) => {},
+  deleteTask: async (taskId, username) => {},
 });
 
-export const FirebaseStreamTaskContextProvider = ({children}) => {
-  const [tasks, setTasks] = useState({});
+var hardTask = {};
 
-  const addTask = taskObj => {
-    console.log({taskObj});
-    if (tasks.length == 0) {
-      setTasks([{task: taskObj}]);
+export const FirebaseStreamTaskContextProvider = ({children}) => {
+  const [tasks, setTasks] = useState(hardTask);
+  console.log({tasks});
+
+  const addTask = (task, username, fileObject) => {
+    console.log('running add');
+    let taskId = task._id;
+    if (!hardTask[username] || hardTask[username].length == 0) {
+      hardTask = {
+        ...hardTask,
+        [username]: [{taskId, fileObject, task}],
+      };
     } else {
-      let obj = tasks.find(item => {
-        if (item._id == taskObj._id) {
+      let taskArray = hardTask[username];
+      let isExists = taskArray.find(item => item.taskId == taskId);
+      isExists = !!isExists && Object.keys(isExists).length != 0;
+      if (!isExists) {
+        hardTask = {
+          ...hardTask,
+          [username]: [...taskArray, {taskId, task, fileObject}],
+        };
+      }
+    }
+    setTasks({...hardTask});
+  };
+
+  const updateTask = async (taskId, username, stateDetails) => {
+    console.log('running updateTask');
+
+    try {
+      // let taskId = task._id;
+      let taskArray = hardTask[username];
+      taskArray = taskArray.map(item => {
+        if (item.taskId == taskId) {
+          return {...item, stateDetails};
+        } else {
           return item;
         }
       });
-      if (!obj || Object.keys(obj).length == 0) {
-        setTasks([...tasks, {task: taskObj}]);
-      }
+      console.log({taskArray});
+      hardTask = {
+        ...hardTask,
+        [username]: taskArray,
+      };
+      setTasks({...hardTask});
+    } catch (error) {
+      console.log({eroorInYpdateTask: error});
     }
   };
 
-  const updateTask = async (taskObj, stateDetails, senderFunction, itemObj) => {
-    console.log({id: stateDetails.task._id, taskid: taskObj._id});
-    let newArrayToSet = tasks[itemObj.otherUser].map(item => {
-      if (item.task._id == stateDetails.task._id) {
-        return {task: item.task, stateDetails};
-      } else {
-        return item;
-      }
-    });
-    setTasks(newArrayToSet);
-    if (stateDetails.bytesTransferred == stateDetails.totalBytes) {
-      // mediaObj, type
-      const downloadurl = await storage()
-        .ref(stateDetails.metadata.fullPath)
-        .getDownloadURL();
-      //   await senderFunction();
+  const deleteTask = async (taskId, username) => {
+    console.log('running deleteTask');
+    // let taskId = task._id;
+
+    let taskArray = hardTask?.[username];
+    if (!taskArray || taskArray.length == 0) {
+      return;
     }
+    let taskFound = taskArray.find(item => item.taskId == taskId);
+    let isInclude = !!taskFound && Object.keys(taskFound).length != 0;
+    if (!!isInclude && !!taskArray) {
+      taskArray = taskArray.filter(item => item.taskId != taskId);
+      hardTask = {
+        ...hardTask,
+        [username]: taskArray,
+      };
+      setTasks({...hardTask});
+      return true;
+    }
+    return false;
   };
 
   const contextValues = {
     tasks,
     addTask,
     updateTask,
+    deleteTask,
   };
   return (
     <FirebaseStreamTaskContext.Provider value={contextValues}>

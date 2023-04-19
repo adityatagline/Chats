@@ -36,14 +36,25 @@ export const sendMessageToFirestore = async (
   }
 };
 
-export const sendGPMessageToFB = async (groupId, chatObject) => {
+export const sendGPMessageToFB = async (
+  groupId,
+  chatObject,
+  isFirst = false,
+) => {
   try {
-    const sendInGroup = await firestore()
-      .collection('groupChats')
-      .doc(groupId)
-      .collection('chats')
-      .doc(chatObject.id)
-      .set({...chatObject});
+    // console.log({isFirst});
+    let sendInGroup;
+    if (isFirst) {
+      sendInGroup = await firestore()
+        .collection('groupChats')
+        .doc(groupId)
+        .set({[chatObject.id]: {...chatObject}});
+    } else {
+      sendInGroup = await firestore()
+        .collection('groupChats')
+        .doc(groupId)
+        .update({[chatObject.id]: {...chatObject}});
+    }
 
     return {
       isError: false,
@@ -137,18 +148,44 @@ export const uploadProfilePic = async (imgObj, username) => {
 export const uploadFileToFirebase = async (
   imgObj,
   path,
-  contextRef,
+  uploadContext,
   sendMediaMessage,
+  username,
+  fileObject,
 ) => {
   try {
-    console.log({imgObj, contextRef});
+    console.log({imgObj, uploadContext});
 
-    const uploadResponse = storage().ref(path).putFile(imgObj.path);
-    console.log('running upload');
-    contextRef.addTask(uploadResponse);
-    console.log('running upload');
+    const fileRef = storage().ref(path);
+    const uploadResponse = fileRef.putFile(imgObj.path);
+    // console.log('running upload');
+    uploadContext.addTask(uploadResponse, username, fileObject);
+    // console.log('running upload');
     uploadResponse.on('state_changed', async stateDetails => {
-      contextRef.updateTask(uploadResponse, stateDetails, sendMediaMessage);
+      try {
+        if (
+          stateDetails.bytesTransferred == stateDetails.totalBytes ||
+          stateDetails.state == 'success'
+        ) {
+          let uri = await storage().ref(path).getDownloadURL();
+          console.log({uri});
+
+          let isDeleted = uploadContext.deleteTask(
+            uploadResponse._id,
+            username,
+          );
+          if (isDeleted) {
+            let sendResponse = await sendMediaMessage(
+              {path: stateDetails.metadata.fullPath, uri},
+              fileObject.type,
+            );
+          }
+        } else {
+          uploadContext.updateTask(uploadResponse._id, username, stateDetails);
+        }
+      } catch (error) {
+        console.log({errorInOn: error});
+      }
     });
   } catch (error) {
     console.log({errorinuploadFileToFirebase: error});

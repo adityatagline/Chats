@@ -1,5 +1,6 @@
 import {Animated} from 'react-native';
 import {dimensions} from '../../../styles/commonStyles';
+import {heightPercentageToDP} from 'react-native-responsive-screen';
 
 export const animateNoChat = (componentRef, toValue, duration, delay = 0) => {
   const animate = () =>
@@ -10,7 +11,7 @@ export const animateNoChat = (componentRef, toValue, duration, delay = 0) => {
         useNativeDriver: false,
       }),
       Animated.timing(componentRef, {
-        toValue: {x: toValue.x, y: dimensions.height * 0.15},
+        toValue: {x: toValue.x, y: heightPercentageToDP(15)},
         duration,
         useNativeDriver: false,
       }),
@@ -20,7 +21,7 @@ export const animateNoChat = (componentRef, toValue, duration, delay = 0) => {
         useNativeDriver: false,
       }),
       Animated.timing(componentRef, {
-        toValue: {x: toValue.x, y: dimensions.height * 0.15},
+        toValue: {x: toValue.x, y: heightPercentageToDP(15)},
         duration,
         useNativeDriver: false,
       }),

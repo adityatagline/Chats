@@ -20,6 +20,7 @@ const ChatMessageComponent = ({
   themeRef,
   isGroup,
   handleDownload,
+  chatSliceRef,
 }) => {
   let position;
   // console.log({item});
@@ -92,6 +93,18 @@ const ChatMessageComponent = ({
     );
   }
 
+  let isAnnouncement =
+    !!item?.messageType && item.messageType == 'announcement';
+
+  let senderName = !!chatSliceRef?.friends?.[item.from]
+    ? chatSliceRef?.friends?.[item.from].contactName
+    : !!chatSliceRef?.strangers?.[item.from]
+    ? chatSliceRef?.strangers?.[item.from].firstName
+    : '';
+  senderName = senderName.split(' ')[0];
+  senderName =
+    senderName.length > 20 ? senderName.slice(0, 20) + ' ..' : senderName;
+
   return (
     <View
       style={[
@@ -104,15 +117,24 @@ const ChatMessageComponent = ({
           marginBottom: position == 'Top' ? hp(2) : hp(0.25),
           marginTop: position == 'Bottom' ? hp(2) : hp(0.25),
         },
+        isAnnouncement && [
+          {
+            ...styles.announcement,
+            shadowColor: themeRef.colors.appThemeColor,
+          },
+        ],
       ]}>
       {(position == 'Bottom' || position == 'alone') &&
-        (isGroup || (!isGroup && item.from == currentUserInfo.username)) && (
+        (isGroup || (!isGroup && item.from == currentUserInfo.username)) &&
+        !isAnnouncement && (
           <BaseText
             size={fontSize.extrasmall}
             weight={fontWeights.medium}
             color={themeRef.colors.secondaryColor}
             otherStyles={[styles.senderName]}>
-            {isGroup ? item.from : 'You'}
+            {isGroup && item.from != currentUserInfo.username
+              ? item.from
+              : 'You'}
           </BaseText>
         )}
 
@@ -120,19 +142,30 @@ const ChatMessageComponent = ({
         style={[
           styles.messageContainer,
           {...borderRadiusStyle, overflow: 'hidden'},
-          {
-            backgroundColor:
-              item.from == currentUserInfo.username
-                ? themeRef.colors.appThemeColor
-                : themeRef.colors.card,
-          },
         ]}>
+        <View
+          style={[
+            {
+              backgroundColor:
+                item.from == currentUserInfo.username
+                  ? themeRef.colors.appThemeColor
+                  : themeRef.colors.card,
+              position: 'absolute',
+              height: '100%',
+              width: '100%',
+            },
+            isAnnouncement && {
+              backgroundColor: 'transparent',
+            },
+          ]}></View>
         <BaseText
           size={fontSize.medium}
           weight={fontWeights.semiBold}
           color={
-            item.from == currentUserInfo.username
+            item.from == currentUserInfo.username && !isAnnouncement
               ? themeRef.colors.primaryColor
+              : isAnnouncement
+              ? themeRef.colors.appThemeColor
               : themeRef.colors.secondaryColor
           }
           otherStyles={[styles.message]}>
@@ -249,6 +282,11 @@ const styles = StyleSheet.create({
   message: {
     paddingVertical: hp(0.7),
     paddingHorizontal: wp(3),
+  },
+  announcement: {
+    alignItems: 'center',
+    marginBottom: hp(2),
+    marginTop: hp(2),
   },
 });
 

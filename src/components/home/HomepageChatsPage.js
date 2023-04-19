@@ -36,17 +36,17 @@ export default HomepageChatsPage = ({chatArray}) => {
     },
     flatListContainer: {
       paddingVertical: hp(1),
-      paddingBottom: hp(7),
+      paddingBottom: hp(19),
     },
     chatAvatar: {
       height: hp(6),
       width: hp(6),
-      borderRadius: wp(5),
+      borderRadius: 500,
+      backgroundColor: themeRef.colors.primaryColor,
     },
     noPhotoStyle: {
       height: hp(5),
       width: hp(5),
-      borderRadius: wp(4.5),
     },
     chatDiv: {
       marginVertical: hp(0.5),
@@ -86,7 +86,6 @@ export default HomepageChatsPage = ({chatArray}) => {
     },
   });
 
-  const chatSlice = useSelector(state => state.chatSlice);
   const authenticationSliceRef = useSelector(
     state => state.authenticationSlice,
   );
@@ -106,25 +105,38 @@ export default HomepageChatsPage = ({chatArray}) => {
   };
 
   const goToChatScreen = item => {
-    let friendObj = !!chatSlice.friends[item.otherUser];
     let chatname = item.chatName;
-
-    navigation.navigate(ScreenNames.ChatPage, {
-      userInfo: !!friendObj
-        ? {...chatSliceRef.friends[item.otherUser]}
-        : {username: item.otherUser},
-      username: item.otherUser,
-      chatName: chatname,
-    });
+    if (!!item?.groupId) {
+      navigation.navigate(ScreenNames.GroupChatPage, {
+        groupId: item.groupId,
+        chatName: chatname,
+      });
+    } else {
+      let friendObj = !!chatSliceRef.friends[item.otherUser];
+      navigation.navigate(ScreenNames.ChatPage, {
+        userInfo: !!friendObj
+          ? {...chatSliceRef.friends[item.otherUser]}
+          : {username: item.otherUser},
+        username: item.otherUser,
+        chatName: chatname,
+      });
+    }
   };
 
   const renderHomePageChats = ({item}) => {
-    // console.log({item});
+    // !!item?.groupId && console.log({item});
     let chatname = item.chatName;
-    let isUnseenMessages = !!chatSliceRef.unseenChats[item.otherUser]
-      ? chatSliceRef.unseenChats[item.otherUser].length
-      : 0;
-
+    let isUnseenMessages = 0;
+    if (!!item?.otherUser && !!chatSliceRef.unseenChats[item?.otherUser]) {
+      isUnseenMessages = chatSliceRef.unseenChats[item.otherUser].length;
+    }
+    if (!!item?.groupId && !!chatSliceRef.unseenChats[item?.groupId]) {
+      isUnseenMessages = chatSliceRef.unseenChats[item.groupId].length;
+      // console.log({
+      //   unseenChats: chatSliceRef.unseenChats[item.groupId],
+      //   group: item.groupId,
+      // });
+    }
     // console.log({friend: chatSlice.friends?.[item.otherUser]});
 
     if (chatname.length > 20) {
@@ -174,19 +186,25 @@ export default HomepageChatsPage = ({chatArray}) => {
     if (item.message.includes('\n')) {
       chatmessage = chatmessage.split('\n')[0];
     }
-    let photoUri =
-      !!chatSlice.friends[item.otherUser] &&
-      !!chatSlice.friends[item.otherUser].profilePhoto
-        ? {uri: chatSlice.friends[item.otherUser].profilePhoto}
-        : undefined;
+    let photoUri = !!chatSliceRef?.friends?.[item.otherUser]?.profilePhoto
+      ? {uri: chatSliceRef.friends[item.otherUser].profilePhoto}
+      : undefined;
 
     if (!photoUri) {
-      photoUri = !!chatSliceRef?.strangers?.[item.otherUser]
+      photoUri = !!chatSliceRef?.strangers?.[item.otherUser]?.profilePhoto
         ? {uri: chatSliceRef?.strangers?.[item.otherUser].profilePhoto}
         : imageUrlStrings.profileSelected;
     }
+    let senderName = !!chatSliceRef?.friends?.[item.from]
+      ? chatSliceRef?.friends?.[item.from].contactName
+      : !!chatSliceRef?.strangers?.[item.from]
+      ? chatSliceRef?.strangers?.[item.from].firstName
+      : '';
+    senderName = senderName.split(' ')[0];
+    senderName =
+      senderName.length > 20 ? senderName.slice(0, 20) + ' ..' : senderName;
 
-    // console.log({photoUri});
+    // console.log({photoUri, user: chatSlice.friends[item.otherUser]});
 
     return (
       <TouchableOpacity
@@ -196,8 +214,8 @@ export default HomepageChatsPage = ({chatArray}) => {
           source={!!photoUri ? photoUri : imageUrlStrings.profileSelected}
           ImageStyles={[styles.chatAvatar, !photoUri && styles.noPhotoStyle]}
           containerStyles={{
-            marginRight: !!photoUri.uri ? wp(1) : wp(2),
-            marginLeft: !!photoUri.uri ? wp(0) : wp(2.5),
+            marginRight: !!photoUri.uri ? wp(1) : wp(0.5),
+            marginLeft: !!photoUri.uri ? wp(0) : wp(0.4),
           }}
         />
         <View style={styles.chatDetails}>
@@ -213,19 +231,29 @@ export default HomepageChatsPage = ({chatArray}) => {
             otherProp={{
               numberOfLines: 1,
             }}>
-            {item.from == authenticationSliceRef.user.username
-              ? 'You: ' + chatmessage
-              : chatmessage}
+            {`${
+              item.from == authenticationSliceRef.user.username
+                ? 'You : '
+                : !!item?.groupId
+                ? senderName + ' : '
+                : ''
+            }${chatmessage}`}
+            {/* {item.from == authenticationSliceRef.user.username
+              ? (item?.messageType == 'announcement' ? '' : 'You: ') +
+                chatmessage
+              : chatmessage} */}
           </BaseText>
         </View>
-        <View style={styles.unseenMessageNumberContainer}>
-          <BaseText
-            color={themeRef.colors.primaryColor}
-            size={fontSize.tiny}
-            weight={fontWeights.semiBold}>
-            {isUnseenMessages}
-          </BaseText>
-        </View>
+        {(isUnseenMessages != 0 || isUnseenMessages != '0') && (
+          <View style={styles.unseenMessageNumberContainer}>
+            <BaseText
+              color={themeRef.colors.primaryColor}
+              size={fontSize.tiny}
+              weight={fontWeights.semiBold}>
+              {isUnseenMessages}
+            </BaseText>
+          </View>
+        )}
         <BaseText
           color={themeRef.colors.secondaryColor}
           size={fontSize.tiny}

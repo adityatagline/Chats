@@ -32,8 +32,11 @@ export const TopTabNavigator = () => {
       position: 'absolute',
       top: hp(1) + StatusBarHeight,
       fontFamily: FontfamiliesNames.primaryFontBold,
-      left: wp(10),
+      left: wp(0),
+      paddingLeft: wp(10),
       color: themeRef.colors.appThemeColor,
+      backgroundColor: themeRef.colors.primaryColor,
+      width: wp(60),
     },
     tabIcon: {
       height: hp(3.5),

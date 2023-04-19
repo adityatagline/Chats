@@ -20,12 +20,17 @@ import {
   fontSize,
 } from '../../../styles/commonStyles';
 import {
+  checkIsMember,
+  getGroupInfo,
+  getGroupsOfUser,
   getStrangerInfoFromDB,
   getUserHomepageChats,
 } from '../../../../api/chat/ChatRequests';
 import firestore from '@react-native-firebase/firestore';
 import {
   checkAndStoreNewMessages,
+  storeGroups,
+  storeMessageToGroup,
   storeStranger,
 } from '../../../../redux/chats/ChatSlice';
 import {askPermissionAsync, getContacts} from '../NewChatPage';
@@ -35,6 +40,8 @@ import IonIcon from 'react-native-vector-icons/Ionicons';
 import BaseText from '../../../components/BaseText';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
 import ScreenNames from '../../../strings/ScreenNames';
+import {logout} from '../../../../redux/authentication/AuthenticationSlice';
+import {storeUserDataInRedux} from '../../../../redux/authentication/AuthenticationSlice';
 
 export default HomeScreen = props => {
   const themeRef = useTheme();
@@ -48,33 +55,14 @@ export default HomeScreen = props => {
   const [messageToBedeleted, setMessageToBedeleted] = useState([]);
   const [strangerArray, setStrangerArray] = useState([]);
   // console.log({chatSliceRef});
-
-  // console.log({unseenChats: chatSliceRef.unseenChats});
+  // dispatch(logout());
+  // console.log({groups: chatSliceRef.groups});
 
   useEffect(() => {
     setisLoading(true);
     getInitialData();
     isFocused && props.setterFunction(route.name);
   }, [isFocused]);
-
-  const getStarngersUserInfo = async userArrayOfStranger => {
-    if (userArrayOfStranger.length == 0) {
-      return;
-    }
-    userArrayOfStranger.forEach(async element => {
-      const response = await getStrangerInfoFromDB(element);
-      // console.log({responseFormFb: response, userArrayOfStranger, element});
-      if (
-        !response.isError &&
-        !!response.data &&
-        !chatSliceRef?.strangers[element] &&
-        !!element
-      ) {
-        // console.log('runnning for dispatch');
-        dispatch(storeStranger({userInfo: response.data}));
-      }
-    });
-  };
 
   useEffect(() => {
     if (!chatSliceRef.friends) {
@@ -86,6 +74,7 @@ export default HomeScreen = props => {
         .doc('individual')
         .collection(authenticationSlice.user.username)
         .onSnapshot(res => {
+          // console.log({resInMain: res});
           const docChanges = res.docChanges();
           let arrayToCheck = [];
           let usersArray = [];
@@ -121,7 +110,52 @@ export default HomeScreen = props => {
 
       return () => firestoreListner();
     } catch (error) {}
-  }, [strangerArray]);
+  }, [strangerArray, chatSliceRef.friends]);
+
+  useEffect(() => {
+    // console.log('running');
+    // console.log({gp: chatSliceRef.groups});
+    if (Object.keys(chatSliceRef.groups).length == 0) {
+      return;
+    }
+    try {
+      // console.log('running 2');
+      const gpChatListner = firestore()
+        .collection('groupChats')
+        .onSnapshot(async res => {
+          for (let i = 0; i < res.docChanges().length; i++) {
+            let obj = res?.docChanges()[i]?.doc?.data();
+
+            let messageArray = [];
+            for (const key in obj) {
+              messageArray.push(obj[key]);
+            }
+            // console.log({messageArray, authenticationSlice});
+            messageArray.forEach(async element => {
+              let response = await checkIsMember(
+                authenticationSlice.user.username,
+                element.groupId,
+              );
+              // console.log({checkRes: response});
+              if (response.isError || !response?.data?.isMember) {
+                return;
+              }
+              let groupInfo = await getGroupInfo(element.groupId);
+              if (!groupInfo.isError) {
+                dispatch(
+                  storeMessageToGroup({
+                    message: element,
+                    groupInfo: groupInfo.data,
+                    userInfo: authenticationSlice.user,
+                  }),
+                );
+              }
+            });
+          }
+        });
+      return () => gpChatListner();
+    } catch (error) {}
+  }, [chatSliceRef.groups]);
 
   useEffect(() => {
     const deleteMessages = async () => {
@@ -136,6 +170,24 @@ export default HomeScreen = props => {
     }
   }, [messageToBedeleted]);
 
+  const getStarngersUserInfo = async userArrayOfStranger => {
+    if (userArrayOfStranger.length == 0) {
+      return;
+    }
+    userArrayOfStranger.forEach(async element => {
+      const response = await getStrangerInfoFromDB(element);
+      // console.log({responseFormFb: response, userArrayOfStranger, element});
+      if (
+        !response.isError &&
+        !!response.data &&
+        !chatSliceRef?.strangers[element] &&
+        !!element
+      ) {
+        // console.log('runnning for dispatch');
+        dispatch(storeStranger({userInfo: response.data}));
+      }
+    });
+  };
   const getInitialData = async () => {
     Platform.OS == 'android' &&
       (await askPermissionAsync(
@@ -151,7 +203,13 @@ export default HomeScreen = props => {
         dispatch,
         authenticationSlice.user,
       ));
+    // console.log('running getInitialData');
+    let response = await getGroupsOfUser(authenticationSlice.user.username);
+    // console.log({response});
     setisLoading(false);
+    if (!response.isError) {
+      dispatch(storeGroups({groups: response.data}));
+    }
   };
 
   const styles = StyleSheet.create({
@@ -159,19 +217,25 @@ export default HomeScreen = props => {
     mainDiv: {
       backgroundColor: themeRef.colors.primaryColor,
       flex: 1,
-      paddingTop: hp(12),
+      paddingTop: hp(1) + StatusBarHeight,
     },
     searchDiv: {
       flexDirection: 'row',
       marginHorizontal: wp(7),
+      marginBottom: hp(2),
     },
     newChatBtn: {
       backgroundColor: themeRef.colors.appThemeColor,
       shadowColor: themeRef.colors.appThemeColor,
-      position: 'absolute',
-      top: hp(1.75) + StatusBarHeight,
-      right: wp(14),
-      alignSelf: 'center',
+      // position: 'absolute',
+      // bottom: hp(12),
+      // right: wp(14),
+      alignSelf: 'flex-end',
+      zIndex: 150,
+      paddingVertical: hp(1),
+      borderRadius: 200,
+      marginRight: wp(12),
+      marginBottom: hp(1),
     },
   });
 

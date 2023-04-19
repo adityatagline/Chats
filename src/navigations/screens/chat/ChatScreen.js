@@ -3,7 +3,6 @@ import React, {useContext} from 'react';
 import {commonStyles, dimensions} from '../../../styles/commonStyles';
 import {useEffect} from 'react';
 import {useState} from 'react';
-import {useRef} from 'react';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -30,10 +29,10 @@ import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import MediaPickerOptionModal, {
   openMediaPickerModal,
 } from '../../../components/MediaPickerOptionModal';
-import {array} from 'yup';
-import IconButton from '../../../components/IconButton';
-import {openPicker} from 'react-native-image-crop-picker';
 import {FirebaseStreamTaskContext} from '../../../../context/FirebaseStreamTaskContext';
+import OptionModal from './OptionModal';
+import ScreenNames from '../../../strings/ScreenNames';
+import UploadingTrayComponent from './UploadingTrayComponent';
 
 export default ChatScreen = () => {
   const themeRef = useTheme();
@@ -56,6 +55,7 @@ export default ChatScreen = () => {
     },
   });
 
+  const navigation = useNavigation();
   const route = useRoute();
   const userInfo = !!route.params && route.params.userInfo;
   const chatName =
@@ -71,16 +71,16 @@ export default ChatScreen = () => {
   const currentUserInfo = authenticationSliceRef.user;
   const connectionInfo = useNetInfo();
 
-  const [displayChatName, setDisplayChatName] = useState(
-    chatName.length > 20 ? chatName.slice(0, 20) + ' ..' : chatName,
-  );
+  const displayChatName =
+    chatName.length > 20 ? chatName.slice(0, 20) + ' ..' : chatName;
+
   const [userChatMessage, setUserChatMessage] = useState('');
   const [chatContent, setChatContent] = useState([]);
 
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
+  const [optionModalVisibility, setOptionModalVisibility] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
-  // console.log({chatContent});
 
   useEffect(() => {
     !!chatSliceRef.individualChats[userInfo.username] &&
@@ -159,7 +159,12 @@ export default ChatScreen = () => {
   };
 
   const sendMedia = async (type, assetsArray) => {
-    console.log({type, assetsArray});
+    // console.log({type, assetsArray});
+    // Alert.alert(
+    //   'Sorry !!',
+    //   'This feature is in developement for the time being.',
+    // );
+    // return;
     setIsFileSendingTrayOpen(false);
     setShowPickerOptions('');
     assetsArray.forEach(async element => {
@@ -172,12 +177,18 @@ export default ChatScreen = () => {
         `chats${type}/${currentUserInfo.username}/${userInfo.username}/${element.filename}`,
         taskContextRef,
         sendMediaMessage,
+        userInfo.username,
+        {
+          filename,
+          type,
+        },
       );
     });
   };
 
   const sendMediaMessage = async (mediaObj, type) => {
     // console.log({mediaObj});
+
     const mediaName = mediaObj.path.split('/').reverse()[0];
     // console.log({mediaName});
     let objToGenID = {
@@ -217,7 +228,6 @@ export default ChatScreen = () => {
   };
 
   const handleDownload = (downloadObj, chatObj) => {
-    // console.log({downloadObj, chatObj});
     dispatch(changeMediaStatus({downloadObj, chatObj}));
   };
 
@@ -231,16 +241,27 @@ export default ChatScreen = () => {
         themeRef,
         isGroup: false,
         handleDownload,
+        chatSliceRef,
       }}
     />
   );
 
-  // console.log({
-  //   chatContent,
-  // });
+  const goToInfo = () => {
+    navigation.navigate(ScreenNames.ChatInfoScreen, {
+      chatType: 'chat',
+      username: userInfo.username,
+    });
+  };
 
   return (
     <>
+      {
+        <OptionModal
+          cancelColor={themeRef.colors.errorColor}
+          modalVisibility={optionModalVisibility}
+          setModalVisibility={setOptionModalVisibility}
+        />
+      }
       <MediaPickerOptionModal
         afterChoosehandler={res => {
           sendMedia(showPickerOptions, res);
@@ -250,15 +271,18 @@ export default ChatScreen = () => {
         mediaType={showPickerOptions}
         visibility={!!showPickerOptions}
       />
-      {/* <ReviewModal
+      {/* <ReviewModal for image
         type={showPickerOptions}
         visibility={assetsArray.length != 0}
       /> */}
       <SafeAreaView style={[commonStyles.screenStyle, styles.mainDiv]}>
         <ChatScreenHeaderComponent
           displayChatName={displayChatName}
+          onChatNamePress={goToInfo}
           onInfoPress={() => {}}
-          onOptionPress={() => {}}
+          onOptionPress={() => {
+            setOptionModalVisibility(true);
+          }}
           chatProfilePhoto={
             !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
               ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
@@ -290,6 +314,8 @@ export default ChatScreen = () => {
             contentContainerStyle={styles.chatListContainer}
             showsVerticalScrollIndicator={false}
           />
+
+          <UploadingTrayComponent username={userInfo.username} />
 
           <FileSharingTrayComponent
             visibility={isFileSendingTrayOpen}

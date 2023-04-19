@@ -30,7 +30,10 @@ import {useDispatch, useSelector} from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {animateBook} from '../../components/AnimationFunctions.';
 import ScreenNames from '../../strings/ScreenNames';
-import {storeFriends} from '../../../redux/chats/ChatSlice';
+import {
+  storeFriends,
+  storeMessageToGroup,
+} from '../../../redux/chats/ChatSlice';
 import InputBox from '../../components/InputBox';
 import {useFormik} from 'formik';
 import {groupNameValidation} from './authentication/ValidationSchemas';
@@ -47,7 +50,7 @@ export const getContacts = async (
   currentUser,
 ) => {
   try {
-    console.log({currentUser});
+    // console.log({currentUser});
     const contacts = await getAll();
     const response = await checkForUserInRecord(
       [...contacts],
@@ -93,8 +96,9 @@ export default NewChatPage = () => {
       marginHorizontal: wp(2),
     },
     profilePhoto: {
-      height: hp(7),
-      width: hp(7),
+      height: hp(5),
+      width: hp(5),
+      marginHorizontal: wp(2),
     },
     userContactDiv: {
       flexDirection: 'row',
@@ -163,7 +167,7 @@ export default NewChatPage = () => {
   const [contactList, setContactList] = useState([]);
   const [memebersSelected, setMemebersSelected] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingGroup, setIsCreatingGroup] = useState(true);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [intervalID, setIntervalID] = useState();
   const bookAnimation = useRef(
     new Animated.ValueXY({
@@ -249,10 +253,20 @@ export default NewChatPage = () => {
       memebersSelected,
       values.groupName,
       authenticationSliceRef.user,
+      true,
     );
     if (!!response.isError) {
-      console.log({errorInGroup: response.error});
+      // console.log({errorInGroup: response.error});
     }
+    // console.log({response});
+    let {message, groupInfo} = response;
+    dispatch(
+      storeMessageToGroup({
+        message,
+        groupInfo,
+        userInfo: authenticationSliceRef.user,
+      }),
+    );
     navigation.navigate(ScreenNames.TopTabScreens.HomeScreen);
   };
 
@@ -302,7 +316,7 @@ export default NewChatPage = () => {
           <Image
             source={{uri: item.profilePhoto}}
             style={styles.profilePhoto}
-            borderRadius={wp(6)}
+            borderRadius={500}
           />
         ) : (
           <Icon

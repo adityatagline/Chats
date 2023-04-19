@@ -30,6 +30,13 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
   let contactArrayToReturn = [];
   // console.log({contactArray});
   try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/credentials.json`;
+    let allUsers = await apiRequest(url, 'GET');
+    allUsers = allUsers.data;
+    let usersArray = [];
+    for (const number in allUsers) {
+      usersArray.push(number);
+    }
     for (let i = 0; i < contactArray.length; i++) {
       let phonenumbers = contactArray[i].phoneNumbers;
       let contact = contactArray[i];
@@ -51,6 +58,9 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
           phonenumber.length - 10,
           phonenumber.length,
         );
+        if (!usersArray.includes(phonenumber)) {
+          continue;
+        }
         let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/credentials/${phonenumber}.json`;
         const response = await apiRequest(url, 'GET');
 
@@ -81,6 +91,7 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
               error: response2.error,
             };
           }
+          // console.log({response2});
           if (!response2.isError) {
             contactArrayToReturn.push({
               username,
@@ -149,7 +160,10 @@ export const updateProfilePhotoInDB = async (username, newProfileObj) => {
   }
 };
 
-export const getStrangerInfoFromDB = async starngerUsername => {
+export const getStrangerInfoFromDB = async (
+  starngerUsername,
+  isCurrentUser = false,
+) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${starngerUsername}.json`;
     let response = await apiRequest(url, 'GET');
@@ -165,10 +179,13 @@ export const getStrangerInfoFromDB = async starngerUsername => {
       profilePhoto: !!response?.data?.profilePhotoObject
         ? response.data.profilePhotoObject.uri
         : '',
+      phone: response?.data?.phone,
     };
     return {
       isError: false,
-      data: dataToReturn,
+      data: isCurrentUser
+        ? {...response.data, username: starngerUsername}
+        : dataToReturn,
     };
   } catch (error) {
     return {
@@ -194,7 +211,7 @@ export const downloadMediaToDevice = async (item, handleDownload) => {
     })
       .fetch('GET', item.uri)
       .then(Response => {
-        console.log({Response, path: Response.path()});
+        // console.log({Response, path: Response.path()});
         handleDownload(
           {
             isError: false,
@@ -221,29 +238,32 @@ export const createNewGroupInDB = async (
   memberArray,
   groupName,
   currentUser,
+  isFirst,
 ) => {
   try {
     let randomGroupId =
       groupName + 'id' + Math.floor(Math.random() * 66666666666);
     let url = `${
       databaseLinks.REALTIME_DATBASE_ROOT
-    }/groups/${randomGroupId.toString()}.json`;
-    let response = await apiRequest(url, 'PUT', {
+    }groups/${randomGroupId.toString()}.json`;
+    let groupObj = {
       name: groupName,
       id: randomGroupId,
       members: memberArray,
-    });
+      admins: [currentUser.username],
+    };
+    let response = await apiRequest(url, 'PUT', groupObj);
     if (!!response.isError) {
       return response;
     }
-    console.log({response});
+    // console.log({response});
 
     for (let i = 0; i < memberArray.length; i++) {
       let member = memberArray[i];
       url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${member}/groups.json`;
       let memberGroups = await apiRequest(url, 'GET');
       let newArrayToSet = [];
-      console.log({memberGroups});
+      // console.log({memberGroups});
 
       if (!!memberGroups.isError && memberGroups.error == 'noData') {
         newArrayToSet = [randomGroupId];
@@ -255,7 +275,7 @@ export const createNewGroupInDB = async (
       }
       let setGroups = await apiRequest(url, 'PUT', newArrayToSet);
       response = setGroups;
-      console.log({setGroups});
+      // console.log({setGroups});
       if (!!setGroups.isError) {
         return;
       }
@@ -264,24 +284,121 @@ export const createNewGroupInDB = async (
       su: currentUser.username,
       gp: randomGroupId,
       m:
-        `${currentUser.username} created this group`.length > 10
-          ? `${currentUser.username} created this group`.slice(0, 10)
-          : `${currentUser.username} created this group`,
+        `"${currentUser.username}" created this group`.length > 10
+          ? `"${currentUser.username}" created this group`.slice(0, 10)
+          : `"${currentUser.username}" created this group`,
       t: new Date().toString(),
     };
     let msgid = JSON.stringify(objToGenID);
-    let sendInitialMessage = await sendGPMessageToFB(randomGroupId, {
-      message: `${currentUser.username} created this group`,
+    let initMsg = {
+      message: `"${currentUser.username}" created this group`,
       messageType: 'announcement',
-      from: currentUser.username,
+      from: randomGroupId,
       date: new Date().toString(),
       groupId: randomGroupId,
       id: msgid,
-    });
-    response = sendInitialMessage;
+    };
+    let sendInitialMessage = await sendGPMessageToFB(
+      randomGroupId,
+      initMsg,
+      isFirst,
+    );
+    // console.log({sendInitialMessage});
+
+    response = {...sendInitialMessage, message: initMsg, groupInfo: groupObj};
     return response;
   } catch (error) {
-    console.log({error});
+    // console.log({error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const getGroupsOfUser = async username => {
+  try {
+    let objToReturn = {};
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/groups.json`;
+    let userGroups = await apiRequest(url, 'GET');
+
+    if (!!userGroups.isError) {
+      return userGroups;
+    }
+    for (let i = 0; i < userGroups.data.length; i++) {
+      let groupUsers = {};
+      const groupid = userGroups.data[i];
+      url = `${databaseLinks.REALTIME_DATBASE_ROOT}groups/${groupid}.json`;
+      let groupData = await apiRequest(url, 'GET');
+      // console.log({groupData, url});
+      if (groupData.isError) {
+        return groupData;
+      }
+      for (let j = 0; j < groupData.data.members.length; j++) {
+        const username = groupData.data.members[j];
+        url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/groups.json`;
+        let userDetails = await apiRequest(url, 'GET');
+        if (userDetails.isError) {
+          return userDetails;
+        }
+        if (!groupUsers[username]) {
+          groupUsers[username] = {
+            firstName: userDetails.data.firstName,
+            username,
+            phone: userDetails.data.phone,
+          };
+        }
+      }
+      objToReturn[groupid] = {
+        ...groupData.data,
+        members: groupUsers,
+      };
+    }
+    // console.log({objToReturn});
+    return {
+      isError: false,
+      data: objToReturn,
+    };
+  } catch (error) {
+    // console.log('try catch error', error);
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const getGroupInfo = async groupId => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
+    let response = await apiRequest(url, 'GET');
+    // console.log({response});
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const checkIsMember = async (username, groupId) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/groups.json`;
+    let response = await apiRequest(url, 'GET');
+    // console.log({url, response});
+    if (response.isError) {
+      return response;
+    }
+    let isMember = response?.data?.includes(groupId);
+    return {
+      isError: false,
+      data: {
+        isMember,
+        groups: response.data,
+      },
+    };
+  } catch (error) {
     return {
       isError: true,
       error,

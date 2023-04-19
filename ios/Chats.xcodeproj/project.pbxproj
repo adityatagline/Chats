@@ -298,7 +298,7 @@
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
 				04ACB572297A93C5005B1E4E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				04ACB573297A98F0005B1E4E /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+				04ACB573297A98F0005B1E4E /* XCRemoteSwiftPackageReference "swift-protobuf.git" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -822,7 +822,7 @@
 				kind = branch;
 			};
 		};
-		04ACB573297A98F0005B1E4E /* XCRemoteSwiftPackageReference "swift-protobuf" */ = {
+		04ACB573297A98F0005B1E4E /* XCRemoteSwiftPackageReference "swift-protobuf.git" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/apple/swift-protobuf.git";
 			requirement = {

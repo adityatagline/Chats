@@ -18,4 +18,6 @@ export default ScreenNames = {
   },
   NewChatPage: 'NewChatPage',
   ChatPage: 'ChatPage',
+  GroupChatPage: 'GroupChatPage',
+  ChatInfoScreen: 'ChatInfoScreen',
 };
