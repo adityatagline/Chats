@@ -20,4 +20,5 @@ export default ScreenNames = {
   ChatPage: 'ChatPage',
   GroupChatPage: 'GroupChatPage',
   ChatInfoScreen: 'ChatInfoScreen',
+  GroupChatInfoScreen: 'GroupChatInfoScreen',
 };

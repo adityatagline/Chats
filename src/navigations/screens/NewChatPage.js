@@ -42,6 +42,9 @@ import AvatarListHorizontal from '../../components/AvatarListHorizontal';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import SimpleButton from '../../components/SimpleButton';
 import {commonPageStyles} from './authentication/commonPageStyles';
+import ChatAvatar from '../../components/ChatAvatar';
+import ImageCompWithLoader from '../../components/ImageCompWithLoader';
+import {imageUrlStrings} from '../../strings/ImageUrlStrings';
 
 export const getContacts = async (
   setterFunc,
@@ -98,12 +101,13 @@ export default NewChatPage = () => {
     profilePhoto: {
       height: hp(5),
       width: hp(5),
-      marginHorizontal: wp(2),
+      marginLeft: wp(1),
+      // marginHorizontal: wp(2),
     },
     userContactDiv: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginVertical: hp(1),
+      marginVertical: hp(0.5),
       alignItems: 'center',
     },
     detailsDiv: {
@@ -167,7 +171,7 @@ export default NewChatPage = () => {
   const [contactList, setContactList] = useState([]);
   const [memebersSelected, setMemebersSelected] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(true);
   const [intervalID, setIntervalID] = useState();
   const bookAnimation = useRef(
     new Animated.ValueXY({
@@ -313,17 +317,20 @@ export default NewChatPage = () => {
     return (
       <View style={styles.userContactDiv}>
         {!!item.profilePhoto ? (
-          <Image
-            source={{uri: item.profilePhoto}}
-            style={styles.profilePhoto}
-            borderRadius={500}
+          <ImageCompWithLoader
+            // source={{uri: item.profilePhoto}}
+            source={imageUrlStrings.lemon}
+            ImageStyles={styles.profilePhoto}
+            ImageProps={{borderRadius: 500}}
           />
         ) : (
-          <Icon
-            name="person"
+          <ChatAvatar
+            size={hp(6.3)}
+            isCircle
             color={themeRef.colors.appThemeColor}
-            size={30}
-            style={styles.profileIcon}
+            containerStyle={{
+              marginRight: -wp(1.5),
+            }}
           />
         )}
         <View style={styles.detailsDiv}>
@@ -430,9 +437,10 @@ export default NewChatPage = () => {
         </Text>
       )}
 
-      {contactList.length != 0 && (
-        <SearchPage containerStyle={{marginVertical: hp(2)}} />
-      )}
+      {contactList.length != 0 &&
+        (isCreatingGroup
+          ? contactList.length != memebersSelected.length
+          : true) && <SearchPage containerStyle={{marginVertical: hp(2)}} />}
       {!isCreatingGroup && (
         <TouchableOpacity
           style={[
@@ -464,6 +472,18 @@ export default NewChatPage = () => {
           }}
           showsVerticalScrollIndicator={false}
         />
+      )}
+      {isCreatingGroup && contactList.length == memebersSelected.length && (
+        <BaseText
+          size={fontSize.big}
+          weight={fontWeights.semiBold}
+          color={themeRef.colors.errorColor}
+          otherStyles={{
+            alignSelf: 'center',
+            marginVertical: hp(2),
+          }}>
+          No contact remaining.
+        </BaseText>
       )}
       {isCreatingGroup && (
         <SimpleButton

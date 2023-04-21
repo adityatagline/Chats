@@ -14,6 +14,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {
   changeMediaStatus,
   storeMessage,
+  storeMessageToGroup,
 } from '../../../../redux/chats/ChatSlice';
 import {
   sendGPMessageToFB,
@@ -36,6 +37,7 @@ import IconButton from '../../../components/IconButton';
 import {openPicker} from 'react-native-image-crop-picker';
 import {FirebaseStreamTaskContext} from '../../../../context/FirebaseStreamTaskContext';
 import UploadingTrayComponent from './UploadingTrayComponent';
+import ScreenNames from '../../../strings/ScreenNames';
 
 const GroupChatScreen = () => {
   const themeRef = useTheme();
@@ -58,6 +60,7 @@ const GroupChatScreen = () => {
     },
   });
 
+  const navigation = useNavigation();
   const route = useRoute();
   const groupId = !!route.params && route.params.groupId;
   const chatName =
@@ -67,7 +70,7 @@ const GroupChatScreen = () => {
 
   const dispatch = useDispatch();
   const chatSliceRef = useSelector(state => state.chatSlice);
-  console.log({chatSliceRef});
+  // console.log({chatSliceRef});
   const authenticationSliceRef = useSelector(
     state => state.authenticationSlice,
   );
@@ -83,15 +86,12 @@ const GroupChatScreen = () => {
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
-  // console.log({chatContent});
-  // console.log({chats: chatSliceRef.individualChats});
 
   useEffect(() => {
     !!chatSliceRef.individualChats[groupId] &&
     chatSliceRef.individualChats[groupId].length != 0
       ? setChatContent([...chatSliceRef.individualChats[groupId]])
       : setChatContent([]);
-    // console.log({gPChat: chatSliceRef});
   }, [chatSliceRef.individualChats[groupId]]);
 
   useEffect(() => {
@@ -118,10 +118,6 @@ const GroupChatScreen = () => {
   useEffect(() => {
     const checkAndDeleteMessage = async () => {
       let {unseenChats} = chatSliceRef;
-      // unseenChats = unseenChats.filter(
-      //   item => item.otherUser == userInfo.username,
-      // );
-      // console.log({unseenChatsInChatScreen: unseenChats});
     };
     checkAndDeleteMessage();
   }, [chatSliceRef.unseenChats]);
@@ -137,13 +133,11 @@ const GroupChatScreen = () => {
     }
     setUserChatMessage('');
 
-    let objToGenID = {
-      su: currentUserInfo.username,
-      groupId,
-      m: message.length > 10 ? message.slice(0, 10) : message,
-      t: new Date().toString(),
-    };
-    let id = JSON.stringify(objToGenID);
+    let objToGenID =
+      currentUserInfo.username + groupId + message.length > 10
+        ? message.slice(0, 10)
+        : message + new Date().toString();
+    let id = objToGenID.toString();
 
     let chatObject = {
       from: currentUserInfo.username,
@@ -161,7 +155,7 @@ const GroupChatScreen = () => {
   };
 
   const sendMedia = async (type, assetsArray) => {
-    console.log({type, assetsArray});
+    // console.log({type, assetsArray});
     setIsFileSendingTrayOpen(false);
     setShowPickerOptions('');
     assetsArray.forEach(async element => {
@@ -184,16 +178,17 @@ const GroupChatScreen = () => {
   };
 
   const sendMediaMessage = async (mediaObj, type) => {
-    // console.log({mediaObj});
-    const mediaName = mediaObj.path.split('/').reverse()[0];
-    // console.log({mediaName});
-    let objToGenID = {
-      su: currentUserInfo.username,
-      ru: groupId,
-      m: mediaName,
-      t: new Date().toString(),
-    };
-    let id = JSON.stringify(objToGenID);
+    let mediaName = mediaObj.path.split('/').reverse()[0];
+    let objToGenID =
+      currentUserInfo.username +
+      groupId +
+      mediaName
+        .replaceAll(' ', '')
+        .replaceAll(':', '')
+        .replaceAll('/', '')
+        .replaceAll('.', '') +
+      new Date().toString();
+    let id = objToGenID.toString();
     let chatObject = {
       from: currentUserInfo.username,
       date: new Date().toString(),
@@ -208,6 +203,13 @@ const GroupChatScreen = () => {
     // let receiverObject = {otherUser: userInfo.username};
     // console.log({chatObject});
     // dispatch(storeMessage({chatObject, receiverObject}));
+    dispatch(
+      storeMessageToGroup({
+        message: chatObject,
+        groupInfo: chatSliceRef.groups[groupId],
+        userInfo: authenticationSliceRef.user,
+      }),
+    );
     const response = await sendGPMessageToFB(groupId, chatObject, false);
   };
 
@@ -221,7 +223,8 @@ const GroupChatScreen = () => {
 
   const handleDownload = (downloadObj, chatObj) => {
     // console.log({downloadObj, chatObj});
-    dispatch(changeMediaStatus({downloadObj, chatObj}));
+    Alert.alert('In Progress');
+    // dispatch(changeMediaStatus({downloadObj, chatObj}));
   };
 
   const RenderChatComp = ({item, index, chatArray}) => (
@@ -238,6 +241,12 @@ const GroupChatScreen = () => {
       }}
     />
   );
+
+  const goToInfo = () => {
+    navigation.navigate(ScreenNames.GroupChatInfoScreen, {
+      groupId,
+    });
+  };
 
   // console.log({
   //   chatContent,
@@ -261,16 +270,10 @@ const GroupChatScreen = () => {
       <SafeAreaView style={[commonStyles.screenStyle, styles.mainDiv]}>
         <ChatScreenHeaderComponent
           displayChatName={displayChatName}
+          onChatNamePress={goToInfo}
           onInfoPress={() => {}}
           onOptionPress={() => {}}
-          chatProfilePhoto={
-            // !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
-            //   ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
-            //   : !!chatSliceRef?.strangers[userInfo.username]?.profilePhoto
-            //   ? {uri: chatSliceRef?.strangers[userInfo.username]?.profilePhoto}
-            //   :
-            imageUrlStrings.profileSelected
-          }
+          chatProfilePhoto={chatSliceRef.groups[groupId].profilePhoto}
         />
         <NoChatAnimatedCompoenet
           visibility={chatContent.length == 0}

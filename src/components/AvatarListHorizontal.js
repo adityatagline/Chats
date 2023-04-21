@@ -10,6 +10,7 @@ import {fontSize} from '../styles/commonStyles';
 import IconButton from './IconButton';
 import {imageUrlStrings} from '../strings/ImageUrlStrings';
 import {useSelector} from 'react-redux';
+import ChatAvatar from './ChatAvatar';
 
 const AvatarListHorizontal = ({
   listArray,
@@ -34,21 +35,30 @@ const AvatarListHorizontal = ({
           alignItems: 'center',
         }}>
         <View>
-          <ImageCompWithLoader
-            source={
-              !!item[uriField]
-                ? {
-                    uri: item[uriField],
-                  }
-                : imageUrlStrings.profileSelected
-            }
-            resizeMode="contain"
-            ImageStyles={{
-              height: wp(12),
-              width: wp(12),
-              borderRadius: 500,
-            }}
-          />
+          {!!item[uriField] ? (
+            <ImageCompWithLoader
+              // source={{
+              //   uri: item[uriField],
+              // }}
+              source={imageUrlStrings.lemon}
+              resizeMode="contain"
+              ImageStyles={{
+                height: wp(12),
+                width: wp(12),
+                borderRadius: 500,
+              }}
+            />
+          ) : (
+            <ChatAvatar
+              size={hp(6.6)}
+              isCircle
+              color={themeRef.colors.appThemeColor}
+              containerStyle={{
+                marginRight: -wp(1.5),
+                marginVertical: -hp(0.6),
+              }}
+            />
+          )}
           {item.username != user.username && (
             <IconButton
               name={'close'}

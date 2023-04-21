@@ -6,7 +6,6 @@ const ImageCompWithLoader = ({
   containerStyles,
   ImageStyles,
   ImageProps,
-  resizeMode = 'contain',
   loaderColor,
 }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -27,8 +26,7 @@ const ImageCompWithLoader = ({
           }}
         />
       )}
-      <Animated.Image
-        resizeMode={resizeMode}
+      <Image
         source={source}
         style={ImageStyles}
         {...ImageProps}

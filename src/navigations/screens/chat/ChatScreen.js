@@ -132,13 +132,11 @@ export default ChatScreen = () => {
     }
     setUserChatMessage('');
 
-    let objToGenID = {
-      su: currentUserInfo.username,
-      ru: userInfo.username,
-      m: message.length > 10 ? message.slice(0, 10) : message,
-      t: new Date().toString(),
-    };
-    let id = JSON.stringify(objToGenID);
+    let objToGenID =
+      currentUserInfo.username + userInfo.username + message.length > 10
+        ? message.slice(0, 10)
+        : message + new Date().toString();
+    let id = objToGenID.toString();
 
     let chatObject = {
       from: currentUserInfo.username,
@@ -191,13 +189,16 @@ export default ChatScreen = () => {
 
     const mediaName = mediaObj.path.split('/').reverse()[0];
     // console.log({mediaName});
-    let objToGenID = {
-      su: currentUserInfo.username,
-      ru: userInfo.username,
-      m: mediaName,
-      t: new Date().toString(),
-    };
-    let id = JSON.stringify(objToGenID);
+    let objToGenID =
+      currentUserInfo.username +
+      userInfo.username +
+      mediaName
+        .replaceAll(' ', '')
+        .replaceAll(':', '')
+        .replaceAll('/', '')
+        .replaceAll('.', '') +
+      new Date().toString();
+    let id = objToGenID.toString();
 
     let chatObject = {
       from: currentUserInfo.username,
@@ -284,11 +285,12 @@ export default ChatScreen = () => {
             setOptionModalVisibility(true);
           }}
           chatProfilePhoto={
-            !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
-              ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
-              : !!chatSliceRef?.strangers[userInfo.username]?.profilePhoto
-              ? {uri: chatSliceRef?.strangers[userInfo.username]?.profilePhoto}
-              : imageUrlStrings.profileSelected
+            // !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
+            //   ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
+            //   : !!chatSliceRef?.strangers[userInfo.username]?.profilePhoto
+            //   ? {uri: chatSliceRef?.strangers[userInfo.username]?.profilePhoto}
+            //   :
+            imageUrlStrings.lemon
           }
         />
         <NoChatAnimatedCompoenet

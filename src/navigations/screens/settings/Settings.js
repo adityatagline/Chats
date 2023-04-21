@@ -26,6 +26,7 @@ import {logout} from '../../../../redux/authentication/AuthenticationSlice';
 import {clearAllChats} from '../../../../redux/chats/ChatSlice';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
+import ChatAvatar from '../../../components/ChatAvatar';
 
 export default Settings = props => {
   const themeRef = useTheme();
@@ -45,8 +46,9 @@ export default Settings = props => {
     settingItem: {
       flexDirection: 'row',
       marginVertical: '1%',
-      paddingVertical: '4%',
+      paddingVertical: hp(1),
       marginHorizontal: wp(2),
+      marginTop: hp(2),
       borderRadius: 15,
       alignItems: 'center',
     },
@@ -151,26 +153,32 @@ export default Settings = props => {
     <View style={[styles.screenStyle, styles.mainDiv]}>
       <View style={[styles.settingItem]}>
         {/* <View> */}
-        <ImageCompWithLoader
-          source={
-            !!user?.profilePhotoObject?.uri
-              ? {
-                  uri: user.profilePhotoObject.uri,
-                }
-              : imageUrlStrings.profileSelected
-          }
-          ImageStyles={{
-            height: hp(10),
-            width: hp(10),
-            borderRadius: wp(8.5),
-            alignSelf: 'center',
-          }}
-          containerStyles={{
-            marginRight: wp(5),
-            marginLeft: -wp(1.5),
-          }}
-          resizeMode="contain"
-        />
+
+        {!user?.profilePhotoObject?.uri ? (
+          <ImageCompWithLoader
+            // source={{
+            //   uri: user.profilePhotoObject.uri,
+            // }}
+            source={imageUrlStrings.lemon}
+            ImageStyles={{
+              height: hp(10),
+              width: hp(10),
+              borderRadius: 1000,
+              alignSelf: 'center',
+            }}
+            containerStyles={{
+              // backgroundColor: 'red',
+              marginRight: wp(5),
+              marginLeft: -wp(1.5),
+            }}
+          />
+        ) : (
+          <ChatAvatar
+            size={hp(10)}
+            isCircle
+            color={themeRef.colors.appThemeColor}
+          />
+        )}
         {/* <Image
           source={
             !!user?.profilePhotoObject?.uri

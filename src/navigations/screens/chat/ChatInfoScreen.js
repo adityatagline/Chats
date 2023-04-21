@@ -27,7 +27,6 @@ const ChatInfoScreen = () => {
   });
   const route = useRoute();
   const username = route?.params?.username;
-  const type = route?.params?.chatType;
 
   const chatSliceRef = useSelector(state => state.chatSlice);
   let user = !!chatSliceRef.friends[username]
@@ -81,6 +80,8 @@ const ChatInfoScreen = () => {
             flexDirection: 'row',
             marginVertical: hp(2),
             marginLeft: -wp(5),
+            justifyContent: 'center',
+            alignItems: 'center',
           }}>
           <Ionicons
             name="call"
@@ -92,7 +93,7 @@ const ChatInfoScreen = () => {
           />
           <BaseText
             color={themeRef.colors.secondaryColor}
-            size={fontSize.big}
+            size={fontSize.large}
             weight={fontWeights.semiBold}>
             {user?.phone}
           </BaseText>

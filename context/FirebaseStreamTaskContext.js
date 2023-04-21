@@ -13,10 +13,10 @@ var hardTask = {};
 
 export const FirebaseStreamTaskContextProvider = ({children}) => {
   const [tasks, setTasks] = useState(hardTask);
-  console.log({tasks});
+  // console.log({tasks});
 
   const addTask = (task, username, fileObject) => {
-    console.log('running add');
+    // console.log('running add');
     let taskId = task._id;
     if (!hardTask[username] || hardTask[username].length == 0) {
       hardTask = {
@@ -38,7 +38,7 @@ export const FirebaseStreamTaskContextProvider = ({children}) => {
   };
 
   const updateTask = async (taskId, username, stateDetails) => {
-    console.log('running updateTask');
+    // console.log('running updateTask');
 
     try {
       // let taskId = task._id;
@@ -50,19 +50,19 @@ export const FirebaseStreamTaskContextProvider = ({children}) => {
           return item;
         }
       });
-      console.log({taskArray});
+      // console.log({taskArray});
       hardTask = {
         ...hardTask,
         [username]: taskArray,
       };
       setTasks({...hardTask});
     } catch (error) {
-      console.log({eroorInYpdateTask: error});
+      // console.log({eroorInYpdateTask: error});
     }
   };
 
   const deleteTask = async (taskId, username) => {
-    console.log('running deleteTask');
+    // console.log('running deleteTask');
     // let taskId = task._id;
 
     let taskArray = hardTask?.[username];

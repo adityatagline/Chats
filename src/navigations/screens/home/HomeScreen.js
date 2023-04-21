@@ -130,8 +130,8 @@ export default HomeScreen = props => {
             for (const key in obj) {
               messageArray.push(obj[key]);
             }
-            // console.log({messageArray, authenticationSlice});
             messageArray.forEach(async element => {
+              // console.log({element});
               let response = await checkIsMember(
                 authenticationSlice.user.username,
                 element.groupId,
@@ -206,10 +206,10 @@ export default HomeScreen = props => {
     // console.log('running getInitialData');
     let response = await getGroupsOfUser(authenticationSlice.user.username);
     // console.log({response});
-    setisLoading(false);
     if (!response.isError) {
       dispatch(storeGroups({groups: response.data}));
     }
+    setisLoading(false);
   };
 
   const styles = StyleSheet.create({
@@ -217,7 +217,7 @@ export default HomeScreen = props => {
     mainDiv: {
       backgroundColor: themeRef.colors.primaryColor,
       flex: 1,
-      paddingTop: hp(1) + StatusBarHeight,
+      paddingTop: hp(1.5) + StatusBarHeight,
     },
     searchDiv: {
       flexDirection: 'row',
@@ -235,9 +235,11 @@ export default HomeScreen = props => {
       paddingVertical: hp(1),
       borderRadius: 200,
       marginRight: wp(12),
-      marginBottom: hp(1),
+      marginBottom: hp(2),
     },
   });
+
+  const sendNoti = () => {};
 
   return (
     <View style={[styles.mainDiv]}>
@@ -251,6 +253,17 @@ export default HomeScreen = props => {
         <TouchableOpacity
           style={[commonStyles.iconWithTextBtn, styles.newChatBtn]}
           onPress={() => navigation.navigate(ScreenNames.NewChatPage)}>
+          <IonIcon name="add" size={20} color={themeRef.colors.primaryColor} />
+          <BaseText
+            size={fontSize.small}
+            color={themeRef.colors.primaryColor}
+            weight={fontWeights.bold}>
+            New
+          </BaseText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[commonStyles.iconWithTextBtn, styles.newChatBtn]}
+          onPress={() => sendNoti()}>
           <IonIcon name="add" size={20} color={themeRef.colors.primaryColor} />
           <BaseText
             size={fontSize.small}

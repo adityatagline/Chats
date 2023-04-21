@@ -21,6 +21,7 @@ import {imageUrlStrings} from '../../strings/ImageUrlStrings';
 import BaseText from '../BaseText';
 import ImageCompWithLoader from '../ImageCompWithLoader';
 import {useEffect} from 'react';
+import ChatAvatar from '../ChatAvatar';
 
 export default HomepageChatsPage = ({chatArray}) => {
   const themeRef = useTheme();
@@ -124,7 +125,6 @@ export default HomepageChatsPage = ({chatArray}) => {
   };
 
   const renderHomePageChats = ({item}) => {
-    // !!item?.groupId && console.log({item});
     let chatname = item.chatName;
     let isUnseenMessages = 0;
     if (!!item?.otherUser && !!chatSliceRef.unseenChats[item?.otherUser]) {
@@ -210,14 +210,24 @@ export default HomepageChatsPage = ({chatArray}) => {
       <TouchableOpacity
         style={styles.chatDiv}
         onPress={goToChatScreen.bind(this, item)}>
-        <ImageCompWithLoader
-          source={!!photoUri ? photoUri : imageUrlStrings.profileSelected}
-          ImageStyles={[styles.chatAvatar, !photoUri && styles.noPhotoStyle]}
-          containerStyles={{
-            marginRight: !!photoUri.uri ? wp(1) : wp(0.5),
-            marginLeft: !!photoUri.uri ? wp(0) : wp(0.4),
-          }}
-        />
+        {!!item?.profilePhoto ? (
+          <ImageCompWithLoader
+            // source={!!photoUri ? photoUri : imageUrlStrings.profileSelected}
+            source={imageUrlStrings.banana}
+            ImageStyles={[styles.chatAvatar, !photoUri && styles.noPhotoStyle]}
+            containerStyles={{
+              marginRight: !!photoUri.uri ? wp(1) : wp(0.5),
+              marginLeft: !!photoUri.uri ? wp(0) : wp(0.4),
+            }}
+          />
+        ) : (
+          <ChatAvatar
+            size={hp(6)}
+            isCircle
+            color={themeRef.colors.appThemeColor}
+          />
+        )}
+
         <View style={styles.chatDetails}>
           <BaseText
             weight={fontWeights.semiBold}
@@ -234,13 +244,13 @@ export default HomepageChatsPage = ({chatArray}) => {
             {`${
               item.from == authenticationSliceRef.user.username
                 ? 'You : '
-                : !!item?.groupId
+                : !!item?.groupId && item.messageType != 'announcement'
                 ? senderName + ' : '
                 : ''
             }${chatmessage}`}
             {/* {item.from == authenticationSliceRef.user.username
-              ? (item?.messageType == 'announcement' ? '' : 'You: ') +
-                chatmessage
+'              ? (item?.messageType == 'announcement' ? '' : 'You: ') +
+'                chatmessage
               : chatmessage} */}
           </BaseText>
         </View>

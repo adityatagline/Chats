@@ -30,7 +30,7 @@ const NoChatAnimatedCompoenet = ({visibility, themeRef}) => {
       ref={noChatRef}
       style={[
         styles.noChatText,
-        {color: themeRef.colors.secondaryColor},
+        {color: 'black'},
         {
           opacity: noChatRef.x,
           top: noChatRef.y,

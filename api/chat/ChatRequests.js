@@ -212,16 +212,16 @@ export const downloadMediaToDevice = async (item, handleDownload) => {
       .fetch('GET', item.uri)
       .then(Response => {
         // console.log({Response, path: Response.path()});
-        handleDownload(
-          {
-            isError: false,
-            data: {
-              path: Response.path(),
-              data: Response.data,
-            },
-          },
-          item,
-        );
+        // handleDownload(
+        //   {
+        //     isError: false,
+        //     data: {
+        //       path: Response.path(),
+        //       data: Response.data,
+        //     },
+        //   },
+        //   item,
+        // );
       });
   } catch (error) {
     handleDownload(
@@ -280,16 +280,16 @@ export const createNewGroupInDB = async (
         return;
       }
     }
-    let objToGenID = {
-      su: currentUser.username,
-      gp: randomGroupId,
-      m:
-        `"${currentUser.username}" created this group`.length > 10
-          ? `"${currentUser.username}" created this group`.slice(0, 10)
-          : `"${currentUser.username}" created this group`,
-      t: new Date().toString(),
-    };
-    let msgid = JSON.stringify(objToGenID);
+    let objToGenID =
+      currentUser.username +
+        randomGroupId +
+        `"${currentUser.username}" created this group`.length >
+      10
+        ? `"${currentUser.username}" created this group`.slice(0, 10)
+        : `"${currentUser.username}" created this group` +
+          new Date().toString();
+
+    let msgid = objToGenID.toString();
     let initMsg = {
       message: `"${currentUser.username}" created this group`,
       messageType: 'announcement',
@@ -336,7 +336,7 @@ export const getGroupsOfUser = async username => {
       }
       for (let j = 0; j < groupData.data.members.length; j++) {
         const username = groupData.data.members[j];
-        url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/groups.json`;
+        url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
         let userDetails = await apiRequest(url, 'GET');
         if (userDetails.isError) {
           return userDetails;
@@ -372,7 +372,6 @@ export const getGroupInfo = async groupId => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
     let response = await apiRequest(url, 'GET');
-    // console.log({response});
     return response;
   } catch (error) {
     return {
@@ -386,10 +385,10 @@ export const checkIsMember = async (username, groupId) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/groups.json`;
     let response = await apiRequest(url, 'GET');
-    // console.log({url, response});
     if (response.isError) {
       return response;
     }
+    // console.log({url, response, groupId});
     let isMember = response?.data?.includes(groupId);
     return {
       isError: false,
@@ -398,6 +397,52 @@ export const checkIsMember = async (username, groupId) => {
         groups: response.data,
       },
     };
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const makeAdmin = async (username, groupId) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
+
+    let response = await apiRequest(url, 'GET');
+    if (response.isError) {
+      return response;
+    }
+    let newAdminArray = response.data?.admins;
+    newAdminArray = [...newAdminArray, username];
+    response = await apiRequest(url, 'PUT', {
+      ...response.data,
+      admins: newAdminArray,
+    });
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const removeAdmin = async (username, groupId) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
+
+    let response = await apiRequest(url, 'GET');
+    if (response.isError) {
+      return response;
+    }
+    let newAdminArray = response.data?.admins;
+    newAdminArray = newAdminArray.filter(item => item != username);
+    response = await apiRequest(url, 'PUT', {
+      ...response.data,
+      admins: newAdminArray,
+    });
+    return response;
   } catch (error) {
     return {
       isError: true,

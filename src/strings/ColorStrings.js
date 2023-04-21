@@ -21,7 +21,7 @@ export const colorStrings = {
     notification: 'rgb(255, 69, 58)',
     primary: 'rgb(10, 132, 255)',
     text: 'rgb(229, 229, 231)',
-    errorColor: '#F7EB91',
+    errorColor: '#FF3B30',
     // errorColor: '#F7A04D',
     // errorColor: '#F7A04D',
   },

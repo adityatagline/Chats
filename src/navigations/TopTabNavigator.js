@@ -34,6 +34,7 @@ export const TopTabNavigator = () => {
       fontFamily: FontfamiliesNames.primaryFontBold,
       left: wp(0),
       paddingLeft: wp(10),
+      paddingBottom: hp(2),
       color: themeRef.colors.appThemeColor,
       backgroundColor: themeRef.colors.primaryColor,
       width: wp(60),

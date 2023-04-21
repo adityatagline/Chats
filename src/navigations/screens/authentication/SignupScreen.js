@@ -246,6 +246,7 @@ export default SignupScreen = () => {
                           setTouched,
                           errors,
                         ),
+                        keyboardType: 'phone-pad',
                       }}
                       inputRef={phoneRef}
                     />
@@ -264,6 +265,7 @@ export default SignupScreen = () => {
                           setTouched,
                           errors,
                         ),
+                        keyboardType: 'email-address',
                       }}
                       inputRef={emailRef}
                     />
@@ -339,7 +341,7 @@ export default SignupScreen = () => {
                 </>
               )}
             </Formik>
-            <Text
+            {/* <Text
               style={[styles.orText, {color: themeRef.colors.secondaryColor}]}>
               or
             </Text>
@@ -348,7 +350,7 @@ export default SignupScreen = () => {
               onPress={signinWithGoogle}
               containerStyle={[styles.googleLoginButton]}
               color={themeRef.colors.appThemeColor}
-            />
+            /> */}
             <View style={[styles.signupDiv]}>
               <Text
                 style={[

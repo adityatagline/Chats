@@ -24,6 +24,7 @@ export default InputBox = ({
   inputRef,
   isPassword = false,
   mainContainerStyle,
+  eyeColor,
 }) => {
   const themeRef = useTheme();
   const labelRef = useRef(new Animated.ValueXY({x: 55, y: 5})).current;
@@ -142,8 +143,9 @@ export default InputBox = ({
       />
       {!!isPassword && (
         <IconButton
-          name={passwordShown ? 'eye-off' : 'eye'}
+          name={!passwordShown ? 'eye-off' : 'eye'}
           onPress={() => setPasswordShown(pre => !pre)}
+          color={eyeColor}
         />
       )}
     </View>

@@ -36,7 +36,7 @@ export const commonStyles = StyleSheet.create({
     fontSize: fontSize.small,
     fontFamily: FontfamiliesNames.primaryFontSemiBold,
     alignSelf: 'center',
-    marginVertical: 7,
+    marginVertical: hp(2),
   },
   suggestion: {
     fontSize: fontSize.medium,

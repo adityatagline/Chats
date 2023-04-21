@@ -42,7 +42,7 @@ export const sendGPMessageToFB = async (
   isFirst = false,
 ) => {
   try {
-    // console.log({isFirst});
+    // console.log({chatObject});
     let sendInGroup;
     if (isFirst) {
       sendInGroup = await firestore()
@@ -72,8 +72,7 @@ export const sendGPMessageToFB = async (
 export const checkAndDeleteMessage = async (messageArray, currentUser) => {
   try {
     messageArray.forEach(async messageObj => {
-      let idObj = JSON.parse(messageObj.id);
-      if (idObj.su == currentUser) {
+      if (messageObj.from == currentUser) {
         return;
       }
 
@@ -120,20 +119,20 @@ export const uploadProfilePic = async (imgObj, username) => {
   try {
     let filename = !!imgObj.filename ? imgObj.filename : imgObj.path;
     let extension = filename.split('.').reverse()[0].toString();
-    let response = await uploadFileToFirebase(
-      imgObj,
+    let storageRef = storage().ref(
       `/profilePhoto/${username}/profilePhoto${new Date().toString()}.${extension}`,
     );
+    let response = await storageRef.putFile(imgObj.path);
+    let uri = await storageRef.getDownloadURL();
+
     // console.log({response});
-    if (response.isError) {
-      return {
-        isError: true,
-        error: response.error,
-      };
-    }
+
     return {
       isError: false,
-      data: response.data,
+      data: {
+        path: response.metadata.fullPath,
+        uri,
+      },
     };
   } catch (error) {
     // console.log({errorinuploadProfilePic: error});
@@ -154,7 +153,7 @@ export const uploadFileToFirebase = async (
   fileObject,
 ) => {
   try {
-    console.log({imgObj, uploadContext});
+    // console.log({imgObj, uploadContext});
 
     const fileRef = storage().ref(path);
     const uploadResponse = fileRef.putFile(imgObj.path);
@@ -168,12 +167,13 @@ export const uploadFileToFirebase = async (
           stateDetails.state == 'success'
         ) {
           let uri = await storage().ref(path).getDownloadURL();
-          console.log({uri});
+          // console.log({uri});
 
-          let isDeleted = uploadContext.deleteTask(
+          let isDeleted = await uploadContext.deleteTask(
             uploadResponse._id,
             username,
           );
+          // console.log({isDeleted});
           if (isDeleted) {
             let sendResponse = await sendMediaMessage(
               {path: stateDetails.metadata.fullPath, uri},
@@ -184,11 +184,11 @@ export const uploadFileToFirebase = async (
           uploadContext.updateTask(uploadResponse._id, username, stateDetails);
         }
       } catch (error) {
-        console.log({errorInOn: error});
+        // console.log({errorInOn: error});
       }
     });
   } catch (error) {
-    console.log({errorinuploadFileToFirebase: error});
+    // console.log({errorinuploadFileToFirebase: error});
     return {
       isError: true,
       error,

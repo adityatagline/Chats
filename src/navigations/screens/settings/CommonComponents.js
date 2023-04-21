@@ -60,69 +60,65 @@ export const SettingItem = memo(
   },
 );
 
-export const PageHeading = memo(
-  ({
-    disableBackButton = false,
-    rightButton,
-    middleComponenet,
-    backButtonProps,
-    backButtonStyle,
-    backNavigationScreen,
-    mainContainerStyle,
-  }) => {
-    const navigation = useNavigation();
-    const themeRef = useTheme();
+export const PageHeading = ({
+  disableBackButton = false,
+  rightButton,
+  middleComponenet,
+  backButtonProps,
+  backButtonStyle,
+  backNavigationScreen,
+  mainContainerStyle,
+}) => {
+  const navigation = useNavigation();
+  const themeRef = useTheme();
 
-    const navigatwBack = () => {
-      if (!!backNavigationScreen) {
-        navigation.navigate(backNavigationScreen);
-      } else {
-        navigation.goBack();
-      }
-    };
+  const navigatwBack = () => {
+    if (!!backNavigationScreen) {
+      navigation.navigate(backNavigationScreen);
+    } else {
+      navigation.goBack();
+    }
+  };
 
-    const styles = StyleSheet.create({
-      backButtonDiv: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        alignSelf: 'flex-start',
-        marginLeft: wp(7),
-        marginVertical: hp(2),
-        marginBottom: hp(3),
-        justifyContent: 'center',
-      },
-      backButtonLabel: {
-        fontSize: fontSize.medium,
-        fontFamily: FontfamiliesNames.primaryFontBold,
-      },
-    });
+  const styles = StyleSheet.create({
+    backButtonDiv: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      marginLeft: wp(7),
+      marginVertical: hp(2),
+      marginBottom: hp(3),
+      justifyContent: 'center',
+    },
+    backButtonLabel: {
+      fontSize: fontSize.medium,
+      fontFamily: FontfamiliesNames.primaryFontBold,
+    },
+  });
 
-    return (
-      <View style={[mainContainerStyle]}>
-        {!disableBackButton && (
-          <TouchableOpacity
-            onPress={navigatwBack}
-            style={[styles.backButtonDiv, backButtonStyle]}>
-            <Icon
-              name={backButtonProps.name}
-              size={backButtonProps.size}
-              color={backButtonProps.color}
-              style={[styles.backButtonIcon]}
-            />
-            <Text
-              style={[
-                styles.backButtonLabel,
-                {color: themeRef.colors.secondaryColor},
-              ]}>
-              {!!backButtonProps.backScreen
-                ? backButtonProps.backScreen
-                : 'Back'}
-            </Text>
-          </TouchableOpacity>
-        )}
-        {!!middleComponenet && middleComponenet}
-        {!!rightButton && rightButton}
-      </View>
-    );
-  },
-);
+  return (
+    <View style={[mainContainerStyle]}>
+      {!disableBackButton && (
+        <TouchableOpacity
+          onPress={navigatwBack}
+          style={[styles.backButtonDiv, backButtonStyle]}>
+          <Icon
+            name={backButtonProps.name}
+            size={backButtonProps.size}
+            color={backButtonProps.color}
+            style={[styles.backButtonIcon]}
+          />
+          <Text
+            style={[
+              styles.backButtonLabel,
+              {color: themeRef.colors.secondaryColor},
+            ]}>
+            {!!backButtonProps.backScreen ? backButtonProps.backScreen : 'Back'}
+          </Text>
+        </TouchableOpacity>
+      )}
+      {!!middleComponenet && middleComponenet}
+      {!!rightButton && rightButton}
+    </View>
+  );
+};

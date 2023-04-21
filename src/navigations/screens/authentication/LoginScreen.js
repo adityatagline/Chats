@@ -185,10 +185,10 @@ export default LoginScreen = () => {
             />
             <Formik
               initialValues={{
-                phone: Platform.OS == 'ios' ? '7778889990' : '5555228243',
-                password: '00000000aA',
-                // phone: "",
-                // password: '',
+                // phone: Platform.OS == 'ios' ? '7778889990' : '5555228243',
+                // password: '00000000aA',
+                phone: '',
+                password: '',
               }}
               validationSchema={LoginValidationSchemaWithPhone}>
               {({values, touched, errors, setFieldValue, setTouched}) => (
@@ -206,6 +206,7 @@ export default LoginScreen = () => {
                           setTouched,
                           errors,
                         ),
+                        keyboardType: 'phone-pad',
                       }}
                       inputRef={phoneRef}
                     />
@@ -227,6 +228,13 @@ export default LoginScreen = () => {
                       }}
                       inputRef={passwordRef}
                       isPassword
+                      eyeColor={
+                        themeRef.colors[
+                          !!touched.password
+                            ? 'appThemeColor'
+                            : 'secondaryColor'
+                        ]
+                      }
                     />
                     {touched.password && !!errors.password && (
                       <Text style={styles.error}>{errors.password}</Text>
@@ -265,16 +273,16 @@ export default LoginScreen = () => {
                 </>
               )}
             </Formik>
-            <Text
+            {/* <Text
               style={[styles.orText, {color: themeRef.colors.secondaryColor}]}>
               or
-            </Text>
-            <IconButton
+            </Text> */}
+            {/* <IconButton
               name={'logo-google'}
               onPress={signinWithGoogle}
               containerStyle={[styles.googleLoginButton]}
               color={themeRef.colors.appThemeColor}
-            />
+            /> */}
             <View style={[styles.signupDiv]}>
               <Text
                 style={[

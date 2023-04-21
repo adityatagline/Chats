@@ -79,6 +79,7 @@ const ChatMessageComponent = ({
   }
 
   if (!!item.mediaType) {
+    // console.log({item});
     return (
       <RenderMediaComponent
         {...{

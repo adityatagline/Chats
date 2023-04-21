@@ -19,6 +19,7 @@ import ProfileSettings from './screens/settings/ProfileSettings';
 import {clearAllChats} from '../../redux/chats/ChatSlice';
 import GroupChatScreen from './screens/chat/GroupChatScreen';
 import ChatInfoScreen from './screens/chat/ChatInfoScreen';
+import GroupChatInfoScreen from './screens/chat/GroupChatInfoScreen';
 
 export default StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -73,14 +74,17 @@ export default StackNavigator = () => {
       <Stack.Screen name={ScreenNames.NewChatPage} component={NewChatPage} />
       <Stack.Screen name={ScreenNames.ChatPage} component={ChatScreen} />
       <Stack.Screen
+        name={ScreenNames.GroupChatPage}
+        component={GroupChatScreen}
+      />
+      <Stack.Screen
         name={ScreenNames.ChatInfoScreen}
         component={ChatInfoScreen}
       />
       <Stack.Screen
-        name={ScreenNames.GroupChatPage}
-        component={GroupChatScreen}
+        name={ScreenNames.GroupChatInfoScreen}
+        component={GroupChatInfoScreen}
       />
-
       <Stack.Screen
         name={ScreenNames.TopTabInnerScreens.ProfileSettings}
         component={ProfileSettings}

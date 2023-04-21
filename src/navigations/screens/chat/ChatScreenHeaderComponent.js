@@ -19,6 +19,7 @@ import BaseText from '../../../components/BaseText';
 import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 import {useRef} from 'react';
 import {useEffect} from 'react';
+import ChatAvatar from '../../../components/ChatAvatar';
 
 const ChatScreenHeaderComponent = ({
   displayChatName,
@@ -47,7 +48,7 @@ const ChatScreenHeaderComponent = ({
       height: hp(5),
       width: hp(5),
       marginRight: wp(3),
-      borderRadius: 200,
+      borderRadius: 500,
       // overflow: 'hidden',
       // position: 'absolute',
       // alignSelf: 'center',
@@ -139,24 +140,33 @@ const ChatScreenHeaderComponent = ({
             color={themeRef.colors.appThemeColor}
           />
         </TouchableOpacity>
-        <ImageCompWithLoader
-          source={chatProfilePhoto}
-          ImageStyles={[
-            styles.chatImage,
-            // {
-            //   transform: [
-            //     {
-            //       scale: ImageDimensions.x,
-            //     },
-            //   ],
-            //   marginTop: ImageDimensions.y,
-            //   left: ImagePositionRef.x,
-            // },
-          ]}
-          ImageProps={{
-            borderRadius: wp(4),
-          }}
-        />
+        {!!chatProfilePhoto ? (
+          <ImageCompWithLoader
+            source={chatProfilePhoto}
+            ImageStyles={[
+              styles.chatImage,
+              // {
+              //   transform: [
+              //     {
+              //       scale: ImageDimensions.x,
+              //     },
+              //   ],
+              //   marginTop: ImageDimensions.y,
+              //   left: ImagePositionRef.x,
+              // },
+            ]}
+            ImageProps={{
+              borderRadius: 500,
+            }}
+          />
+        ) : (
+          <ChatAvatar
+            size={hp(6)}
+            isCircle
+            color={themeRef.colors.appThemeColor}
+          />
+        )}
+
         <TouchableOpacity
           style={{
             flex: 1,
@@ -176,14 +186,21 @@ const ChatScreenHeaderComponent = ({
             {displayChatName}
           </BaseText>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.backButton} onPress={onInfoPress}>
+        {/* <TouchableOpacity style={styles.backButton} onPress={onInfoPress}>
           <Icon
             name={'search'}
             size={25}
             color={themeRef.colors.secondaryColor}
           />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.backButton} onPress={onOptionPress}>
+        </TouchableOpacity> */}
+        <TouchableOpacity
+          style={[
+            styles.backButton,
+            {
+              marginRight: wp(2.5),
+            },
+          ]}
+          onPress={onOptionPress}>
           <Icon
             name={'ellipsis-vertical'}
             size={25}

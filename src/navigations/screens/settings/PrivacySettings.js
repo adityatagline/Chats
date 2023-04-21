@@ -38,7 +38,10 @@ export default PrivacySettings = () => {
 
         <PageHeading
           middleComponenet={
-            <PageName name={'Security'} customStyle={{marginTop: hp(4)}} />
+            <PageName
+              name={'Security'}
+              customStyle={{marginTop: hp(4), marginVertical: hp(2)}}
+            />
           }
           disableBackButton
         />

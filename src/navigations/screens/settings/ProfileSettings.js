@@ -44,6 +44,7 @@ import LoadingPage from '../../../components/LoadingPage';
 import {apiRequest} from '../../../../api/global/BaseApiRequestes';
 import {updateProfilePhotoInDB} from '../../../../api/chat/ChatRequests';
 import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
+import ChatAvatar from '../../../components/ChatAvatar';
 
 export default ProfileSettings = () => {
   const themeRef = useTheme();
@@ -95,9 +96,9 @@ export default ProfileSettings = () => {
       marginBottom: hp(2),
     },
     profilePhoto: {
-      height: hp(12),
-      width: hp(12),
-      borderRadius: wp(10),
+      height: hp(15),
+      width: hp(15),
+      borderRadius: 500,
       alignSelf: 'center',
     },
   });
@@ -281,20 +282,31 @@ export default ProfileSettings = () => {
           bounces={false}
           contentContainerStyle={{paddingBottom: hp(20)}}>
           <View
-            style={{
-              marginVertical: hp(2),
-            }}>
-            <ImageCompWithLoader
-              source={
-                !!user?.profilePhotoObject?.uri
-                  ? {
-                      uri: user.profilePhotoObject.uri,
-                    }
-                  : imageUrlStrings.profileSelected
+            style={
+              {
+                // marginVertical: hp(1),
               }
-              ImageStyles={styles.profilePhoto}
-              resizeMode="contain"
-            />
+            }>
+            {!!user?.profilePhotoObject?.uri ? (
+              <ImageCompWithLoader
+                // source={{
+                //   uri: user.profilePhotoObject.uri,
+                // }}
+                source={imageUrlStrings.lemon}
+                ImageStyles={styles.profilePhoto}
+                resizeMode="contain"
+              />
+            ) : (
+              <ChatAvatar
+                size={hp(18)}
+                isCircle
+                color={themeRef.colors.appThemeColor}
+                containerStyle={{
+                  marginVertical: -hp(2),
+                }}
+              />
+            )}
+
             <IconButton
               name="pencil"
               size={20}
@@ -305,7 +317,7 @@ export default ProfileSettings = () => {
                 width: hp(5),
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: wp(4.3),
+                borderRadius: 500,
                 position: 'absolute',
                 bottom: hp(0),
                 marginLeft: wp(55),
