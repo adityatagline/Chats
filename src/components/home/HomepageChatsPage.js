@@ -276,6 +276,7 @@ export default HomepageChatsPage = ({chatArray}) => {
 
   return (
     <View style={styles.mainDiv}>
+      {/* {console.log({homepageChats})} */}
       {homepageChats.length != 0 && (
         <FlatList
           data={homepageChats}

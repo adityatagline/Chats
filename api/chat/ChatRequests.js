@@ -160,6 +160,37 @@ export const updateProfilePhotoInDB = async (username, newProfileObj) => {
   }
 };
 
+export const updateGPProfilePhotoInDB = async (groupId, newProfileObj) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}/profilePhotoObject.json`;
+    const getOldDetails = await apiRequest(url, 'GET');
+    let oldObject;
+    if (getOldDetails.isError && getOldDetails.error != 'noData') {
+      return {
+        ...getOldDetails,
+      };
+    }
+    if (!getOldDetails.isError) {
+      oldObject = getOldDetails.data;
+    }
+    const updateResponse = await apiRequest(url, 'PUT', {
+      ...newProfileObj,
+    });
+    if (!!oldObject && Object.keys(oldObject).length != 0) {
+      let path = oldObject.path;
+      const deleteOld = await deleteFromFBStorage(path);
+      // console.log({deleteOld});
+    }
+    return updateResponse;
+  } catch (error) {
+    // console.log({errorOnupdateProfilePhotoInDB: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
 export const getStrangerInfoFromDB = async (
   starngerUsername,
   isCurrentUser = false,
@@ -441,6 +472,76 @@ export const removeAdmin = async (username, groupId) => {
     response = await apiRequest(url, 'PUT', {
       ...response.data,
       admins: newAdminArray,
+    });
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const removeMember = async (username, groupId) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
+
+    let response = await apiRequest(url, 'GET');
+    if (response.isError) {
+      return response;
+    }
+    let newAdminArray = response.data?.admins;
+    newAdminArray = newAdminArray.filter(item => item != username);
+    let newMemberArray = response.data?.members;
+    newMemberArray = newMemberArray.filter(item => item != username);
+
+    response = await apiRequest(url, 'PUT', {
+      ...response.data,
+      admins: newAdminArray,
+      members: newMemberArray,
+    });
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const addMembers = async (memberArray, groupId) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
+
+    let response = await apiRequest(url, 'GET');
+    if (response.isError) {
+      return response;
+    }
+    response = await apiRequest(url, 'PUT', {
+      ...response.data,
+      members: [...response.data.members, memberArray],
+    });
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const changeGroupName = async (groupId, newName) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
+
+    let response = await apiRequest(url, 'GET');
+    if (response.isError) {
+      return response;
+    }
+
+    response = await apiRequest(url, 'PUT', {
+      ...response.data,
+      name: !!newName ? newName : response.data.name,
     });
     return response;
   } catch (error) {

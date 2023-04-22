@@ -13,6 +13,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   changeMediaStatus,
+  storeGroups,
   storeMessage,
   storeMessageToGroup,
 } from '../../../../redux/chats/ChatSlice';
@@ -38,6 +39,7 @@ import {openPicker} from 'react-native-image-crop-picker';
 import {FirebaseStreamTaskContext} from '../../../../context/FirebaseStreamTaskContext';
 import UploadingTrayComponent from './UploadingTrayComponent';
 import ScreenNames from '../../../strings/ScreenNames';
+import {getGroupInfo, getGroupsOfUser} from '../../../../api/chat/ChatRequests';
 
 const GroupChatScreen = () => {
   const themeRef = useTheme();
@@ -86,6 +88,30 @@ const GroupChatScreen = () => {
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
+
+  const [isMember, setIsMember] = useState(true);
+
+  const getInitialData = async () => {
+    let response = await getGroupsOfUser(currentUserInfo.username);
+    if (!response.isError) {
+      dispatch(storeGroups({groups: response.data}));
+      return;
+    }
+    // setIsMember(false);
+  };
+
+  useEffect(() => {
+    getInitialData();
+  }, []);
+
+  useEffect(() => {
+    if (!!chatSliceRef.groups[groupId]) {
+      const groupInfo = chatSliceRef?.groups?.[groupId];
+      const checkMember = !!groupInfo?.members?.[currentUserInfo.username];
+      // alert(checkMember);
+      setIsMember(!!checkMember);
+    }
+  }, [chatSliceRef.groups]);
 
   useEffect(() => {
     !!chatSliceRef.individualChats[groupId] &&
@@ -269,7 +295,7 @@ const GroupChatScreen = () => {
       /> */}
       <SafeAreaView style={[commonStyles.screenStyle, styles.mainDiv]}>
         <ChatScreenHeaderComponent
-          displayChatName={displayChatName}
+          displayChatName={chatSliceRef.groups[groupId].name}
           onChatNamePress={goToInfo}
           onInfoPress={() => {}}
           onOptionPress={() => {}}

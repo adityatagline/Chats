@@ -20,6 +20,8 @@ import {clearAllChats} from '../../redux/chats/ChatSlice';
 import GroupChatScreen from './screens/chat/GroupChatScreen';
 import ChatInfoScreen from './screens/chat/ChatInfoScreen';
 import GroupChatInfoScreen from './screens/chat/GroupChatInfoScreen';
+import EditGroupScreen from './screens/chat/EditGroupScreen';
+import ForgotPasswordScreen from './screens/authentication/ForgotPasswordScreen';
 
 export default StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -61,6 +63,10 @@ export default StackNavigator = () => {
       <Stack.Screen name={ScreenNames.LoginScreen} component={LoginScreen} />
       <Stack.Screen name={ScreenNames.EnterDetails} component={EnterDetails} />
       <Stack.Screen name={ScreenNames.SignupScreen} component={SignupScreen} />
+      <Stack.Screen
+        name={ScreenNames.ForgotPasswordScreen}
+        component={ForgotPasswordScreen}
+      />
       <Stack.Screen name={ScreenNames.Onboading} component={Onboarding} />
     </Stack.Navigator>
   );
@@ -85,6 +91,11 @@ export default StackNavigator = () => {
         name={ScreenNames.GroupChatInfoScreen}
         component={GroupChatInfoScreen}
       />
+      <Stack.Screen
+        name={ScreenNames.EditGroupScreen}
+        component={EditGroupScreen}
+      />
+
       <Stack.Screen
         name={ScreenNames.TopTabInnerScreens.ProfileSettings}
         component={ProfileSettings}

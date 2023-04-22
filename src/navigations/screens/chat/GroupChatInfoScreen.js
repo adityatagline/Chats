@@ -1,7 +1,19 @@
-import {useRoute, useTheme} from '@react-navigation/native';
-import {Alert, StyleSheet, TouchableOpacity, View} from 'react-native';
+import {
+  useIsFocused,
+  useNavigation,
+  useRoute,
+  useTheme,
+} from '@react-navigation/native';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import BaseText from '../../../components/BaseText';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
@@ -14,11 +26,16 @@ import ScreenNames from '../../../strings/ScreenNames';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {
+  changeGroupName,
   getGroupInfo,
+  getGroupsOfUser,
   getStrangerInfoFromDB,
   removeAdmin,
+  removeMember,
+  updateGPProfilePhotoInDB,
+  updateProfilePhotoInDB,
 } from '../../../../api/chat/ChatRequests';
 import {FlatList} from 'react-native';
 import ChatAvatar from '../../../components/ChatAvatar';
@@ -27,6 +44,16 @@ import BaseModal from '../../../components/BaseModal';
 import TextButton from '../../../components/TextButton';
 import {makeAdmin} from '../../../../api/chat/ChatRequests';
 import LoadingPage, {BaseLoader} from '../../../components/LoadingPage';
+import MediaPickerOptionModal from '../../../components/MediaPickerOptionModal';
+import {
+  sendGPMessageToFB,
+  uploadProfilePic,
+} from '../../../../api/chat/firebaseSdkRequests';
+import {updateGroup} from '../../../../redux/chats/ChatSlice';
+import {useFormik} from 'formik';
+import {groupNameValidation} from '../authentication/ValidationSchemas';
+import {commonPageStyles} from '../authentication/commonPageStyles';
+import SimpleButton from '../../../components/SimpleButton';
 
 const GroupChatInfoScreen = () => {
   const themeRef = useTheme();
@@ -67,7 +94,10 @@ const GroupChatInfoScreen = () => {
     },
   });
 
+  const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const route = useRoute();
+  const dispatch = useDispatch();
   const groupId = route?.params?.groupId;
 
   const chatSliceRef = useSelector(state => state.chatSlice);
@@ -76,15 +106,23 @@ const GroupChatInfoScreen = () => {
   const [groupMembers, setGroupMembers] = useState([]);
   const [showOptionModal, setShowOptionModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPickerOption, setShowPickerOption] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const groupNameRef = useRef();
+
+  const {values, errors, setFieldValue, setTouched, touched} = useFormik({
+    validationSchema: groupNameValidation,
+    initialValues: {groupName: !!groupInfo ? groupInfo.name : ''},
+  });
   const [optionUser, setOptionUser] = useState();
-  console.log({groupMembers, groupInfo});
+  // console.log({groupMembers, groupInfo});
 
   const storeMembers = memberArr => {
     let arrayToSet = [];
     memberArr.map(item => {
       let {username} = item;
       if (username == currentUser.username) {
-        console.log({username});
+        // console.log({username});
       } else if (!!chatSliceRef?.friends?.[username]) {
         arrayToSet.push({
           ...chatSliceRef?.friends?.[username],
@@ -99,7 +137,7 @@ const GroupChatInfoScreen = () => {
         arrayToSet.push({...item, isFriend: false});
       }
     });
-    console.log({arrayToSet});
+    // console.log({arrayToSet});
     setGroupMembers([
       {...currentUser, profilePhoto: currentUser?.profilePhotoObject?.uri},
       ...arrayToSet,
@@ -113,23 +151,26 @@ const GroupChatInfoScreen = () => {
       let newMemberArray = [];
       for (let i = 0; i < oldMemberArray.length; i++) {
         let member = await getStrangerInfoFromDB(oldMemberArray[i]);
-        console.log({member});
+        // console.log({member});
         if (!member.isError) {
           newMemberArray.push(member.data);
         }
       }
-      console.log({getInitialInfo: newMemberArray});
+      // console.log({getInitialInfo: newMemberArray});
       storeMembers(newMemberArray);
       setGroupInfo(response.data);
+      dispatch(updateGroup({groupInfo: response.data}));
+      setFieldValue('groupName', response.data.name);
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!!groupId) {
+    console.log({isFocused});
+    if (!!isFocused) {
       getInitialInfo();
     }
-  }, [groupId, chatSliceRef]);
+  }, [isFocused]);
 
   const showConfirm = opAction => {
     let subText =
@@ -143,7 +184,7 @@ const GroupChatInfoScreen = () => {
         ? makeNewAdmin
         : opAction == 'removeAdmin'
         ? removeFromAdmin
-        : () => {};
+        : removeFromMember;
 
     Alert.alert('Are you sure ?', subText, [
       {
@@ -159,17 +200,26 @@ const GroupChatInfoScreen = () => {
   };
 
   const makeNewAdmin = async () => {
-    let response = await makeAdmin(optionUser.username, groupId);
+    setIsLoading(true);
     setOptionUser();
     setShowOptionModal(false);
+    let response = await makeAdmin(optionUser.username, groupId);
     getInitialInfo();
   };
 
   const removeFromAdmin = async () => {
     setIsLoading(true);
-    let response = await removeAdmin(optionUser.username, groupId);
     setOptionUser();
     setShowOptionModal(false);
+    let response = await removeAdmin(optionUser.username, groupId);
+    getInitialInfo();
+  };
+
+  const removeFromMember = async () => {
+    setIsLoading(true);
+    setOptionUser();
+    setShowOptionModal(false);
+    const response = await removeMember(optionUser.username, groupId);
     getInitialInfo();
   };
 
@@ -193,25 +243,104 @@ const GroupChatInfoScreen = () => {
   }) => {
     return (
       <TouchableOpacity
-        onPress={onPress}
+        onPress={!!onPress ? onPress : () => {}}
+        disabled={!onPress}
         style={[styles.settingItem, customContainerStyle]}>
-        <Ionicons
-          name={itemIcon}
-          size={30}
-          color={iconColor}
-          style={{
-            paddingRight: '5%',
-            alignSelf: 'center',
-          }}
-        />
+        {!!itemIcon && (
+          <Ionicons
+            name={itemIcon}
+            size={30}
+            color={iconColor}
+            style={{
+              paddingRight: '5%',
+              alignSelf: 'center',
+            }}
+          />
+        )}
         <BaseText
           size={fontSize.big}
           weight={fontWeights.semiBold}
-          color={themeRef.colors.secondaryColor}>
+          color={themeRef.colors.secondaryColor}
+          otherStyles={customLabelStyle}>
           {title}
         </BaseText>
       </TouchableOpacity>
     );
+  };
+
+  const openPickerModal = () => setShowPickerOption(true);
+
+  const updatePhoto = async imageObj => {
+    if (!imageObj) {
+      setShowPickerOption(false);
+      return;
+    }
+    try {
+      // console.log({imageObj});
+      setIsLoading(true);
+      // // console.log({imageObj});
+      setShowPickerOption(false);
+      const response = await uploadProfilePic({...imageObj}, groupId);
+      if (response.isError) {
+        Alert.alert('Oops', response.error);
+      }
+      // // console.log({fireStorageResponse: response});
+      const updateToDetails = await updateGPProfilePhotoInDB(groupId, {
+        ...response.data,
+      });
+      // // console.log({updateToDetails});
+      if (!updateToDetails.isError) {
+        getInitialInfo();
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.log({errorinupdatePhoto: error});
+    }
+  };
+
+  const focusFunc = (isBlur = false) => {
+    if (isBlur) {
+      setTouched({});
+      return;
+    }
+    setTouched({groupName: true});
+  };
+
+  const submitName = () => {
+    setTouched({});
+  };
+
+  const changeName = async () => {
+    setIsLoading(true);
+    try {
+      const announcement = `${currentUser.username} changed group name from "${groupInfo.name}" to "${values.groupName}"`;
+      let objToGenID =
+        currentUser.username + groupId + announcement.length > 10
+          ? announcement.slice(0, 10)
+          : announcement + new Date().toString();
+      let id = objToGenID.toString();
+
+      let chatObject = {
+        from: currentUser.username,
+        date: new Date().toString(),
+        message: announcement,
+        messageType: 'announcement',
+        isSending: true,
+        id,
+        groupId,
+      };
+      const response = await sendGPMessageToFB(groupId, chatObject);
+      const changeName = await changeGroupName(groupId, values.groupName);
+      setIsEditingName(false);
+      getInitialInfo();
+    } catch (error) {}
+  };
+
+  const goToAddMemberScreen = () => {
+    navigation.navigate(ScreenNames.EditGroupScreen, {
+      groupId,
+      groupMembers: groupInfo.members,
+    });
   };
 
   const RenderMemebers = ({item}) => {
@@ -293,49 +422,114 @@ const GroupChatInfoScreen = () => {
     );
   };
 
+  const RenderContacts = ({item}) => {
+    // console.log({friend: item});
+    return (
+      <View>
+        <BaseText>{item.contactName}</BaseText>
+      </View>
+    );
+  };
+
   return (
     <>
       <BaseModal
-        visibility={!!showOptionModal}
-        onOutsidePressHandler={closeOptionModal}>
-        <View
-          style={{
-            marginHorizontal: wp(5),
-          }}>
-          {/* <BaseText>Make Admin</BaseText>  */}
-          {/* <BaseText>Remove from group</BaseText> */}
-          {!groupInfo?.admins?.includes(optionUser?.username) && (
+        visibility={!!showOptionModal || !!isEditingName}
+        onOutsidePressHandler={closeOptionModal}
+        customBottomPosition={isEditingName ? hp(40) : undefined}>
+        {!!isEditingName && !isLoading ? (
+          <>
             <SettingItem
-              itemIcon={'ribbon'}
-              title={'Make Admin'}
-              onPress={showConfirm.bind(this, 'makeAdmin')}
+              title={'Edit group name'}
+              customContainerStyle={{
+                alignSelf: 'center',
+              }}
+              customLabelStyle={{
+                color: themeRef.colors.appThemeColor,
+              }}
             />
-          )}
-          {!!groupInfo?.admins?.includes(optionUser?.username) && (
+            {/* <View style={[commonStyles.rowCenter]}> */}
+            <InputBox
+              label={'Group Name'}
+              focusFunction={focusFunc}
+              focused={!!touched.groupName}
+              value={values.groupName}
+              inputRef={groupNameRef}
+              mainContainerStyle={{
+                marginTop: hp(1.5),
+                width: wp(75),
+              }}
+              otherProps={{
+                onChangeText: setFieldValue.bind(this, 'groupName'),
+                onSubmitEditing: submitName,
+              }}
+            />
+            {/* </View> */}
+            <BaseText otherStyles={commonPageStyles().error}>
+              {errors.groupName}
+            </BaseText>
+            <SimpleButton title={'Submit'} onPress={changeName} />
+            <TextButton
+              title={'Cancel'}
+              textStyle={{
+                color: themeRef.colors.errorColor,
+                fontSize: fontSize.big,
+                marginTop: hp(2),
+              }}
+              onPress={() => setIsEditingName(false)}
+            />
+          </>
+        ) : !!showOptionModal ? (
+          <View
+            style={{
+              marginHorizontal: wp(5),
+            }}>
+            {/* <BaseText>Make Admin</BaseText>  */}
+            {/* <BaseText>Remove from group</BaseText> */}
+            {!groupInfo?.admins?.includes(optionUser?.username) && (
+              <SettingItem
+                itemIcon={'ribbon'}
+                title={'Make Admin'}
+                onPress={showConfirm.bind(this, 'makeAdmin')}
+              />
+            )}
+            {!!groupInfo?.admins?.includes(optionUser?.username) && (
+              <SettingItem
+                itemIcon={'ribbon'}
+                title={'Remove from Admin'}
+                iconColor={themeRef.colors.errorColor}
+                onPress={showConfirm.bind(this, 'removeAdmin')}
+              />
+            )}
             <SettingItem
-              itemIcon={'ribbon'}
-              title={'Remove from Admin'}
+              itemIcon={'person-remove'}
+              title={'Remove from group'}
               iconColor={themeRef.colors.errorColor}
-              onPress={showConfirm.bind(this, 'removeAdmin')}
+              onPress={showConfirm.bind(this, 'removeMember')}
             />
-          )}
-          <SettingItem
-            itemIcon={'person-remove'}
-            title={'Remove from group'}
-            iconColor={themeRef.colors.errorColor}
-          />
 
-          <TextButton
-            title={'Cancel'}
-            textStyle={{
-              color: themeRef.colors.errorColor,
-              fontSize: fontSize.big,
-              marginTop: hp(2),
-            }}
-            onPress={closeOptionModal}
-          />
-        </View>
+            <TextButton
+              title={'Cancel'}
+              textStyle={{
+                color: themeRef.colors.errorColor,
+                fontSize: fontSize.big,
+                marginTop: hp(2),
+              }}
+              onPress={closeOptionModal}
+            />
+          </View>
+        ) : !!isLoading ? (
+          <BaseLoader loadingText="Updating group .." />
+        ) : null}
       </BaseModal>
+
+      <MediaPickerOptionModal
+        visibility={!!showPickerOption}
+        closeActions={() => setShowPickerOption(false)}
+        mediaType="photo"
+        afterChoosehandler={updatePhoto}
+        isProfilePhoto
+      />
 
       <View style={[commonStyles.screenStyle, styles.mainDiv]}>
         <PageHeading
@@ -410,9 +604,9 @@ const GroupChatInfoScreen = () => {
                 height: hp(25),
                 width: hp(25),
               }}>
-              {!groupInfo?.profilePhoto ? (
+              {!!groupInfo?.profilePhotoObject?.uri ? (
                 <ImageCompWithLoader
-                  // source={{uri: groupInfo.groupPhoto}}
+                  // source={{uri: groupInfo?.profilePhotoObject?.uri}}
                   source={imageUrlStrings.banana}
                   ImageStyles={styles.groupPhoto}
                 />
@@ -424,6 +618,7 @@ const GroupChatInfoScreen = () => {
                 />
               )}
               <TouchableOpacity
+                onPress={openPickerModal}
                 style={{
                   position: 'absolute',
                   bottom: hp(1),
@@ -470,7 +665,7 @@ const GroupChatInfoScreen = () => {
                   otherProp={{numberOfLines: 3}}>
                   {groupInfo?.name}
                 </BaseText>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => setIsEditingName(true)}>
                   <FontAwesome
                     name="pencil"
                     size={25}
@@ -491,16 +686,45 @@ const GroupChatInfoScreen = () => {
                 uid@{groupId}
               </BaseText>
             </View>
-            <BaseText
-              color={themeRef.colors.appThemeColor}
-              weight={fontWeights.bold}
-              size={fontSize.large}
-              otherStyles={{
-                marginLeft: wp(5),
-                marginVertical: hp(1),
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
               }}>
-              {groupMembers.length} Members
-            </BaseText>
+              <BaseText
+                color={themeRef.colors.appThemeColor}
+                weight={fontWeights.bold}
+                size={fontSize.large}
+                otherStyles={{
+                  marginLeft: wp(5),
+                  marginVertical: hp(1),
+                }}>
+                {groupMembers.length} Members
+              </BaseText>
+              <TouchableOpacity
+                onPress={goToAddMemberScreen}
+                style={[
+                  commonStyles.iconWithTextBtn,
+                  // commonStyles.newChatBtn,
+                  {
+                    backgroundColor: themeRef.colors.primaryColor,
+                    marginVertical: 0,
+                    paddingVertical: 0,
+                  },
+                ]}>
+                <Ionicons
+                  name="add"
+                  size={20}
+                  color={themeRef.colors.appThemeColor}
+                />
+                <BaseText
+                  size={fontSize.medium}
+                  color={themeRef.colors.appThemeColor}
+                  weight={fontWeights.bold}>
+                  Add Member
+                </BaseText>
+              </TouchableOpacity>
+            </View>
             {!!groupMembers && groupMembers.length != 0 && (
               <View
                 style={{

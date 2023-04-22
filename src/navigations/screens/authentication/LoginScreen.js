@@ -283,6 +283,7 @@ export default LoginScreen = () => {
               containerStyle={[styles.googleLoginButton]}
               color={themeRef.colors.appThemeColor}
             /> */}
+
             <View style={[styles.signupDiv]}>
               <Text
                 style={[
@@ -295,9 +296,21 @@ export default LoginScreen = () => {
                 title={'Sign up'}
                 textStyle={styles.otherScreenBtn}
                 onPress={goToSinupPage}
+
                 // onPress={testFun}
               />
             </View>
+            <TextButton
+              title={'Forgot password ??'}
+              textStyle={{
+                paddingVertical: 0,
+                color: themeRef.colors.appThemeColor,
+              }}
+              onPress={() =>
+                navigation.navigate(ScreenNames.ForgotPasswordScreen)
+              }
+              // onPress={testFun}
+            />
             <AppStatusBar />
           </View>
         </KeyboardAwareScrollView>

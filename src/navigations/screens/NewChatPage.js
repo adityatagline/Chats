@@ -171,7 +171,7 @@ export default NewChatPage = () => {
   const [contactList, setContactList] = useState([]);
   const [memebersSelected, setMemebersSelected] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingGroup, setIsCreatingGroup] = useState(true);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [intervalID, setIntervalID] = useState();
   const bookAnimation = useRef(
     new Animated.ValueXY({

@@ -111,7 +111,7 @@ export const PageHeading = ({
           <Text
             style={[
               styles.backButtonLabel,
-              {color: themeRef.colors.secondaryColor},
+              {color: backButtonProps.color ?? themeRef.colors.secondaryColor},
             ]}>
             {!!backButtonProps.backScreen ? backButtonProps.backScreen : 'Back'}
           </Text>

@@ -1,18 +1,18 @@
 import * as Yup from 'yup';
 
-const emailValidationRule = Yup.string()
+export const emailValidationRule = Yup.string()
   .trim()
   .email('Enter valid e-mail address !!')
   .required('Enter e-mail address !!');
 
-const phoneValidationRule = Yup.string()
+export const phoneValidationRule = Yup.string()
   .trim()
   .required('Enter phone number !!')
   .matches(/[\d]{10}/, 'Enter 10 digit mobile number !!')
   .min(10)
   .max(10);
 
-const passwordValidationRule = Yup.string()
+export const passwordValidationRule = Yup.string()
   .trim()
   .min(8, 'Password must have atleast 8 characters !!')
   .max(20, 'Password must be less than 20 characters !!')
@@ -21,13 +21,13 @@ const passwordValidationRule = Yup.string()
   .matches(/[A-Z]/, 'Password must have atleast one uppercase alphabet')
   .matches(/[\d]/, 'Password must have atleast one digit');
 
-const otpValidationRule = Yup.string()
+export const otpValidationRule = Yup.string()
   .trim()
   .required('Enter otp !!')
   .matches(/[\d]{6}/, 'Enter 6 digit otp number !!')
   .max(6);
 
-const confirmPasswordValidationRule = Yup.string()
+export const confirmPasswordValidationRule = Yup.string()
   .trim()
   .required('Enter password !!');
 

@@ -63,7 +63,6 @@ export const commonStyles = StyleSheet.create({
     borderRadius: hp(2),
     alignItems: 'center',
     justifyContent: 'center',
-
     elevation: 4,
     shadowColor: 'black',
     shadowOpacity: 0.2,
@@ -72,5 +71,16 @@ export const commonStyles = StyleSheet.create({
       width: 0,
     },
     shadowRadius: 5,
+  },
+  newChatBtn: {
+    // position: 'absolute',
+    // bottom: hp(12),
+    // right: wp(14),
+    alignSelf: 'flex-end',
+    zIndex: 150,
+    paddingVertical: hp(1),
+    borderRadius: 200,
+    marginRight: wp(12),
+    marginBottom: hp(2),
   },
 });

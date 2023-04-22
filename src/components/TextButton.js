@@ -4,10 +4,10 @@ import FontfamiliesNames from '../strings/FontfamiliesNames';
 import {fontSize} from '../styles/commonStyles';
 const dimesions = Dimensions.get('screen');
 
-const TextButton = ({title, onPress, textStyle}) => {
+const TextButton = ({title, onPress, textStyle, containerStyle}) => {
   return (
     <Pressable
-      style={({pressed}) => [pressed && {opacity: 0.5}]}
+      style={({pressed}) => [containerStyle, pressed && {opacity: 0.5}]}
       onPress={onPress}>
       <Text style={[styles.text, textStyle]}>{title}</Text>
     </Pressable>

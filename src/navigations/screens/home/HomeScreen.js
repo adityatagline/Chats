@@ -261,7 +261,7 @@ export default HomeScreen = props => {
             New
           </BaseText>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[commonStyles.iconWithTextBtn, styles.newChatBtn]}
           onPress={() => sendNoti()}>
           <IonIcon name="add" size={20} color={themeRef.colors.primaryColor} />
@@ -271,7 +271,7 @@ export default HomeScreen = props => {
             weight={fontWeights.bold}>
             New
           </BaseText>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <View style={styles.searchDiv}>
           <SearchPage />
         </View>

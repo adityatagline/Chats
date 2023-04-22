@@ -24,7 +24,10 @@ const AvatarListHorizontal = ({
   const {friends} = useSelector(state => state.chatSlice);
   const {user} = useSelector(state => state.authenticationSlice);
   const RenderAvatar = ({item}) => {
-    // console.log({item});
+    // console.log({itemInAVList: item, listArray});
+    if (!item) {
+      return;
+    }
     return (
       <View
         style={{
@@ -35,7 +38,7 @@ const AvatarListHorizontal = ({
           alignItems: 'center',
         }}>
         <View>
-          {!!item[uriField] ? (
+          {!!item?.[uriField] ? (
             <ImageCompWithLoader
               // source={{
               //   uri: item[uriField],

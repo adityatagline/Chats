@@ -79,6 +79,31 @@ const Chatslice = createSlice({
       let {groups} = action.payload;
       return {...state, groups};
     },
+    updateGroup: (state, action) => {
+      let {groupInfo} = action.payload;
+      let newHomeArray = [...state.homepageChats];
+
+      newHomeArray = newHomeArray.map(item => {
+        if (!!item?.groupId && item.groupId == groupInfo.id) {
+          console.log('found match', groupInfo.name);
+          return {
+            ...item,
+            chatName: groupInfo.name,
+          };
+        } else {
+          return item;
+        }
+      });
+
+      return {
+        ...state,
+        groups: {
+          ...state.groups,
+          [groupInfo.id]: groupInfo,
+        },
+        homepageChats: newHomeArray,
+      };
+    },
     checkAndStoreNewMessages: (state, action) => {
       let messageArray = [...action.payload.messageArray].sort(
         (a, b) => new Date(a.date) - new Date(b.date),
@@ -362,5 +387,6 @@ export const {
   changeMediaStatus,
   storeMessageToGroup,
   storeGroups,
+  updateGroup,
 } = Chatslice.actions;
 export default Chatslice.reducer;

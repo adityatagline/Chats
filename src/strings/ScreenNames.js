@@ -2,6 +2,7 @@ export default ScreenNames = {
   Onboading: 'OnBoarding',
   LoginScreen: 'LoginScreen',
   SignupScreen: 'SignupScreen',
+  ForgotPasswordScreen: 'ForgotPasswordScreen',
   VerificationScreen: 'VerificationScreen',
   EnterDetails: 'EnterDetails',
   TopTabNavigator: 'TopTabNavigator',
@@ -21,4 +22,5 @@ export default ScreenNames = {
   GroupChatPage: 'GroupChatPage',
   ChatInfoScreen: 'ChatInfoScreen',
   GroupChatInfoScreen: 'GroupChatInfoScreen',
+  EditGroupScreen: 'EditGroupScreen',
 };

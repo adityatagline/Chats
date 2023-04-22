@@ -19,6 +19,7 @@ const BaseModal = ({
   onOutsidePressHandler = () => {},
   children,
   scrollContainerProps,
+  customBottomPosition,
 }) => {
   const themeRef = useTheme();
   const [modalExistance, setModalExistance] = useState(false);
@@ -51,7 +52,7 @@ const BaseModal = ({
         useNativeDriver: true,
       }),
       Animated.timing(innerContainerPosition, {
-        toValue: hp(3),
+        toValue: !!customBottomPosition ? customBottomPosition : hp(3),
         duration: 300,
         useNativeDriver: false,
       }),
