@@ -45,6 +45,7 @@ import {commonPageStyles} from './authentication/commonPageStyles';
 import ChatAvatar from '../../components/ChatAvatar';
 import ImageCompWithLoader from '../../components/ImageCompWithLoader';
 import {imageUrlStrings} from '../../strings/ImageUrlStrings';
+import LoadingPage from '../../components/LoadingPage';
 
 export const getContacts = async (
   setterFunc,
@@ -253,6 +254,11 @@ export default NewChatPage = () => {
       Alert.alert('Oops', 'Enter valid group name.');
       return;
     }
+    if (memebersSelected.length <= 1) {
+      Alert.alert('Oops', 'Minimum 2 members required in group !!');
+      return;
+    }
+    setIsLoading(true);
     const response = await createNewGroupInDB(
       memebersSelected,
       values.groupName,
@@ -260,6 +266,9 @@ export default NewChatPage = () => {
       true,
     );
     if (!!response.isError) {
+      Alert.alert('Oops', 'Something went wrong !!\n Try again.');
+      setIsLoading(false);
+      return;
       // console.log({errorInGroup: response.error});
     }
     // console.log({response});
@@ -271,6 +280,7 @@ export default NewChatPage = () => {
         userInfo: authenticationSliceRef.user,
       }),
     );
+    setIsLoading(false);
     navigation.navigate(ScreenNames.TopTabScreens.HomeScreen);
   };
 
@@ -361,9 +371,15 @@ export default NewChatPage = () => {
         />
         <Text style={styles.pageHeading}>Contacts</Text>
       </View>
+      {isLoading &&
+        isCreatingGroup &&
+        !!values.groupName &&
+        contactList.length != 0 && (
+          <LoadingPage loadingText="Creating new group .." />
+        )}
       {!!isCreatingGroup && (
         <>
-          <PageLabels label={'Create Group'} />
+          {/* <PageLabels label={'Create Group'} /> */}
           <View style={[commonStyles.rowCenter]}>
             <InputBox
               label={'Group Name'}
@@ -372,7 +388,7 @@ export default NewChatPage = () => {
               value={values.groupName}
               inputRef={groupNameRef}
               mainContainerStyle={{
-                marginTop: hp(1.5),
+                marginTop: hp(3),
                 width: wp(75),
               }}
               otherProps={{
@@ -385,7 +401,7 @@ export default NewChatPage = () => {
               color={themeRef.colors.appThemeColor}
               size={35}
               containerStyle={{
-                marginTop: hp(1.5),
+                marginTop: hp(2.5),
                 marginHorizontal: wp(2),
               }}
               onPress={() => setIsCreatingGroup(false)}
@@ -449,7 +465,7 @@ export default NewChatPage = () => {
               backgroundColor: themeRef.colors.appThemeColor,
               shadowColor: themeRef.colors.appThemeColor,
               alignSelf: 'center',
-              marginVertical: hp(2),
+              marginVertical: hp(1),
             },
           ]}
           onPress={() => setIsCreatingGroup(true)}>
@@ -488,7 +504,7 @@ export default NewChatPage = () => {
       {isCreatingGroup && (
         <SimpleButton
           title={'Create group'}
-          containerStyle={{marginVertical: hp(2)}}
+          containerStyle={{marginVertical: hp(3)}}
           onPress={createGroup}
         />
       )}

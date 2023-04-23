@@ -131,15 +131,20 @@ export default HomeScreen = props => {
               messageArray.push(obj[key]);
             }
             messageArray.forEach(async element => {
-              // console.log({element});
-              let response = await checkIsMember(
-                authenticationSlice.user.username,
-                element.groupId,
-              );
-              // console.log({checkRes: response});
-              if (response.isError || !response?.data?.isMember) {
+              console.log({element: element?.members});
+              if (
+                !element?.members?.includes(authenticationSlice?.user?.username)
+              ) {
                 return;
               }
+              // let response = await checkIsMember(
+              //   authenticationSlice.user.username,
+              //   element.groupId,
+              // );
+              // // console.log({checkRes: response});
+              // if (response.isError || !response?.data?.isMember) {
+              //   return;
+              // }
               let groupInfo = await getGroupInfo(element.groupId);
               if (!groupInfo.isError) {
                 dispatch(
@@ -208,6 +213,7 @@ export default HomeScreen = props => {
     // console.log({response});
     if (!response.isError) {
       dispatch(storeGroups({groups: response.data}));
+      setisLoading(false);
     }
     setisLoading(false);
   };

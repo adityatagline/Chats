@@ -34,7 +34,7 @@ export default PrivacySettings = () => {
           title={'Blocked Contacts'}
           itemIcon={'remove-circle-outline'}
         />
-        <SettingItem title={'Status settings'} itemIcon={'eye'} />
+        {/* <SettingItem title={'Status settings'} itemIcon={'eye'} /> */}
 
         <PageHeading
           middleComponenet={
@@ -47,7 +47,7 @@ export default PrivacySettings = () => {
         />
 
         <SettingItem title={'Change password'} itemIcon={'sync'} />
-        <SettingItem title={'Change Phone number'} itemIcon={'sync'} />
+        {/* <SettingItem title={'Change Phone number'} itemIcon={'sync'} /> */}
       </ScrollView>
     </View>
   );

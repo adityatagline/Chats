@@ -49,7 +49,10 @@ import {
   sendGPMessageToFB,
   uploadProfilePic,
 } from '../../../../api/chat/firebaseSdkRequests';
-import {updateGroup} from '../../../../redux/chats/ChatSlice';
+import {
+  storeMessageToGroup,
+  updateGroup,
+} from '../../../../redux/chats/ChatSlice';
 import {useFormik} from 'formik';
 import {groupNameValidation} from '../authentication/ValidationSchemas';
 import {commonPageStyles} from '../authentication/commonPageStyles';
@@ -103,6 +106,7 @@ const GroupChatInfoScreen = () => {
   const chatSliceRef = useSelector(state => state.chatSlice);
   const currentUser = useSelector(state => state.authenticationSlice).user;
   const [groupInfo, setGroupInfo] = useState();
+  const isAdmin = !!groupInfo?.admins?.includes(currentUser.username);
   const [groupMembers, setGroupMembers] = useState([]);
   const [showOptionModal, setShowOptionModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -178,12 +182,16 @@ const GroupChatInfoScreen = () => {
         ? `making "${optionUser.firstName}" admin ..`
         : opAction == 'removeAdmin'
         ? `removing "${optionUser.firstName}" from admin ..`
+        : opAction == 'leaveGroup'
+        ? `Want to leave this group ?`
         : `removing "${optionUser.firstName}" from group ..`;
     let confirmAction =
       opAction == 'makeAdmin'
         ? makeNewAdmin
         : opAction == 'removeAdmin'
         ? removeFromAdmin
+        : opAction == 'leaveGroup'
+        ? leaveGroup
         : removeFromMember;
 
     Alert.alert('Are you sure ?', subText, [
@@ -203,7 +211,7 @@ const GroupChatInfoScreen = () => {
     setIsLoading(true);
     setOptionUser();
     setShowOptionModal(false);
-    let response = await makeAdmin(optionUser.username, groupId);
+    let response = await makeAdmin(optionUser.username, groupId, currentUser);
     getInitialInfo();
   };
 
@@ -211,7 +219,7 @@ const GroupChatInfoScreen = () => {
     setIsLoading(true);
     setOptionUser();
     setShowOptionModal(false);
-    let response = await removeAdmin(optionUser.username, groupId);
+    let response = await removeAdmin(optionUser.username, groupId, currentUser);
     getInitialInfo();
   };
 
@@ -219,8 +227,48 @@ const GroupChatInfoScreen = () => {
     setIsLoading(true);
     setOptionUser();
     setShowOptionModal(false);
-    const response = await removeMember(optionUser.username, groupId);
+    const response = await removeMember(
+      optionUser.username,
+      groupId,
+      currentUser,
+    );
+    if (!!response.isError) {
+      console.log({response});
+      return;
+    }
+    let {message} = response;
+    dispatch(
+      storeMessageToGroup({
+        message,
+        groupInfo,
+        userInfo: currentUser,
+      }),
+    );
     getInitialInfo();
+  };
+
+  const leaveGroup = async () => {
+    try {
+      setIsLoading(true);
+      setOptionUser();
+      setShowOptionModal(false);
+      const response = await removeMember(currentUser, groupId, currentUser);
+      if (!!response.isError) {
+        console.log({response});
+        return;
+      }
+      let {message} = response;
+      dispatch(
+        storeMessageToGroup({
+          message,
+          groupInfo,
+          userInfo: currentUser,
+        }),
+      );
+      getInitialInfo();
+    } catch (error) {
+      console.log({errorInLeave: error});
+    }
   };
 
   const closeOptionModal = () => {
@@ -328,9 +376,14 @@ const GroupChatInfoScreen = () => {
         isSending: true,
         id,
         groupId,
+        members: groupInfo.members,
       };
       const response = await sendGPMessageToFB(groupId, chatObject);
-      const changeName = await changeGroupName(groupId, values.groupName);
+      const changeName = await changeGroupName(
+        groupId,
+        values.groupName,
+        currentUser,
+      );
       setIsEditingName(false);
       getInitialInfo();
     } catch (error) {}
@@ -418,15 +471,6 @@ const GroupChatInfoScreen = () => {
               onPress={openOptionModal.bind(this, item)}
             />
           )}
-      </View>
-    );
-  };
-
-  const RenderContacts = ({item}) => {
-    // console.log({friend: item});
-    return (
-      <View>
-        <BaseText>{item.contactName}</BaseText>
       </View>
     );
   };
@@ -545,6 +589,7 @@ const GroupChatInfoScreen = () => {
           rightButton={
             !isLoading ? (
               <TouchableOpacity
+                onPress={showConfirm.bind(this, 'leaveGroup')}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -617,33 +662,35 @@ const GroupChatInfoScreen = () => {
                   color={themeRef.colors.appThemeColor}
                 />
               )}
-              <TouchableOpacity
-                onPress={openPickerModal}
-                style={{
-                  position: 'absolute',
-                  bottom: hp(1),
-                  right: wp(3),
-                  backgroundColor: themeRef.colors.appThemeColor,
-                  height: hp(5),
-                  width: hp(5),
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderRadius: 500,
-                  borderWidth: 3,
-                  borderColor: themeRef.colors.primaryColor,
-                }}
-                activeOpacity={0.8}>
-                <FontAwesome
-                  name="pencil"
-                  size={25}
-                  color={themeRef.colors.primaryColor}
+              {isAdmin && (
+                <TouchableOpacity
+                  onPress={openPickerModal}
                   style={{
-                    alignSelf: 'center',
-
-                    // marginLeft: wp(2),
+                    position: 'absolute',
+                    bottom: hp(1),
+                    right: wp(3),
+                    backgroundColor: themeRef.colors.appThemeColor,
+                    height: hp(5),
+                    width: hp(5),
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderRadius: 500,
+                    borderWidth: 3,
+                    borderColor: themeRef.colors.primaryColor,
                   }}
-                />
-              </TouchableOpacity>
+                  activeOpacity={0.8}>
+                  <FontAwesome
+                    name="pencil"
+                    size={25}
+                    color={themeRef.colors.primaryColor}
+                    style={{
+                      alignSelf: 'center',
+
+                      // marginLeft: wp(2),
+                    }}
+                  />
+                </TouchableOpacity>
+              )}
             </View>
             <View
               style={{
@@ -665,18 +712,20 @@ const GroupChatInfoScreen = () => {
                   otherProp={{numberOfLines: 3}}>
                   {groupInfo?.name}
                 </BaseText>
-                <TouchableOpacity onPress={() => setIsEditingName(true)}>
-                  <FontAwesome
-                    name="pencil"
-                    size={25}
-                    color={themeRef.colors.appThemeColor}
-                    style={{
-                      alignSelf: 'center',
-                      paddingLeft: wp(2),
-                      marginLeft: wp(2),
-                    }}
-                  />
-                </TouchableOpacity>
+                {isAdmin && (
+                  <TouchableOpacity onPress={() => setIsEditingName(true)}>
+                    <FontAwesome
+                      name="pencil"
+                      size={25}
+                      color={themeRef.colors.appThemeColor}
+                      style={{
+                        alignSelf: 'center',
+                        paddingLeft: wp(2),
+                        marginLeft: wp(2),
+                      }}
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
 
               <BaseText
@@ -701,29 +750,31 @@ const GroupChatInfoScreen = () => {
                 }}>
                 {groupMembers.length} Members
               </BaseText>
-              <TouchableOpacity
-                onPress={goToAddMemberScreen}
-                style={[
-                  commonStyles.iconWithTextBtn,
-                  // commonStyles.newChatBtn,
-                  {
-                    backgroundColor: themeRef.colors.primaryColor,
-                    marginVertical: 0,
-                    paddingVertical: 0,
-                  },
-                ]}>
-                <Ionicons
-                  name="add"
-                  size={20}
-                  color={themeRef.colors.appThemeColor}
-                />
-                <BaseText
-                  size={fontSize.medium}
-                  color={themeRef.colors.appThemeColor}
-                  weight={fontWeights.bold}>
-                  Add Member
-                </BaseText>
-              </TouchableOpacity>
+              {isAdmin && (
+                <TouchableOpacity
+                  onPress={goToAddMemberScreen}
+                  style={[
+                    commonStyles.iconWithTextBtn,
+                    // commonStyles.newChatBtn,
+                    {
+                      backgroundColor: themeRef.colors.primaryColor,
+                      marginVertical: 0,
+                      paddingVertical: 0,
+                    },
+                  ]}>
+                  <Ionicons
+                    name="add"
+                    size={20}
+                    color={themeRef.colors.appThemeColor}
+                  />
+                  <BaseText
+                    size={fontSize.medium}
+                    color={themeRef.colors.appThemeColor}
+                    weight={fontWeights.bold}>
+                    Add Member
+                  </BaseText>
+                </TouchableOpacity>
+              )}
             </View>
             {!!groupMembers && groupMembers.length != 0 && (
               <View

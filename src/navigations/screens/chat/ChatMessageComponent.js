@@ -121,6 +121,7 @@ const ChatMessageComponent = ({
         isAnnouncement && [
           {
             ...styles.announcement,
+
             shadowColor: themeRef.colors.appThemeColor,
           },
         ],
@@ -169,7 +170,12 @@ const ChatMessageComponent = ({
               ? themeRef.colors.appThemeColor
               : themeRef.colors.secondaryColor
           }
-          otherStyles={[styles.message]}>
+          otherStyles={[
+            styles.message,
+            isAnnouncement && {
+              textAlign: 'center',
+            },
+          ]}>
           {item.message}
         </BaseText>
       </View>
@@ -286,8 +292,9 @@ const styles = StyleSheet.create({
   },
   announcement: {
     alignItems: 'center',
-    marginBottom: hp(2),
-    marginTop: hp(2),
+    marginVertical: hp(1),
+    textAlign: 'center',
+    alignSelf: 'center',
   },
 });
 

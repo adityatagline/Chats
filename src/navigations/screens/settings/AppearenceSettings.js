@@ -6,6 +6,7 @@ import {useTheme} from '@react-navigation/native';
 import {PageHeading, PageName, SettingItem} from './CommonComponents';
 import {useDispatch} from 'react-redux';
 import {toggleTheme} from '../../../../redux/theme/ThemeSlice';
+import ScreenNames from '../../../strings/ScreenNames';
 
 export default AppearenceSettings = () => {
   const themeRef = useTheme();
@@ -23,17 +24,17 @@ export default AppearenceSettings = () => {
           name: 'chevron-back',
           size: 30,
           color: themeRef.colors.secondaryColor,
-          backScreen: 'Settings',
+          backScreen: ScreenNames.TopTabScreens.ProfileScreen,
         }}
         backNavigationScreen={ScreenNames.TopTabScreens.ProfileScreen}
       />
       <ScrollView style={commonSettingsStyles.listDiv}>
         <SettingItem
-          title={'Theme'}
+          title={`Apply ${themeRef.dark ? 'light' : 'dark'} theme`}
           itemIcon={'contrast'}
           onPress={changeTheme}
         />
-        <SettingItem title={'Wallpaper'} itemIcon={'image-outline'} />
+        {/* <SettingItem title={'Wallpaper'} itemIcon={'image-outline'} /> */}
       </ScrollView>
     </View>
   );

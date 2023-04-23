@@ -417,3 +417,28 @@ export const updateProfileOnFirebase = async (data, username) => {
     };
   }
 };
+
+export const getPublicCredential = async phone => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/credentials/${phone}.json`;
+    let response = await apiRequest(url, 'GET');
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const logoutUserFromDB = async username => {
+  try {
+    let response = await auth().signOut();
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};

@@ -16,6 +16,7 @@ import {
   storeGroups,
   storeMessage,
   storeMessageToGroup,
+  updateGroup,
 } from '../../../../redux/chats/ChatSlice';
 import {
   sendGPMessageToFB,
@@ -39,7 +40,11 @@ import {openPicker} from 'react-native-image-crop-picker';
 import {FirebaseStreamTaskContext} from '../../../../context/FirebaseStreamTaskContext';
 import UploadingTrayComponent from './UploadingTrayComponent';
 import ScreenNames from '../../../strings/ScreenNames';
-import {getGroupInfo, getGroupsOfUser} from '../../../../api/chat/ChatRequests';
+import {
+  getGroupInfo,
+  getGroupsOfUser,
+  getStrangerInfoFromDB,
+} from '../../../../api/chat/ChatRequests';
 
 const GroupChatScreen = () => {
   const themeRef = useTheme();
@@ -88,6 +93,7 @@ const GroupChatScreen = () => {
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
+  const [groupInfo, setGroupInfo] = useState();
 
   const [isMember, setIsMember] = useState(true);
 
@@ -97,6 +103,15 @@ const GroupChatScreen = () => {
       dispatch(storeGroups({groups: response.data}));
       return;
     }
+    response = await getGroupInfo(groupId);
+    if (!response.isError) {
+      setGroupInfo(response.data);
+      dispatch(updateGroup({groupInfo: response.data}));
+      setIsLoading(false);
+    } else {
+      console.log({errorInGPCHat: response.error});
+    }
+
     // setIsMember(false);
   };
 
@@ -106,8 +121,8 @@ const GroupChatScreen = () => {
 
   useEffect(() => {
     if (!!chatSliceRef.groups[groupId]) {
-      const groupInfo = chatSliceRef?.groups?.[groupId];
-      const checkMember = !!groupInfo?.members?.[currentUserInfo.username];
+      const groupIN = chatSliceRef?.groups?.[groupId];
+      const checkMember = !!groupIN?.members?.[currentUserInfo.username];
       // alert(checkMember);
       setIsMember(!!checkMember);
     }
@@ -172,6 +187,7 @@ const GroupChatScreen = () => {
       isSending: true,
       id,
       groupId,
+      members: groupInfo.members,
     };
     // let receiverObject = {otherUser: userInfo.username};
     // // console.log({chatObject});

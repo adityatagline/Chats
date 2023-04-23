@@ -226,93 +226,107 @@ const Chatslice = createSlice({
     },
     storeMessageToGroup: (state, action) => {
       // console.log({state});
-      let newState = {...state};
-      let {message, groupInfo, userInfo} = action.payload;
-      if (!state?.groups?.[message.groupId]?.name) {
-        return newState;
-      }
-      let isInclude =
-        !!state?.individualChats[message.groupId] &&
-        state.individualChats[message.groupId].find(
+      try {
+        let newState = {...state};
+        let {message, groupInfo, userInfo} = action.payload;
+        if (!state?.groups?.[groupInfo?.id]) {
+          newState = {
+            ...newState,
+            groups: {
+              ...newState.groups,
+              [groupInfo.id]: groupInfo,
+            },
+          };
+        }
+        if (!newState?.groups?.[message.groupId]?.name) {
+          return newState;
+        }
+        let isInclude =
+          !!newState?.individualChats[message.groupId] &&
+          newState.individualChats[message.groupId].find(
+            item => item.id == message.id,
+          );
+        isInclude = !!isInclude && Object.keys(isInclude).length != 0;
+        if (!!isInclude) {
+          return newState;
+        }
+        let individualArray = newState?.individualChats[message.groupId] ?? [];
+        individualArray = [{...message}, ...individualArray];
+        individualArray = individualArray.sort(
+          (a, b) => new Date(a.date) - new Date(b.date),
+        );
+        let isIncludeInHome = newState?.homepageChats?.find(
           item => item.id == message.id,
         );
-      isInclude = !!isInclude && Object.keys(isInclude).length != 0;
-      if (!!isInclude) {
-        return newState;
-      }
-      let individualArray = state?.individualChats[message.groupId] ?? [];
-      individualArray = [{...message}, ...individualArray];
-      individualArray = individualArray.sort(
-        (a, b) => new Date(a.date) - new Date(b.date),
-      );
-      let isIncludeInHome = state?.homepageChats?.find(
-        item => item.id == message.id,
-      );
-      isIncludeInHome =
-        !!isIncludeInHome && Object.keys(isIncludeInHome).length != 0;
-      let isRecordInHome = state?.homepageChats.find(
-        item => item.groupId == message.groupId,
-      );
-      isRecordInHome =
-        !!isRecordInHome && Object.keys(isRecordInHome).length != 0;
-      let homechatArray = [...state.homepageChats];
-      if (isRecordInHome) {
-        homechatArray = homechatArray.filter(item => {
-          if (
-            !item?.groupId ||
-            (!!item?.groupId && item?.groupId != message.groupId)
-          ) {
-            return item;
-          }
-        });
-      }
-      let lastMessage = individualArray.reverse()[0];
-      homechatArray = [
-        ...homechatArray,
-        {...lastMessage, chatName: groupInfo.name},
-      ];
-      homechatArray = homechatArray.sort(
-        (a, b) => new Date(b.date) - new Date(a.date),
-      );
+        isIncludeInHome =
+          !!isIncludeInHome && Object.keys(isIncludeInHome).length != 0;
+        let isRecordInHome = newState?.homepageChats.find(
+          item => item.groupId == message.groupId,
+        );
+        isRecordInHome =
+          !!isRecordInHome && Object.keys(isRecordInHome).length != 0;
+        let homechatArray = [...newState.homepageChats];
+        if (isRecordInHome) {
+          homechatArray = homechatArray.filter(item => {
+            if (
+              !item?.groupId ||
+              (!!item?.groupId && item?.groupId != message.groupId)
+            ) {
+              return item;
+            }
+          });
+        }
+        let lastMessage = individualArray.reverse()[0];
+        homechatArray = [
+          ...homechatArray,
+          {...lastMessage, chatName: groupInfo.name},
+        ];
+        homechatArray = homechatArray.sort(
+          (a, b) => new Date(b.date) - new Date(a.date),
+        );
 
-      let isGroupExists =
-        !!state?.groups?.[message.groupId] &&
-        Object.keys(state.groups[message.groupId]).length != 0;
-      // console.log({individualArray});
-      if (!isGroupExists) {
+        let isGroupExists =
+          !!newState?.groups?.[message.groupId] &&
+          Object.keys(newState.groups[message.groupId]).length != 0;
+        // console.log({individualArray});
+        if (!isGroupExists) {
+          newState = {
+            ...newState,
+            groups: {
+              ...newState.groups,
+              [message.groupId]: {...groupInfo},
+            },
+          };
+        }
+        let isIncludedInUnseen =
+          !!state?.unseenChats?.[message.groupId] &&
+          state?.unseenChats?.[message.groupId].find(
+            item => item.id == message.id,
+          );
+        isIncludedInUnseen =
+          !!isIncludedInUnseen && Object.keys(isIncludedInUnseen).length != 0;
+        let unseenChatArray = state?.unseenChats[message.groupId] ?? [];
+        if (!isIncludeInHome && message.from != userInfo.username) {
+          unseenChatArray = [...unseenChatArray, {...message}];
+        }
+        // console.log({isInclude, isIncludeInHome, isRecordInHome, isGroupExists});
         newState = {
           ...newState,
-          groups: {
-            ...newState.groups,
-            [message.groupId]: {...groupInfo},
+          individualChats: {
+            ...newState.individualChats,
+            [message.groupId]: individualArray,
+          },
+          homepageChats: homechatArray,
+          unseenChats: {
+            ...state.unseenChats,
+            [message.groupId]: unseenChatArray,
           },
         };
+        return newState;
+      } catch (error) {
+        console.log({errorInRed: error, state, actionP: action.payload});
+        return state;
       }
-      let isIncludedInUnseen =
-        !!state?.unseenChats?.[message.groupId] &&
-        state?.unseenChats?.[message.groupId].find(
-          item => item.id == message.id,
-        );
-      isIncludedInUnseen =
-        !!isIncludedInUnseen && Object.keys(isIncludedInUnseen).length != 0;
-      let unseenChatArray = state?.unseenChats[message.groupId] ?? [];
-      if (!isIncludeInHome && message.from != userInfo.username) {
-        unseenChatArray = [...unseenChatArray, {...message}];
-      }
-      // console.log({isInclude, isIncludeInHome, isRecordInHome, isGroupExists});
-      newState = {
-        ...newState,
-        individualChats: {
-          ...newState.individualChats,
-          [message.groupId]: individualArray,
-        },
-        homepageChats: homechatArray,
-        unseenChats: {
-          ...state.unseenChats,
-          [message.groupId]: unseenChatArray,
-        },
-      };
-      return newState;
     },
     storeStranger: (state, action) => {
       // console.log('running storeStranger');

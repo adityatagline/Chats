@@ -57,7 +57,7 @@ export const TopTabNavigator = () => {
             backgroundColor: themeRef.colors.appThemeColor,
             position: 'absolute',
             bottom: hp(2.5),
-            width: wp(90),
+            width: wp(60),
             elevation: 0,
             shadowOpacity: 0.4,
             shadowColor: themeRef.colors.appThemeColor,
@@ -95,7 +95,7 @@ export const TopTabNavigator = () => {
             },
           }}
         />
-        <TopTab.Screen
+        {/* <TopTab.Screen
           name={ScreenNames.TopTabScreens.StatusScreen}
           component={Status}
           options={{
@@ -103,7 +103,7 @@ export const TopTabNavigator = () => {
               <EntypoIcon name={'circular-graph'} size={24} color={color} />
             ),
           }}
-        />
+        /> */}
         <TopTab.Screen
           name={ScreenNames.TopTabScreens.ProfileScreen}
           component={Profile}

@@ -23,6 +23,12 @@ import {useDispatch} from 'react-redux';
 import {setLoadingState} from '../../../../redux/loading/LoadingSlice';
 import LoadingPage from '../../../components/LoadingPage';
 import {storeUserDataInRedux} from '../../../../redux/authentication/AuthenticationSlice';
+import BaseText from '../../../components/BaseText';
+import {
+  heightPercentageToDP,
+  widthPercentageToDP,
+} from 'react-native-responsive-screen';
+import {fontWeights} from '../../../strings/FontfamiliesNames';
 
 export default SignupScreen = () => {
   const themeRef = useTheme();
@@ -52,8 +58,8 @@ export default SignupScreen = () => {
   const changePassword = (func, text) => {
     func('password', text);
   };
-  const changePassword2 = (func, text) => {
-    setValidationError(pre => (pre == 'Password not matched' ? '' : pre));
+  const changePassword2 = (func, values, text) => {
+    setValidationError(text != values.password ? 'Password not matched' : '');
     func('password2', text);
   };
 
@@ -153,22 +159,40 @@ export default SignupScreen = () => {
     }
   };
 
-  const askForRecheck = values => {
+  const askForRecheck = (values, errors) => {
+    if (!!errors.phone) {
+      Alert.alert('Oops', errors.phone);
+      return;
+    } else if (!!errors.email) {
+      Alert.alert('Oops', errors.email);
+      return;
+    } else if (!!errors.password) {
+      Alert.alert('Oops', errors.password);
+      return;
+    } else if (!!errors.password2) {
+      Alert.alert('Oops', errors.password2);
+      return;
+    }
+    if (values.password != values.password2) {
+      Alert.alert('Oops', 'Both password not matched !!');
+      return;
+    }
     Alert.alert(
       'Are you sure with these details ?',
       `phone number : ${values.phone}`,
       [
-        {text: 'Confirm', onPress: () => signup(values)},
+        {text: 'Confirm', onPress: () => signup(values, errors)},
         {text: 'Cancel', onPress: () => {}, style: 'cancel'},
       ],
       {cancelable: false},
     );
   };
 
-  const signup = async values => {
+  const signup = async (values, errors) => {
     // Alert.alert('see', values.email.replaceAll('.', '-').replaceAll('@', '--'));
     // console.log('values');
     // console.log(values);
+
     setLoading('Registering you into our sweet record ..');
     const signupresponse = await signinToFirebase({
       email: values.email,
@@ -272,6 +296,14 @@ export default SignupScreen = () => {
                     {touched.email && !!errors.email && (
                       <Text style={styles.error}>{errors.email}</Text>
                     )}
+                    <BaseText
+                      weight={fontWeights.semiBold}
+                      otherStyles={{
+                        marginHorizontal: widthPercentageToDP(5),
+                        marginTop: heightPercentageToDP(0.5),
+                      }}>
+                      This email will be used in reset password.
+                    </BaseText>
                     <InputBox
                       label={'Password'}
                       value={values.password}
@@ -297,7 +329,11 @@ export default SignupScreen = () => {
                       focused={!!touched.password2}
                       focusFunction={focusPassword2.bind(this, setTouched)}
                       otherProps={{
-                        onChangeText: changePassword2.bind(this, setFieldValue),
+                        onChangeText: changePassword2.bind(
+                          this,
+                          setFieldValue,
+                          values,
+                        ),
                         onSubmitEditing: submitPassword2.bind(
                           this,
                           setTouched,
@@ -314,7 +350,7 @@ export default SignupScreen = () => {
                   </View>
                   <SimpleButton
                     title={'Sign Up'}
-                    onPress={askForRecheck.bind(this, values)}
+                    onPress={askForRecheck.bind(this, values, errors)}
                     containerStyle={[
                       styles.loginButton,
                       {

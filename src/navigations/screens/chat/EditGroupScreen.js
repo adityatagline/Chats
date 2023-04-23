@@ -22,33 +22,14 @@ import {fontWeights} from '../../../strings/FontfamiliesNames';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import {useEffect, useRef, useState} from 'react';
-import {
-  addMembers,
-  changeGroupName,
-  getGroupInfo,
-  getGroupsOfUser,
-  getStrangerInfoFromDB,
-  removeAdmin,
-  removeMember,
-  updateGPProfilePhotoInDB,
-  updateProfilePhotoInDB,
-} from '../../../../api/chat/ChatRequests';
+import {addMembers} from '../../../../api/chat/ChatRequests';
 import {FlatList} from 'react-native';
 import ChatAvatar from '../../../components/ChatAvatar';
 import IconButton from '../../../components/IconButton';
 import BaseModal from '../../../components/BaseModal';
 import TextButton from '../../../components/TextButton';
-import {makeAdmin} from '../../../../api/chat/ChatRequests';
 import LoadingPage, {BaseLoader} from '../../../components/LoadingPage';
-import MediaPickerOptionModal from '../../../components/MediaPickerOptionModal';
-import {
-  sendGPMessageToFB,
-  uploadProfilePic,
-} from '../../../../api/chat/firebaseSdkRequests';
-import {updateGroup} from '../../../../redux/chats/ChatSlice';
-import {useFormik} from 'formik';
-import {groupNameValidation} from '../authentication/ValidationSchemas';
-import {commonPageStyles} from '../authentication/commonPageStyles';
+
 import SimpleButton from '../../../components/SimpleButton';
 import AvatarListHorizontal from '../../../components/AvatarListHorizontal';
 
@@ -129,7 +110,7 @@ const EditGroupScreen = () => {
 
   const addMembersToGroup = async () => {
     setIsLoading(true);
-    let response = await addMembers(memberSelected, groupId);
+    let response = await addMembers(memberSelected, groupId, currentUser);
     setIsLoading(false);
     console.log({response});
     if (!response.isError) {

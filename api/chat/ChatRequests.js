@@ -328,6 +328,7 @@ export const createNewGroupInDB = async (
       date: new Date().toString(),
       groupId: randomGroupId,
       id: msgid,
+      members: memberArray,
     };
     let sendInitialMessage = await sendGPMessageToFB(
       randomGroupId,
@@ -436,7 +437,7 @@ export const checkIsMember = async (username, groupId) => {
   }
 };
 
-export const makeAdmin = async (username, groupId) => {
+export const makeAdmin = async (username, groupId, currentUser) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
 
@@ -450,6 +451,33 @@ export const makeAdmin = async (username, groupId) => {
       ...response.data,
       admins: newAdminArray,
     });
+    if (!!response.isError) {
+      return response;
+    }
+    let messageStr = `"${currentUser.username}" assigned Admin post to "${username}"`;
+    let objToGenID =
+      currentUser.username + groupId + messageStr.length > 10
+        ? messageStr.slice(0, 10)
+        : messageStr + new Date().toString();
+
+    let msgid = objToGenID.toString();
+    let initMsg = {
+      message: messageStr,
+      messageType: 'announcement',
+      from: groupId,
+      date: new Date().toString(),
+      groupId: groupId,
+      id: msgid,
+      members: response.data.members,
+    };
+    let sendInitialMessage = await sendGPMessageToFB(groupId, initMsg, false);
+    console.log({sendInitialMessage});
+
+    response = {
+      ...sendInitialMessage,
+      gpResponse: response,
+      message: initMsg,
+    };
     return response;
   } catch (error) {
     return {
@@ -459,7 +487,7 @@ export const makeAdmin = async (username, groupId) => {
   }
 };
 
-export const removeAdmin = async (username, groupId) => {
+export const removeAdmin = async (username, groupId, currentUser) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
 
@@ -473,6 +501,33 @@ export const removeAdmin = async (username, groupId) => {
       ...response.data,
       admins: newAdminArray,
     });
+    if (!!response.isError) {
+      return response;
+    }
+    let messageStr = `"${currentUser.username}" removed "${username}" from Admin post`;
+    let objToGenID =
+      currentUser.username + groupId + messageStr.length > 10
+        ? messageStr.slice(0, 10)
+        : messageStr + new Date().toString();
+
+    let msgid = objToGenID.toString();
+    let initMsg = {
+      message: messageStr,
+      messageType: 'announcement',
+      from: groupId,
+      date: new Date().toString(),
+      groupId: groupId,
+      id: msgid,
+      members: response.data.members,
+    };
+    let sendInitialMessage = await sendGPMessageToFB(groupId, initMsg, false);
+    console.log({sendInitialMessage});
+
+    response = {
+      ...sendInitialMessage,
+      gpResponse: response,
+      message: initMsg,
+    };
     return response;
   } catch (error) {
     return {
@@ -482,7 +537,7 @@ export const removeAdmin = async (username, groupId) => {
   }
 };
 
-export const removeMember = async (username, groupId) => {
+export const removeMember = async (username, groupId, currentUser) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
 
@@ -500,8 +555,41 @@ export const removeMember = async (username, groupId) => {
       admins: newAdminArray,
       members: newMemberArray,
     });
+    if (!!response.isError) {
+      return response;
+    }
+
+    let messageStr =
+      currentUser.username == username
+        ? `${username} left the group.`
+        : `"${currentUser.username}" removed "${username}" from this group`;
+    let objToGenID =
+      currentUser.username + groupId + messageStr.length > 10
+        ? messageStr.slice(0, 10)
+        : messageStr + new Date().toString();
+
+    let msgid = objToGenID.toString();
+    let initMsg = {
+      message: messageStr,
+      messageType: 'announcement',
+      from: groupId,
+      date: new Date().toString(),
+      groupId: groupId,
+      id: msgid,
+      members: newMemberArray,
+    };
+    let sendInitialMessage = await sendGPMessageToFB(groupId, initMsg, false);
+    // console.log({sendInitialMessage});
+
+    response = {
+      ...sendInitialMessage,
+      gpResponse: response,
+      message: initMsg,
+    };
+
     return response;
   } catch (error) {
+    console.log({errorInRemove: error});
     return {
       isError: true,
       error,
@@ -509,7 +597,7 @@ export const removeMember = async (username, groupId) => {
   }
 };
 
-export const addMembers = async (memberArray, groupId) => {
+export const addMembers = async (memberArray, groupId, currentUser) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
 
@@ -517,10 +605,61 @@ export const addMembers = async (memberArray, groupId) => {
     if (response.isError) {
       return response;
     }
+    let newMemberArray = [...response.data.members, ...memberArray];
     response = await apiRequest(url, 'PUT', {
       ...response.data,
-      members: [...response.data.members, memberArray],
+      members: newMemberArray,
     });
+    if (!response.isError) {
+      memberArray.forEach(async member => {
+        url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${member}.json`;
+        response = await apiRequest(url, 'GET');
+        if (!response.isError) {
+          let groups = !!response?.data?.groups ? response?.data?.groups : [];
+          groups.push(groupId);
+          response = await apiRequest(url, 'PUT', {
+            ...response.data,
+            groups,
+          });
+          if (!response.isError) {
+            let messageStr = `"${currentUser.username}" added "${member}" in this group`;
+            let objToGenID =
+              currentUser.username + groupId + messageStr.length > 10
+                ? messageStr.slice(0, 10)
+                : messageStr + new Date().toString();
+
+            let msgid = objToGenID.toString();
+            let initMsg = {
+              message: messageStr,
+              messageType: 'announcement',
+              from: groupId,
+              date: new Date().toString(),
+              groupId: groupId,
+              id: msgid,
+              members: newMemberArray,
+            };
+            let sendInitialMessage = await sendGPMessageToFB(
+              groupId,
+              initMsg,
+              false,
+            );
+            console.log({sendInitialMessage});
+
+            response = {
+              ...sendInitialMessage,
+              gpResponse: response,
+              message: initMsg,
+            };
+          } else {
+            console.log({error6: response.error});
+          }
+        } else {
+          console.log({error7: response.error});
+        }
+      });
+    } else {
+      console.log({error8: response.error});
+    }
     return response;
   } catch (error) {
     return {
@@ -530,7 +669,7 @@ export const addMembers = async (memberArray, groupId) => {
   }
 };
 
-export const changeGroupName = async (groupId, newName) => {
+export const changeGroupName = async (groupId, newName, currentUser) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/groups/${groupId}.json`;
 
@@ -538,11 +677,38 @@ export const changeGroupName = async (groupId, newName) => {
     if (response.isError) {
       return response;
     }
-
+    let oldName = response.data.name;
     response = await apiRequest(url, 'PUT', {
       ...response.data,
       name: !!newName ? newName : response.data.name,
     });
+    if (response.isError) {
+      return response;
+    }
+    let messageStr = `"${currentUser.username}" changed group name from "${oldName}" to "${newName}"`;
+    let objToGenID =
+      currentUser.username + groupId + messageStr.length > 10
+        ? messageStr.slice(0, 10)
+        : messageStr + new Date().toString();
+
+    let msgid = objToGenID.toString();
+    let initMsg = {
+      message: messageStr,
+      messageType: 'announcement',
+      from: groupId,
+      date: new Date().toString(),
+      groupId: groupId,
+      id: msgid,
+      members: response.data.members,
+    };
+    let sendInitialMessage = await sendGPMessageToFB(groupId, initMsg, false);
+    console.log({sendInitialMessage});
+
+    response = {
+      ...sendInitialMessage,
+      gpResponse: response,
+      message: initMsg,
+    };
     return response;
   } catch (error) {
     return {

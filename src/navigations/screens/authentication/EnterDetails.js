@@ -17,6 +17,7 @@ import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import ErrorCodes from '../../../../api/authentication/ErrorCodes';
 import {useDispatch} from 'react-redux';
 import {storeUserDataInRedux} from '../../../../redux/authentication/AuthenticationSlice';
+import LoadingPage from '../../../components/LoadingPage';
 
 export default EnterDetails = () => {
   const themeRef = useTheme();
@@ -62,6 +63,7 @@ export default EnterDetails = () => {
   const lastNameRef = useRef();
   const ageRef = useRef();
   const [isUsername, setIsUsername] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const dipatch = useDispatch();
 
@@ -117,10 +119,23 @@ export default EnterDetails = () => {
     }
   };
 
-  const addDetails = async values => {
+  const addDetails = async (values, errors) => {
+    console.log({errors});
+    if (!!errors.firstName) {
+      Alert.alert('Oops', errors.firstName);
+      return;
+    } else if (!!errors.lastName) {
+      Alert.alert('Oops', errors.lastName);
+      return;
+    } else if (!!errors.age) {
+      Alert.alert('Oops', errors.age);
+      return;
+    }
+    setIsLoading(true);
     const avaibility = await checkForUserNameAvaibility(values.username);
     if (!avaibility) {
       setIsUsername(true);
+      setIsLoading(false);
       return;
     }
     const sendData = await addUserToDatabase(
@@ -134,10 +149,12 @@ export default EnterDetails = () => {
     );
     if (sendData.isError) {
       Alert.alert('Oops !!', ErrorCodes[sendData.error].message);
+      setIsLoading(false);
       return;
     }
     // console.log({sendData});
     dipatch(storeUserDataInRedux({userDetails: {...sendData.response}}));
+    setIsLoading(false);
   };
 
   const initialNewUserValues = {
@@ -152,6 +169,12 @@ export default EnterDetails = () => {
       contentContainerStyle={[styles.container, {flexGrow: 1}]}
       extraScrollHeight={5}
       scrollEnabled={false}>
+      {isLoading && (
+        <LoadingPage
+          dark={themeRef.dark}
+          loadingText="Preparing space for your fresh account .."
+        />
+      )}
       <View style={[styles.screenStyle, styles.mainDiv]}>
         <HeadingLarge style={[styles.greetLarge]} text={'Basic Details !!'} />
         <HeadingLarge style={[styles.greetSmall]} text={'Let me know you :)'} />
@@ -277,12 +300,7 @@ export default EnterDetails = () => {
                 title={previousDetails.isNewUser ? 'Submit' : 'Next'}
                 containerStyle={[styles.verifyButton]}
                 textStyle={[styles.verifyButtonText]}
-                onPress={
-                  !errors.firstName &&
-                  !errors.lastName &&
-                  !errors.age &&
-                  addDetails.bind(this, values)
-                }
+                onPress={addDetails.bind(this, values, errors)}
               />
             </>
           )}

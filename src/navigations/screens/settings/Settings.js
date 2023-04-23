@@ -27,6 +27,7 @@ import {clearAllChats} from '../../../../redux/chats/ChatSlice';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 import ChatAvatar from '../../../components/ChatAvatar';
+import {logoutUserFromDB} from '../../../../api/authentication/AuthenticationRequests';
 
 export default Settings = props => {
   const themeRef = useTheme();
@@ -135,18 +136,19 @@ export default Settings = props => {
       {
         text: 'yes, log out',
         style: 'destructive',
-        onPress: async () => {
-          dispatch(clearAllChats());
-          setTimeout(() => {
-            dispatch(logout());
-          }, 1000);
-        },
+        onPress: async () => await clearChats(),
       },
       {
         text: 'cancel',
         style: 'cancel',
       },
     ]);
+  };
+
+  const clearChats = async () => {
+    dispatch(clearAllChats());
+    dispatch(logout());
+    await logoutUserFromDB(user.username);
   };
 
   return (
