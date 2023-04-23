@@ -13,6 +13,7 @@ const FileSharingTrayComponent = ({
   setterFunc,
   onImagePress,
   onVideoPress,
+  onDocPress,
 }) => {
   const themeRef = useTheme();
   const styles = StyleSheet.create({
@@ -59,15 +60,15 @@ const FileSharingTrayComponent = ({
         Animated.timing(fileSendingTray, {
           toValue: {
             x: hp(0),
-            y: wp(90),
+            y: wp(60),
           },
           duration: 200,
           useNativeDriver: false,
         }),
         Animated.timing(fileSendingTray, {
           toValue: {
-            x: hp(10),
-            y: wp(90),
+            x: hp(8),
+            y: wp(60),
           },
           duration: 300,
           useNativeDriver: false,
@@ -94,8 +95,8 @@ const FileSharingTrayComponent = ({
         }),
         Animated.timing(fileSendingTray, {
           toValue: {
-            x: hp(10),
-            y: wp(90),
+            x: hp(8),
+            y: wp(60),
           },
           duration: 250,
           useNativeDriver: false,
@@ -103,7 +104,7 @@ const FileSharingTrayComponent = ({
         Animated.timing(fileSendingTray, {
           toValue: {
             x: hp(0),
-            y: wp(90),
+            y: wp(60),
           },
           duration: 100,
           useNativeDriver: false,
@@ -164,11 +165,12 @@ const FileSharingTrayComponent = ({
             <IconButton
               name={'document'}
               color={themeRef.colors.appThemeColor}
+              onPress={onDocPress}
             />
-            <IconButton
+            {/* <IconButton
               name={'location'}
               color={themeRef.colors.appThemeColor}
-            />
+            /> */}
           </Animated.View>
         </Animated.View>
       ) : null}

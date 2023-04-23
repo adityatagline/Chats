@@ -240,7 +240,8 @@ const RenderMediaComponent = ({
         </View>
       );
 
-    case 'file':
+    case 'documentFile':
+
     case 'video':
       return (
         <View

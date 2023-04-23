@@ -32,6 +32,7 @@ import FileSharingTrayComponent from './FileSharingTrayComponent';
 import ChatTextInputContainer from './ChatTextInputContainer';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import MediaPickerOptionModal, {
+  openDocumentPicker,
   openMediaPickerModal,
 } from '../../../components/MediaPickerOptionModal';
 import {array} from 'yup';
@@ -267,6 +268,13 @@ const GroupChatScreen = () => {
     setShowPickerOptions('video');
   };
 
+  const openDocPicker = async () => {
+    const response = await openDocumentPicker();
+    if (!response.isError) {
+      let sendRes = await sendMedia('documentFile', response.assetsArray);
+    }
+  };
+
   const handleDownload = (downloadObj, chatObj) => {
     // console.log({downloadObj, chatObj});
     Alert.alert('In Progress');
@@ -352,6 +360,7 @@ const GroupChatScreen = () => {
             setterFunc={setIsFileSendingTrayOpen}
             onImagePress={openImagePicker}
             onVideoPress={openVideoPicker}
+            onDocPress={openDocPicker}
           />
 
           <ChatTextInputContainer

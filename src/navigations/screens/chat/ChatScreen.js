@@ -27,6 +27,7 @@ import FileSharingTrayComponent from './FileSharingTrayComponent';
 import ChatTextInputContainer from './ChatTextInputContainer';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import MediaPickerOptionModal, {
+  openDocumentPicker,
   openMediaPickerModal,
 } from '../../../components/MediaPickerOptionModal';
 import {FirebaseStreamTaskContext} from '../../../../context/FirebaseStreamTaskContext';
@@ -157,31 +158,35 @@ export default ChatScreen = () => {
   };
 
   const sendMedia = async (type, assetsArray) => {
-    // console.log({type, assetsArray});
-    // Alert.alert(
-    //   'Sorry !!',
-    //   'This feature is in developement for the time being.',
-    // );
-    // return;
-    setIsFileSendingTrayOpen(false);
-    setShowPickerOptions('');
-    assetsArray.forEach(async element => {
-      let {filename} = element;
-      if (!filename || filename == undefined || filename == 'undefined') {
-        filename = element.path.split('/').reverse()[0];
-      }
-      let uploadedObj = await uploadFileToFirebase(
-        element,
-        `chats${type}/${currentUserInfo.username}/${userInfo.username}/${element.filename}`,
-        taskContextRef,
-        sendMediaMessage,
-        userInfo.username,
-        {
-          filename,
-          type,
-        },
-      );
-    });
+    try {
+      // console.log({type, assetsArray});
+      // Alert.alert(
+      //   'Sorry !!',
+      //   'This feature is in developement for the time being.',
+      // );
+      // return;
+      setIsFileSendingTrayOpen(false);
+      setShowPickerOptions('');
+      assetsArray.forEach(async element => {
+        let {filename} = element;
+        if (!filename || filename == undefined || filename == 'undefined') {
+          filename = element.path.split('/').reverse()[0];
+        }
+        let uploadedObj = await uploadFileToFirebase(
+          element,
+          `chats${type}/${currentUserInfo.username}/${userInfo.username}/${element.filename}`,
+          taskContextRef,
+          sendMediaMessage,
+          userInfo.username,
+          {
+            filename,
+            type,
+          },
+        );
+      });
+    } catch (error) {
+      console.log({erroInSendMed: error});
+    }
   };
 
   const sendMediaMessage = async (mediaObj, type) => {
@@ -226,6 +231,13 @@ export default ChatScreen = () => {
 
   const openVideoPicker = () => {
     setShowPickerOptions('video');
+  };
+
+  const openDocPicker = async () => {
+    const response = await openDocumentPicker();
+    if (!response.isError) {
+      let sendRes = await sendMedia('documentFile', response.assetsArray);
+    }
   };
 
   const handleDownload = (downloadObj, chatObj) => {
@@ -324,6 +336,7 @@ export default ChatScreen = () => {
             setterFunc={setIsFileSendingTrayOpen}
             onImagePress={openImagePicker}
             onVideoPress={openVideoPicker}
+            onDocPress={openDocPicker}
           />
 
           <ChatTextInputContainer

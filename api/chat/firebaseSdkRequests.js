@@ -184,11 +184,11 @@ export const uploadFileToFirebase = async (
           uploadContext.updateTask(uploadResponse._id, username, stateDetails);
         }
       } catch (error) {
-        // console.log({errorInOn: error});
+        console.log({errorInOn: error});
       }
     });
   } catch (error) {
-    // console.log({errorinuploadFileToFirebase: error});
+    console.log({errorinuploadFileToFirebase: error});
     return {
       isError: true,
       error,

@@ -54,6 +54,7 @@ export default HomeScreen = props => {
   const [isLoading, setisLoading] = useState(false);
   const [messageToBedeleted, setMessageToBedeleted] = useState([]);
   const [strangerArray, setStrangerArray] = useState([]);
+  const [searchText, setSearchText] = useState('');
   // console.log({chatSliceRef});
   // dispatch(logout());
   // console.log({groups: chatSliceRef.groups});
@@ -251,6 +252,16 @@ export default HomeScreen = props => {
 
   const sendNoti = () => {};
 
+  const searchInHomeChat = text => {
+    setSearchText(text);
+    let filteredItems = chatSliceRef.homepageChats.filter(item => {
+      if (item.chatName.includes(text)) {
+        return item;
+      }
+    });
+    console.log({filteredItems});
+  };
+
   return (
     <View style={[styles.mainDiv]}>
       <>
@@ -283,10 +294,10 @@ export default HomeScreen = props => {
           </BaseText>
         </TouchableOpacity> */}
         <View style={styles.searchDiv}>
-          <SearchPage />
+          <SearchPage searchText={searchText} onChangeText={searchInHomeChat} />
         </View>
 
-        <HomepageChatsPage />
+        {!searchText && <HomepageChatsPage />}
         <AppStatusBar dark={themeRef.dark} />
       </>
     </View>

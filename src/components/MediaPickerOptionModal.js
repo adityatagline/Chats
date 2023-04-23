@@ -22,6 +22,8 @@ import {
   openPicker,
 } from 'react-native-image-crop-picker';
 import {useEffect} from 'react';
+import {pickMultiple} from 'react-native-document-picker';
+import getPath from '@flyerhq/react-native-android-uri-path';
 
 export const openMediaPickerModal = async (
   mode,
@@ -171,6 +173,35 @@ const MediaPickerOptionModal = ({
       />
     </BaseModal>
   );
+};
+
+export const openDocumentPicker = async () => {
+  try {
+    const response = await pickMultiple({
+      allowMultiSelection: true,
+      mode: 'open',
+    });
+    let arrayToReturn = [];
+    response.map(item => {
+      let path = Platform.OS == 'android' ? getPath(item.uri) : item.uri;
+      arrayToReturn.push({
+        ...item,
+        filename: item.name,
+        path,
+      });
+    });
+    console.log({docPickerRes: arrayToReturn, response});
+    return {
+      isError: false,
+      assetsArray: arrayToReturn,
+    };
+  } catch (error) {
+    console.log({errrdocPickerRes: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
 };
 
 export default MediaPickerOptionModal;

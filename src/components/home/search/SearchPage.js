@@ -9,9 +9,13 @@ import {useState} from 'react';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
 import {fontSize} from '../../../styles/commonStyles';
 
-export default SearchPage = ({isLeft, containerStyle}) => {
+export default SearchPage = ({
+  isLeft,
+  containerStyle,
+  searchText,
+  onChangeText,
+}) => {
   const themeRef = useTheme();
-  const [searchText, setSearchText] = useState('');
 
   const styles = StyleSheet.create({
     mainDiv: {
@@ -53,7 +57,7 @@ export default SearchPage = ({isLeft, containerStyle}) => {
         value={searchText}
         placeholder={'Search in chats ..'}
         placeholderTextColor={themeRef.colors.secondaryColor}
-        onChangeText={setSearchText}
+        onChangeText={onChangeText}
       />
     </View>
   );
