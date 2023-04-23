@@ -252,9 +252,9 @@ export default LoginScreen = () => {
                       {
                         backgroundColor:
                           themeRef.colors[
-                            !errors.email && !errors.password
-                              ? 'appThemeColor'
-                              : 'primaryColor'
+                            !!errors.email || !!errors.password
+                              ? 'primaryColor'
+                              : 'appThemeColor'
                           ],
                       },
                     ]}

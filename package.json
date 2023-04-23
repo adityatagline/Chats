@@ -9,7 +9,7 @@
     "test": "jest",
     "lint": "eslint .",
     "pod": "npx pod-install ios",
-    "release-apk": "cd android && ./gradlew assembleRelease && open ./app/build/outputs/apk/release",
+    "release-apk": "cd android && ./gradlew clean && ./gradlew assembleRelease && open ./app/build/outputs/apk/release",
     "clean-install": "rm -rf node_modules && rm -rf yarn.lock && rm -rf package-lock.json && rm -rf ios/Pods && rm -rf ios/Podfile.lock && yarn install && npx pod-install",
     "clean-android": "cd android && ./gradlew clean && cd .. && yarn android"
   },
@@ -35,7 +35,6 @@
     "react-native-image-crop-picker": "0.38.1",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-pager-view": "^6.1.2",
-    "react-native-push-notification": "^8.1.1",
     "react-native-responsive-screen": "^1.4.2",
     "react-native-safe-area-context": "^4.4.1",
     "react-native-screens": "^3.19.0",

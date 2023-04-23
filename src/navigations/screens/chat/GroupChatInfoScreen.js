@@ -123,9 +123,11 @@ const GroupChatInfoScreen = () => {
 
   const storeMembers = memberArr => {
     let arrayToSet = [];
+    let isIncludeCurUser = false;
     memberArr.map(item => {
       let {username} = item;
       if (username == currentUser.username) {
+        isIncludeCurUser = true;
         // console.log({username});
       } else if (!!chatSliceRef?.friends?.[username]) {
         arrayToSet.push({
@@ -141,11 +143,15 @@ const GroupChatInfoScreen = () => {
         arrayToSet.push({...item, isFriend: false});
       }
     });
-    // console.log({arrayToSet});
-    setGroupMembers([
-      {...currentUser, profilePhoto: currentUser?.profilePhotoObject?.uri},
-      ...arrayToSet,
-    ]);
+    // console.log({memberArr});
+    let newArray = [...arrayToSet];
+    if (!!isIncludeCurUser) {
+      newArray.unshift({
+        ...currentUser,
+        profilePhoto: currentUser?.profilePhotoObject?.uri,
+      });
+    }
+    setGroupMembers(newArray);
   };
 
   const getInitialInfo = async () => {

@@ -131,7 +131,11 @@ export default HomeScreen = props => {
               messageArray.push(obj[key]);
             }
             messageArray.forEach(async element => {
-              console.log({element: element?.members});
+              // console.log({
+              //   con: !element?.members?.includes(
+              //     authenticationSlice?.user?.username,
+              //   ),
+              // });
               if (
                 !element?.members?.includes(authenticationSlice?.user?.username)
               ) {

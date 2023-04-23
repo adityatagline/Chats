@@ -93,21 +93,21 @@ const GroupChatScreen = () => {
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
-  const [groupInfo, setGroupInfo] = useState();
+  const [groupInfo, setGroupInfo] = useState(chatSliceRef.groups[groupId]);
+  console.log({groupInfo, gpREd: chatSliceRef.groups});
 
   const [isMember, setIsMember] = useState(true);
 
   const getInitialData = async () => {
     let response = await getGroupsOfUser(currentUserInfo.username);
-    if (!response.isError) {
-      dispatch(storeGroups({groups: response.data}));
+    if (!!response.isError) {
       return;
     }
+    dispatch(storeGroups({groups: response.data}));
     response = await getGroupInfo(groupId);
     if (!response.isError) {
+      console.log({responseGP: response});
       setGroupInfo(response.data);
-      dispatch(updateGroup({groupInfo: response.data}));
-      setIsLoading(false);
     } else {
       console.log({errorInGPCHat: response.error});
     }
@@ -116,17 +116,17 @@ const GroupChatScreen = () => {
   };
 
   useEffect(() => {
-    getInitialData();
-  }, []);
+    !!groupId && getInitialData();
+  }, [groupId]);
 
-  useEffect(() => {
-    if (!!chatSliceRef.groups[groupId]) {
-      const groupIN = chatSliceRef?.groups?.[groupId];
-      const checkMember = !!groupIN?.members?.[currentUserInfo.username];
-      // alert(checkMember);
-      setIsMember(!!checkMember);
-    }
-  }, [chatSliceRef.groups]);
+  // useEffect(() => {
+  //   if (!!chatSliceRef.groups[groupId]) {
+  //     const groupIN = chatSliceRef?.groups?.[groupId];
+  //     const checkMember = !!groupIN?.members?.[currentUserInfo.username];
+  //     // alert(checkMember);
+  //     setIsMember(!!checkMember);
+  //   }
+  // }, [chatSliceRef.groups]);
 
   useEffect(() => {
     !!chatSliceRef.individualChats[groupId] &&
@@ -157,43 +157,47 @@ const GroupChatScreen = () => {
   }, [showPickerOptions, isFileSendingTrayOpen]);
 
   useEffect(() => {
-    const checkAndDeleteMessage = async () => {
-      let {unseenChats} = chatSliceRef;
-    };
-    checkAndDeleteMessage();
+    // const checkAndDeleteMessage = async () => {
+    //   let {unseenChats} = chatSliceRef;
+    // };
+    // checkAndDeleteMessage();
   }, [chatSliceRef.unseenChats]);
 
   const sendMessage = async message => {
-    if (!message) {
-      Alert.alert('Oops', 'Write something to send ..');
-      return;
-    }
-    if (!connectionInfo.isConnected) {
-      Alert.alert('Oops', 'You are not connected to internet ..');
-      return;
-    }
-    setUserChatMessage('');
+    try {
+      if (!message) {
+        Alert.alert('Oops', 'Write something to send ..');
+        return;
+      }
+      if (!connectionInfo.isConnected) {
+        Alert.alert('Oops', 'You are not connected to internet ..');
+        return;
+      }
+      setUserChatMessage('');
 
-    let objToGenID =
-      currentUserInfo.username + groupId + message.length > 10
-        ? message.slice(0, 10)
-        : message + new Date().toString();
-    let id = objToGenID.toString();
+      let objToGenID =
+        currentUserInfo.username + groupId + message.length > 10
+          ? message.slice(0, 10)
+          : message + new Date().toString();
+      let id = objToGenID.toString();
 
-    let chatObject = {
-      from: currentUserInfo.username,
-      date: new Date().toString(),
-      message,
-      isSending: true,
-      id,
-      groupId,
-      members: groupInfo.members,
-    };
-    // let receiverObject = {otherUser: userInfo.username};
-    // // console.log({chatObject});
-    // dispatch(storeMessage({chatObject, receiverObject}));
-    const response = await sendGPMessageToFB(groupId, chatObject, false);
-    // console.log({response});
+      let chatObject = {
+        from: currentUserInfo.username,
+        date: new Date().toString(),
+        message,
+        isSending: true,
+        id,
+        groupId,
+        members: groupInfo.members,
+      };
+      // let receiverObject = {otherUser: userInfo.username};
+      // // console.log({chatObject});
+      // dispatch(storeMessage({chatObject, receiverObject}));
+      const response = await sendGPMessageToFB(groupId, chatObject, false);
+      // console.log({response});
+    } catch (error) {
+      console.log({errorInGPSEND: error, groupInfo});
+    }
   };
 
   const sendMedia = async (type, assetsArray) => {
@@ -311,11 +315,11 @@ const GroupChatScreen = () => {
       /> */}
       <SafeAreaView style={[commonStyles.screenStyle, styles.mainDiv]}>
         <ChatScreenHeaderComponent
-          displayChatName={chatSliceRef.groups[groupId].name}
+          displayChatName={chatSliceRef?.groups[groupId]?.name ?? chatName}
           onChatNamePress={goToInfo}
           onInfoPress={() => {}}
           onOptionPress={() => {}}
-          chatProfilePhoto={chatSliceRef.groups[groupId].profilePhoto}
+          chatProfilePhoto={chatSliceRef?.groups[groupId]?.profilePhoto}
         />
         <NoChatAnimatedCompoenet
           visibility={chatContent.length == 0}

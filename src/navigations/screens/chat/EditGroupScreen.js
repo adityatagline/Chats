@@ -312,45 +312,30 @@ const EditGroupScreen = () => {
           </>
         }
 
-        {memberList.length - memberSelected.length - groupMembers.length ==
-        0 ? (
+        <>
           <BaseText
             size={fontSize.big}
             color={themeRef.colors.appThemeColor}
             weight={fontWeights.semiBold}
             otherStyles={{
-              flex: 1,
-              paddingTop: hp(5),
-              alignSelf: 'center',
+              marginVertical: hp(1),
+              marginLeft: wp(2),
             }}>
-            No member remaining to add.
+            Your Contacts
           </BaseText>
-        ) : (
-          <>
-            <BaseText
-              size={fontSize.big}
-              color={themeRef.colors.appThemeColor}
-              weight={fontWeights.semiBold}
-              otherStyles={{
-                marginVertical: hp(1),
-                marginLeft: wp(2),
-              }}>
-              Your Contacts
-            </BaseText>
 
-            <View
-              style={{
-                flex: 1,
-                // backgroundColor: 'red',
-              }}>
-              <FlatList
-                data={memberList}
-                renderItem={RenderContacts}
-                keyExtractor={(item, index) => index}
-              />
-            </View>
-          </>
-        )}
+          <View
+            style={{
+              flex: 1,
+              // backgroundColor: 'red',
+            }}>
+            <FlatList
+              data={memberList}
+              renderItem={RenderContacts}
+              keyExtractor={(item, index) => index}
+            />
+          </View>
+        </>
 
         {memberSelected.length != 0 && (
           <SimpleButton
