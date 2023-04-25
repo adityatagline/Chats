@@ -75,12 +75,16 @@ export default HomeScreen = props => {
         .doc('individual')
         .collection(authenticationSlice.user.username)
         .onSnapshot(res => {
-          // console.log({resInMain: res});
           const docChanges = res.docChanges();
+          console.log({docChanges});
           let arrayToCheck = [];
           let usersArray = [];
           docChanges.forEach(item => {
             const data = item.doc.data();
+            const {id} = item.doc;
+            if (id == 'lastSeen') {
+              return;
+            }
             arrayToCheck.push({
               ...data,
             });
@@ -176,7 +180,7 @@ export default HomeScreen = props => {
     };
 
     if (messageToBedeleted.length != 0) {
-      // deleteMessages();
+      deleteMessages();
     }
   }, [messageToBedeleted]);
 

@@ -211,3 +211,77 @@ export const deleteFromFBStorage = async path => {
     };
   }
 };
+
+export const sendLastSeen = async (username, otherUser, chatObject) => {
+  try {
+    let send = await firestore()
+      .collection('chats')
+      .doc('individual')
+      .collection(username)
+      .doc('lastSeen')
+      .set(
+        {[otherUser]: chatObject},
+        {
+          merge: true,
+        },
+      );
+
+    return {
+      isError: false,
+      data: send,
+    };
+  } catch (error) {
+    console.log({errorsendLastSeen: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const sendGPLastSeen = async (username, groupId, chatObject) => {
+  try {
+    let send = await firestore()
+      .collection('groupChats')
+      .doc(groupId)
+      .collection('lastSeen')
+      .doc(username)
+      .set(chatObject, {
+        merge: true,
+      });
+
+    return {
+      isError: false,
+      data: send,
+    };
+  } catch (error) {
+    console.log({errorsendLastSeen: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const clearAllIndividualChats = async (username, chatArray) => {
+  try {
+    let response;
+    chatArray.forEach(async chatObj => {
+      response = await firestore()
+        .collection('chats')
+        .doc('individual')
+        .collection(username)
+        .doc(chatObj.id)
+        .delete();
+    });
+    return {
+      isError: false,
+      data: response,
+    };
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};

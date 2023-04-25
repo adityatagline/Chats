@@ -384,6 +384,7 @@ export const getGroupsOfUser = async username => {
       objToReturn[groupid] = {
         ...groupData.data,
         members: groupUsers,
+        memberUsernames: groupData.data.members,
       };
     }
     // console.log({objToReturn});
@@ -561,7 +562,7 @@ export const removeMember = async (username, groupId, currentUser) => {
 
     let messageStr =
       currentUser.username == username
-        ? `${username} left the group.`
+        ? `"${username}" left the group.`
         : `"${currentUser.username}" removed "${username}" from this group`;
     let objToGenID =
       currentUser.username + groupId + messageStr.length > 10

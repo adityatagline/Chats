@@ -73,7 +73,7 @@ const ChatInfoScreen = () => {
           color={themeRef.colors.secondaryColor}
           size={fontSize.medium}
           weight={fontWeights.medium}>
-          uid@{username}
+          chats@{username}
         </BaseText>
         <View
           style={{

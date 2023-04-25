@@ -169,7 +169,6 @@ const GroupChatInfoScreen = () => {
       // console.log({getInitialInfo: newMemberArray});
       storeMembers(newMemberArray);
       setGroupInfo(response.data);
-      dispatch(updateGroup({groupInfo: response.data}));
       setFieldValue('groupName', response.data.name);
       setIsLoading(false);
     }
@@ -258,7 +257,11 @@ const GroupChatInfoScreen = () => {
       setIsLoading(true);
       setOptionUser();
       setShowOptionModal(false);
-      const response = await removeMember(currentUser, groupId, currentUser);
+      const response = await removeMember(
+        currentUser.username,
+        groupId,
+        currentUser,
+      );
       if (!!response.isError) {
         console.log({response});
         return;
@@ -486,7 +489,9 @@ const GroupChatInfoScreen = () => {
       <BaseModal
         visibility={!!showOptionModal || !!isEditingName}
         onOutsidePressHandler={closeOptionModal}
-        customBottomPosition={isEditingName ? hp(40) : undefined}>
+        customBottomPosition={
+          isEditingName ? hp(Platform.OS == 'android' ? 0 : 40) : undefined
+        }>
         {!!isEditingName && !isLoading ? (
           <>
             <SettingItem
@@ -593,7 +598,7 @@ const GroupChatInfoScreen = () => {
             marginLeft: 0,
           }}
           rightButton={
-            !isLoading ? (
+            !isLoading && groupInfo?.members?.includes(currentUser.username) ? (
               <TouchableOpacity
                 onPress={showConfirm.bind(this, 'leaveGroup')}
                 style={{

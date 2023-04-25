@@ -1,6 +1,13 @@
-import {StyleSheet, Platform, FlatList, Alert, BackHandler} from 'react-native';
+import {
+  StyleSheet,
+  Platform,
+  FlatList,
+  Alert,
+  BackHandler,
+  View,
+} from 'react-native';
 import React, {useContext} from 'react';
-import {commonStyles, dimensions} from '../../../styles/commonStyles';
+import {commonStyles, dimensions, fontSize} from '../../../styles/commonStyles';
 import {useEffect} from 'react';
 import {useState} from 'react';
 import {useRef} from 'react';
@@ -12,6 +19,7 @@ import {useNavigation, useRoute, useTheme} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
 import {
+  addInGpChat,
   changeMediaStatus,
   storeGroups,
   storeMessage,
@@ -19,6 +27,7 @@ import {
   updateGroup,
 } from '../../../../redux/chats/ChatSlice';
 import {
+  sendGPLastSeen,
   sendGPMessageToFB,
   sendMessageToFirestore,
   uploadFileToFirebase,
@@ -46,6 +55,9 @@ import {
   getGroupsOfUser,
   getStrangerInfoFromDB,
 } from '../../../../api/chat/ChatRequests';
+import firestore from '@react-native-firebase/firestore';
+import BaseText from '../../../components/BaseText';
+import {fontWeights} from '../../../strings/FontfamiliesNames';
 
 const GroupChatScreen = () => {
   const themeRef = useTheme();
@@ -78,7 +90,7 @@ const GroupChatScreen = () => {
 
   const dispatch = useDispatch();
   const chatSliceRef = useSelector(state => state.chatSlice);
-  // console.log({chatSliceRef});
+  // console.log({chatSliceRef: chatSliceRef.unseenChats});
   const authenticationSliceRef = useSelector(
     state => state.authenticationSlice,
   );
@@ -94,10 +106,8 @@ const GroupChatScreen = () => {
   const [isFileSendingTrayOpen, setIsFileSendingTrayOpen] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
-  const [groupInfo, setGroupInfo] = useState(chatSliceRef.groups[groupId]);
-  console.log({groupInfo, gpREd: chatSliceRef.groups});
-
-  const [isMember, setIsMember] = useState(true);
+  const [lastSeen, setLastSeen] = useState();
+  // console.log({lastSeen});
 
   const getInitialData = async () => {
     let response = await getGroupsOfUser(currentUserInfo.username);
@@ -105,19 +115,29 @@ const GroupChatScreen = () => {
       return;
     }
     dispatch(storeGroups({groups: response.data}));
-    response = await getGroupInfo(groupId);
-    if (!response.isError) {
-      console.log({responseGP: response});
-      setGroupInfo(response.data);
-    } else {
-      console.log({errorInGPCHat: response.error});
-    }
 
     // setIsMember(false);
   };
 
   useEffect(() => {
-    !!groupId && getInitialData();
+    if (!!groupId) {
+      getInitialData();
+      const seenListner = firestore()
+        .collection('groupChats')
+        .doc(groupId)
+        .collection('lastSeen')
+        .onSnapshot(res => {
+          const changeArr = res.docChanges();
+          changeArr.forEach(element => {
+            const {id} = element.doc;
+
+            setLastSeen(pre => {
+              return {...pre, [id]: element.doc.data()};
+            });
+          });
+        });
+      return () => seenListner();
+    }
   }, [groupId]);
 
   // useEffect(() => {
@@ -158,10 +178,13 @@ const GroupChatScreen = () => {
   }, [showPickerOptions, isFileSendingTrayOpen]);
 
   useEffect(() => {
-    // const checkAndDeleteMessage = async () => {
-    //   let {unseenChats} = chatSliceRef;
-    // };
-    // checkAndDeleteMessage();
+    const checkAndDeleteMessage = async () => {
+      let unseenChats = chatSliceRef.unseenChats[groupId];
+      // dispatch(addInGpChat({groupId}));
+      await sendGPLastSeen(currentUserInfo.username, groupId, unseenChats[0]);
+      console.log({'unseenChats[0]': unseenChats[0]});
+    };
+    checkAndDeleteMessage();
   }, [chatSliceRef.unseenChats]);
 
   const sendMessage = async message => {
@@ -189,7 +212,7 @@ const GroupChatScreen = () => {
         isSending: true,
         id,
         groupId,
-        members: groupInfo.members,
+        members: chatSliceRef.groups[groupId].memberUsernames,
       };
       // let receiverObject = {otherUser: userInfo.username};
       // // console.log({chatObject});
@@ -197,7 +220,7 @@ const GroupChatScreen = () => {
       const response = await sendGPMessageToFB(groupId, chatObject, false);
       // console.log({response});
     } catch (error) {
-      console.log({errorInGPSEND: error, groupInfo});
+      console.log({errorInGPSEND: error});
     }
   };
 
@@ -281,20 +304,58 @@ const GroupChatScreen = () => {
     // dispatch(changeMediaStatus({downloadObj, chatObj}));
   };
 
-  const RenderChatComp = ({item, index, chatArray}) => (
-    <ChatMessageComponent
-      {...{
-        item,
-        index,
-        chatArray,
-        currentUserInfo,
-        themeRef,
-        isGroup: true,
-        handleDownload,
-        chatSliceRef,
-      }}
-    />
-  );
+  const RenderChatComp = ({item, index, chatArray}) => {
+    let seenMemberString = '';
+    if (!!lastSeen) {
+      for (const username in lastSeen) {
+        if (
+          lastSeen[username].id == item.id &&
+          username != currentUserInfo.username
+        ) {
+          seenMemberString += username + ' ,';
+        }
+      }
+    }
+    seenMemberString = !!seenMemberString
+      ? seenMemberString.slice(0, seenMemberString.length - 2)
+      : '';
+    return (
+      <>
+        {!!seenMemberString && (
+          <View
+            style={{
+              alignSelf: 'flex-end',
+              marginRight: wp(1),
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}>
+            <IconButton
+              name={'eye'}
+              size={15}
+              containerStyle={{
+                marginHorizontal: wp(1),
+              }}
+            />
+            <BaseText size={fontSize.tiny} weight={fontWeights.bold}>
+              Seen by {seenMemberString}
+            </BaseText>
+          </View>
+        )}
+        <ChatMessageComponent
+          {...{
+            item,
+            index,
+            chatArray,
+            currentUserInfo,
+            themeRef,
+            isGroup: true,
+            handleDownload,
+            chatSliceRef,
+          }}
+        />
+      </>
+    );
+  };
 
   const goToInfo = () => {
     navigation.navigate(ScreenNames.GroupChatInfoScreen, {
@@ -363,17 +424,21 @@ const GroupChatScreen = () => {
             onDocPress={openDocPicker}
           />
 
-          <ChatTextInputContainer
-            userChatMessage={userChatMessage}
-            setUserChatMessage={setUserChatMessage}
-            toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
-            isFileSendingTrayOpen={isFileSendingTrayOpen}
-            sendMessage={sendMessage}
-            onPressCamera={async () => {
-              let photoObj = await openMediaPickerModal('camera', 'photo', 1);
-              let upload = await sendMedia('photo', photoObj);
-            }}
-          />
+          {!!chatSliceRef?.groups?.[groupId]?.members[
+            currentUserInfo.username
+          ] && (
+            <ChatTextInputContainer
+              userChatMessage={userChatMessage}
+              setUserChatMessage={setUserChatMessage}
+              toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
+              isFileSendingTrayOpen={isFileSendingTrayOpen}
+              sendMessage={sendMessage}
+              onPressCamera={async () => {
+                let photoObj = await openMediaPickerModal('camera', 'photo', 1);
+                let upload = await sendMedia('photo', photoObj);
+              }}
+            />
+          )}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </>

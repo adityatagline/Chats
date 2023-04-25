@@ -1,6 +1,13 @@
-import {StyleSheet, Platform, FlatList, Alert, BackHandler} from 'react-native';
+import {
+  StyleSheet,
+  Platform,
+  FlatList,
+  Alert,
+  BackHandler,
+  View,
+} from 'react-native';
 import React, {useContext} from 'react';
-import {commonStyles, dimensions} from '../../../styles/commonStyles';
+import {commonStyles, dimensions, fontSize} from '../../../styles/commonStyles';
 import {useEffect} from 'react';
 import {useState} from 'react';
 import {
@@ -12,9 +19,12 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   changeMediaStatus,
+  removeUnseenChats,
   storeMessage,
 } from '../../../../redux/chats/ChatSlice';
 import {
+  clearAllIndividualChats,
+  sendLastSeen,
   sendMessageToFirestore,
   uploadFileToFirebase,
 } from '../../../../api/chat/firebaseSdkRequests';
@@ -34,6 +44,10 @@ import {FirebaseStreamTaskContext} from '../../../../context/FirebaseStreamTaskC
 import OptionModal from './OptionModal';
 import ScreenNames from '../../../strings/ScreenNames';
 import UploadingTrayComponent from './UploadingTrayComponent';
+import IconButton from '../../../components/IconButton';
+import firestore from '@react-native-firebase/firestore';
+import BaseText from '../../../components/BaseText';
+import {fontWeights} from '../../../strings/FontfamiliesNames';
 
 export default ChatScreen = () => {
   const themeRef = useTheme();
@@ -82,6 +96,8 @@ export default ChatScreen = () => {
   const [optionModalVisibility, setOptionModalVisibility] = useState(false);
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
+  const [lastSeen, setLastSeen] = useState();
+  console.log({lastSeen});
 
   useEffect(() => {
     !!chatSliceRef.individualChats[userInfo.username] &&
@@ -113,14 +129,46 @@ export default ChatScreen = () => {
 
   useEffect(() => {
     const checkAndDeleteMessage = async () => {
-      let {unseenChats} = chatSliceRef;
+      let unseenChats = chatSliceRef?.unseenChats?.[userInfo.username];
+      console.log({unseenChats});
+      if (!!unseenChats && unseenChats.length != 0) {
+        let sendRes = await sendLastSeen(
+          currentUserInfo.username,
+          userInfo.username,
+          unseenChats[0],
+        );
+
+        if (!sendRes.isError) {
+          dispatch(
+            removeUnseenChats({
+              username: userInfo.username,
+              chatArray: unseenChats,
+            }),
+          );
+        }
+      }
       // unseenChats = unseenChats.filter(
       //   item => item.otherUser == userInfo.username,
       // );
-      // console.log({unseenChatsInChatScreen: unseenChats});
+      console.log({unseenChatsInChatScreen: unseenChats});
     };
     checkAndDeleteMessage();
   }, [chatSliceRef.unseenChats]);
+
+  useEffect(() => {
+    let seenListner = firestore()
+      .collection('chats')
+      .doc('individual')
+      .collection(userInfo.username)
+      .doc('lastSeen')
+      .onSnapshot(res => {
+        let response = res.data();
+        if (!!response?.[currentUserInfo?.username]) {
+          setLastSeen(response[currentUserInfo.username]);
+        }
+      });
+    return () => seenListner();
+  }, []);
 
   const sendMessage = async message => {
     if (!message) {
@@ -245,18 +293,41 @@ export default ChatScreen = () => {
   };
 
   const RenderChatComp = ({item, index, chatArray}) => (
-    <ChatMessageComponent
-      {...{
-        item,
-        index,
-        chatArray,
-        currentUserInfo,
-        themeRef,
-        isGroup: false,
-        handleDownload,
-        chatSliceRef,
-      }}
-    />
+    <>
+      {lastSeen?.id == item?.id && (
+        <View
+          style={{
+            alignSelf: 'flex-end',
+            marginRight: wp(1),
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
+          <IconButton
+            name={'eye'}
+            size={15}
+            containerStyle={{
+              marginHorizontal: wp(1),
+            }}
+          />
+          <BaseText size={fontSize.tiny} weight={fontWeights.bold}>
+            Seen
+          </BaseText>
+        </View>
+      )}
+      <ChatMessageComponent
+        {...{
+          item,
+          index,
+          chatArray,
+          currentUserInfo,
+          themeRef,
+          isGroup: false,
+          handleDownload,
+          chatSliceRef,
+          lastSeen,
+        }}
+      />
+    </>
   );
 
   const goToInfo = () => {

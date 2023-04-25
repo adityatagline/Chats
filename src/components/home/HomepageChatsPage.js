@@ -130,13 +130,21 @@ export default HomepageChatsPage = ({chatArray}) => {
     if (!!item?.otherUser && !!chatSliceRef.unseenChats[item?.otherUser]) {
       isUnseenMessages = chatSliceRef.unseenChats[item.otherUser].length;
     }
-    if (!!item?.groupId && !!chatSliceRef.unseenChats[item?.groupId]) {
-      isUnseenMessages = chatSliceRef.unseenChats[item.groupId].length;
-      // console.log({
-      //   unseenChats: chatSliceRef.unseenChats[item.groupId],
-      //   group: item.groupId,
-      // });
-    }
+    // if (!!item?.groupId && !!chatSliceRef.unseenChats[item?.groupId]) {
+    //   isUnseenMessages =
+    //     // !!chatSliceRef?.groupChats?.[item.groupId] &&
+    //     // !!chatSliceRef?.unseenChats?.[item.groupId]
+    //     //   ? chatSliceRef.groupChats[item.groupId].length -
+    //     //     chatSliceRef?.unseenChats?.[item.groupId].length
+    //     //   :
+    //     !!chatSliceRef.unseenChats[item.groupId]
+    //       ? chatSliceRef.unseenChats[item.groupId].length
+    //       : 0;
+    //   // console.log({
+    //   //   unseenChats: chatSliceRef.unseenChats[item.groupId],
+    //   //   group: item.groupId,
+    //   // });
+    // }
     // console.log({friend: chatSlice.friends?.[item.otherUser]});
 
     if (chatname.length > 20) {

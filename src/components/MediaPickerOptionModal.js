@@ -100,7 +100,7 @@ export const openMediaPickerModal = async (
       ];
     }
   } catch (error) {
-    // console.log({error});
+    // console.log({pickerERror: error});
 
     if (error.code != 'E_PICKER_CANCELLED') {
       Alert.alert('Oops', error.message);

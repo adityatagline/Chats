@@ -7,7 +7,7 @@ const initialValues = {
   unseenChats: {},
   strangers: {},
   groups: {},
-  // groupChats: {},
+  groupChats: {},
 };
 
 const Chatslice = createSlice({
@@ -211,6 +211,12 @@ const Chatslice = createSlice({
           };
         }
         if (!isExistinUnseenChats && element.from != userInfo.username) {
+          let newUnseen = !!newState.unseenChats[otherUser]
+            ? [{...element}, ...newState.unseenChats[otherUser]]
+            : [{...element}];
+          newUnseen = newUnseen.sort(
+            (a, b) => new Date(b.date) - new Date(a.date),
+          );
           newState = {
             ...newState,
             unseenChats: {
@@ -265,6 +271,7 @@ const Chatslice = createSlice({
         );
         isRecordInHome =
           !!isRecordInHome && Object.keys(isRecordInHome).length != 0;
+
         let homechatArray = [...newState.homepageChats];
         if (isRecordInHome) {
           homechatArray = homechatArray.filter(item => {
@@ -306,10 +313,21 @@ const Chatslice = createSlice({
         isIncludedInUnseen =
           !!isIncludedInUnseen && Object.keys(isIncludedInUnseen).length != 0;
         let unseenChatArray = state?.unseenChats[message.groupId] ?? [];
-        if (!isIncludeInHome && message.from != userInfo.username) {
+        if (!isIncludedInUnseen && message.from != userInfo.username) {
           unseenChatArray = [...unseenChatArray, {...message}];
+          unseenChatArray = unseenChatArray.sort(
+            (a, b) => new Date(b.date) - new Date(a.date),
+          );
         }
-        // console.log({isInclude, isIncludeInHome, isRecordInHome, isGroupExists});
+        // console.log({
+        //   isInclude,
+        //   isIncludeInHome,
+        //   isRecordInHome,
+        //   isGroupExists,
+        //   isIncludedInUnseen,
+        //   message,
+        //   userInfo,
+        // });
         newState = {
           ...newState,
           individualChats: {
@@ -373,20 +391,61 @@ const Chatslice = createSlice({
       };
     },
     removeUnseenChats: (state, action) => {
-      let newArrayToSet = [...state.unseenChats];
-      newArrayToSet = newArrayToSet.filter(item =>
-        action.payload.idArray.includes(item.id),
-      );
-      // console.log({newArrayToSet});
-      return {
-        ...state,
-        unseenChats: [...newArrayToSet],
+      const {username, chatArray} = action.payload;
+      let newState = {...state};
+      let newArray = [];
+      chatArray.forEach(element => {
+        let isInclude = newState?.unseenChats?.[username]?.find(
+          item => item.id == element.id,
+        );
+        isInclude = !!isInclude && Object.keys(isInclude).length != 0;
+        if (!isInclude) {
+          newArray.push(element);
+        }
+      });
+      newState = {
+        ...newState,
+        unseenChats: {
+          ...newState.unseenChats,
+          [username]: newArray,
+        },
       };
+      return newState;
     },
     clearAllChats: (state, action) => {
       return {
         ...initialValues,
       };
+    },
+    addInGpChat: (state, action) => {
+      const {groupId} = action.payload;
+      let newState = {...state};
+      let unseenChats = !!newState?.unseenChats?.[groupId]
+        ? newState?.unseenChats?.[groupId]
+        : [];
+      let newGP = !!newState?.groupChats?.[groupId]
+        ? newState?.groupChats?.[groupId]
+        : [];
+
+      unseenChats.forEach(element => {
+        let isInGPChat = newState?.groupChats?.[groupId]?.find(
+          obj => obj.id == element.id,
+        );
+        isInGPChat = !!isInGPChat && Object.keys(isInGPChat).length != 0;
+        if (!isInGPChat) {
+          newGP.push(element);
+        }
+      });
+
+      newState = {
+        ...newState,
+        groupChats: {
+          ...newState.groupChats,
+          [groupId]: newGP,
+        },
+      };
+
+      return newState;
     },
   },
 });
@@ -402,5 +461,6 @@ export const {
   storeMessageToGroup,
   storeGroups,
   updateGroup,
+  addInGpChat,
 } = Chatslice.actions;
 export default Chatslice.reducer;
