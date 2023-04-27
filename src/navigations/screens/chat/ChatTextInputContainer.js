@@ -33,7 +33,7 @@ const ChatTextInputContainer = ({
       paddingBottom: Platform.OS == 'ios' ? hp(0.5) : hp(2),
     },
     chatInput: {
-      backgroundColor: '#F0F0F0',
+      backgroundColor: themeRef.colors.border,
       flex: 1,
       marginHorizontal: hp(2),
       paddingVertical: hp(1),
@@ -45,7 +45,7 @@ const ChatTextInputContainer = ({
       justifyContent: 'center',
       lineHeight: hp(2.7),
       alignSelf: 'center',
-      color: 'black',
+      color: themeRef.colors.secondaryColor,
     },
     inputButton: {
       marginHorizontal: wp(1),
@@ -66,7 +66,7 @@ const ChatTextInputContainer = ({
       <TextInput
         style={styles.chatInput}
         placeholder={'Type something ..'}
-        placeholderTextColor={'black'}
+        placeholderTextColor={themeRef.colors.secondaryColor}
         value={userChatMessage}
         multiline
         onChangeText={setUserChatMessage}

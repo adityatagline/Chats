@@ -5,6 +5,7 @@ import {
   Alert,
   BackHandler,
   View,
+  Keyboard,
 } from 'react-native';
 import React, {useContext} from 'react';
 import {commonStyles, dimensions, fontSize} from '../../../styles/commonStyles';
@@ -19,6 +20,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useDispatch, useSelector} from 'react-redux';
 import {
   changeMediaStatus,
+  clearUserChat,
   removeUnseenChats,
   storeMessage,
 } from '../../../../redux/chats/ChatSlice';
@@ -48,6 +50,13 @@ import IconButton from '../../../components/IconButton';
 import firestore from '@react-native-firebase/firestore';
 import BaseText from '../../../components/BaseText';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
+import {sendgpmsg, sendmsg} from '../../../../api/notification/NotificationReq';
+import FloatingOptionModal from '../../../components/FloatingOptionModal';
+import {getTokens} from '../../../../api/authentication/AuthenticationRequests';
+import SearchPage from '../../../components/home/search/SearchPage';
+import TextButton from '../../../components/TextButton';
+import BaseModal from '../../../components/BaseModal';
+import {BaseLoader} from '../../../components/LoadingPage';
 
 export default ChatScreen = () => {
   const themeRef = useTheme();
@@ -67,6 +76,12 @@ export default ChatScreen = () => {
     },
     chatListContainer: {
       marginHorizontal: wp(4),
+    },
+    searchDiv: {
+      flexDirection: 'row',
+      marginHorizontal: wp(7),
+      marginVertical: hp(2),
+      alignItems: 'center',
     },
   });
 
@@ -97,7 +112,12 @@ export default ChatScreen = () => {
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
   const [lastSeen, setLastSeen] = useState();
-  console.log({lastSeen});
+  const [searchText, setSearchText] = useState('');
+  const [searchArray, setSearchArray] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // console.log({lastSeen});
 
   useEffect(() => {
     !!chatSliceRef.individualChats[userInfo.username] &&
@@ -130,7 +150,7 @@ export default ChatScreen = () => {
   useEffect(() => {
     const checkAndDeleteMessage = async () => {
       let unseenChats = chatSliceRef?.unseenChats?.[userInfo.username];
-      console.log({unseenChats});
+      // console.log({unseenChats});
       if (!!unseenChats && unseenChats.length != 0) {
         let sendRes = await sendLastSeen(
           currentUserInfo.username,
@@ -202,7 +222,39 @@ export default ChatScreen = () => {
       userInfo.username,
       {...chatObject},
     );
+    try {
+      const getToken = await getTokens(userInfo.username);
+      if (!getToken.isError && getToken?.data?.length != 0) {
+        const sendNotification = sendgpmsg(
+          getToken.data,
+          currentUserInfo.username,
+          'message',
+          {},
+          message,
+        );
+      }
+    } catch (error) {
+      console.log({errorInSendNoti: error});
+    }
+
     // console.log({response});
+  };
+
+  const sendNoti = async type => {
+    try {
+      const getToken = await getTokens(userInfo.username);
+      if (!getToken.isError && getToken?.data?.length != 0) {
+        const sendNotification = sendgpmsg(
+          getToken.data,
+          currentUserInfo.username,
+          type,
+          {},
+          `sent ${type}`,
+        );
+      }
+    } catch (error) {
+      console.log({errorInSendNoti: error});
+    }
   };
 
   const sendMedia = async (type, assetsArray) => {
@@ -230,6 +282,7 @@ export default ChatScreen = () => {
             filename,
             type,
           },
+          sendNoti.bind(this, type),
         );
       });
     } catch (error) {
@@ -292,7 +345,48 @@ export default ChatScreen = () => {
     dispatch(changeMediaStatus({downloadObj, chatObj}));
   };
 
-  const RenderChatComp = ({item, index, chatArray}) => (
+  const goToInfo = () => {
+    navigation.navigate(ScreenNames.ChatInfoScreen, {
+      chatType: 'chat',
+      username: userInfo.username,
+    });
+  };
+
+  const clearAllChats = async () => {
+    const response = await clearAllIndividualChats(
+      currentUserInfo.username,
+      userInfo.username,
+    );
+    console.log({clearresponse: response});
+    if (!response.isError) {
+      dispatch(clearUserChat({username: userInfo.username}));
+      setOptionModalVisibility(false);
+    }
+  };
+
+  const searchInChats = text => {
+    setSearchText(text);
+    if (!text) {
+      setSearchArray([]);
+      return;
+    }
+    let filteredItems = [];
+    chatContent.map(item => {
+      if (item.message.includes(text)) {
+        filteredItems.push(item.id);
+      }
+    });
+    console.log({filteredItems});
+    setSearchArray(filteredItems);
+  };
+
+  const clearSearch = () => {
+    setSearchText('');
+    setSearchArray([]);
+    Keyboard.dismiss();
+  };
+
+  const RenderChatComp = ({item, index, chatArray, searchArray}) => (
     <>
       {lastSeen?.id == item?.id && (
         <View
@@ -301,6 +395,7 @@ export default ChatScreen = () => {
             marginRight: wp(1),
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'center',
           }}>
           <IconButton
             name={'eye'}
@@ -308,8 +403,12 @@ export default ChatScreen = () => {
             containerStyle={{
               marginHorizontal: wp(1),
             }}
+            color={themeRef.colors.appThemeColor}
           />
-          <BaseText size={fontSize.tiny} weight={fontWeights.bold}>
+          <BaseText
+            size={fontSize.tiny}
+            weight={fontWeights.bold}
+            color={themeRef.colors.appThemeColor}>
             Seen
           </BaseText>
         </View>
@@ -325,27 +424,28 @@ export default ChatScreen = () => {
           handleDownload,
           chatSliceRef,
           lastSeen,
+          searchArray,
         }}
       />
     </>
   );
 
-  const goToInfo = () => {
-    navigation.navigate(ScreenNames.ChatInfoScreen, {
-      chatType: 'chat',
-      username: userInfo.username,
-    });
-  };
-
   return (
     <>
-      {
-        <OptionModal
-          cancelColor={themeRef.colors.errorColor}
-          modalVisibility={optionModalVisibility}
-          setModalVisibility={setOptionModalVisibility}
-        />
-      }
+      <OptionModal
+        cancelColor={themeRef.colors.errorColor}
+        modalVisibility={optionModalVisibility}
+        setModalVisibility={setOptionModalVisibility}
+        themeRef={themeRef}
+        clearAllChats={clearAllChats}
+        onSearchPress={() => {
+          setOptionModalVisibility(false);
+          setIsSearching(true);
+        }}
+      />
+      <BaseModal visibility={isLoading}>
+        <BaseLoader loadingText="Please wait .." dark={themeRef.dark} />
+      </BaseModal>
       <MediaPickerOptionModal
         afterChoosehandler={res => {
           sendMedia(showPickerOptions, res);
@@ -363,6 +463,7 @@ export default ChatScreen = () => {
         <ChatScreenHeaderComponent
           displayChatName={displayChatName}
           onChatNamePress={goToInfo}
+          optionButtonVisibility={chatContent.length != 0}
           onInfoPress={() => {}}
           onOptionPress={() => {
             setOptionModalVisibility(true);
@@ -376,6 +477,38 @@ export default ChatScreen = () => {
             imageUrlStrings.lemon
           }
         />
+
+        {!!isSearching && (
+          <View style={styles.searchDiv}>
+            <SearchPage
+              searchText={searchText}
+              clearSearch={clearSearch}
+              onChangeText={searchInChats}
+              mainContainerStyle={{
+                flex: 1,
+                marginRight: !searchText ? wp(5) : 0,
+                // backgroundColor: 'red',
+              }}
+              showSideSearchCount={true}
+              searchCounts={searchArray.length}
+            />
+
+            {!searchText && (
+              <TextButton
+                title={'Cancel'}
+                textStyle={{
+                  color: themeRef.colors.errorColor,
+                }}
+                onPress={() => {
+                  setSearchText('');
+                  setSearchArray([]);
+                  setIsSearching(false);
+                }}
+              />
+            )}
+          </View>
+        )}
+
         <NoChatAnimatedCompoenet
           visibility={chatContent.length == 0}
           themeRef={themeRef}
@@ -391,6 +524,7 @@ export default ChatScreen = () => {
                 item={item}
                 index={index}
                 chatArray={[...chatContent]}
+                searchArray={searchArray}
               />
             )}
             keyExtractor={(_, index) => index}
@@ -410,17 +544,19 @@ export default ChatScreen = () => {
             onDocPress={openDocPicker}
           />
 
-          <ChatTextInputContainer
-            userChatMessage={userChatMessage}
-            setUserChatMessage={setUserChatMessage}
-            toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
-            isFileSendingTrayOpen={isFileSendingTrayOpen}
-            sendMessage={sendMessage}
-            onPressCamera={async () => {
-              let photoObj = await openMediaPickerModal('camera', 'photo', 1);
-              let upload = await sendMedia('photo', photoObj);
-            }}
-          />
+          {!isSearching && (
+            <ChatTextInputContainer
+              userChatMessage={userChatMessage}
+              setUserChatMessage={setUserChatMessage}
+              toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
+              isFileSendingTrayOpen={isFileSendingTrayOpen}
+              sendMessage={sendMessage}
+              onPressCamera={async () => {
+                let photoObj = await openMediaPickerModal('camera', 'photo', 1);
+                let upload = await sendMedia('photo', photoObj);
+              }}
+            />
+          )}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </>

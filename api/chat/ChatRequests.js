@@ -111,6 +111,7 @@ export const checkForUserInRecord = async (contactArray, currentUserName) => {
                   ? ''
                   : ' - '
               }`,
+              token: response2.data?.token,
             });
           }
         }
@@ -211,6 +212,7 @@ export const getStrangerInfoFromDB = async (
         ? response.data.profilePhotoObject.uri
         : '',
       phone: response?.data?.phone,
+      token: response?.data?.token,
     };
     return {
       isError: false,
@@ -336,8 +338,27 @@ export const createNewGroupInDB = async (
       isFirst,
     );
     // console.log({sendInitialMessage});
+    let newMemberInfo = {};
 
-    response = {...sendInitialMessage, message: initMsg, groupInfo: groupObj};
+    memberArray.forEach(async element => {
+      let memberInfo = await getStrangerInfoFromDB(element);
+      if (!memberInfo.isError) {
+        newMemberInfo[element] = memberInfo.data;
+      } else {
+        newMemberInfo[element] = {username: element};
+      }
+    });
+
+    response = {
+      ...sendInitialMessage,
+      message: initMsg,
+      groupInfo: {
+        ...groupObj,
+        members: newMemberInfo,
+        memberUsernames: memberArray,
+      },
+    };
+    console.log({resposeCreateGP: response});
     return response;
   } catch (error) {
     // console.log({error});
@@ -378,6 +399,10 @@ export const getGroupsOfUser = async username => {
             firstName: userDetails.data.firstName,
             username,
             phone: userDetails.data.phone,
+            token: userDetails.data?.token,
+            profilePhoto: !!userDetails?.data?.profilePhotoObject
+              ? userDetails.data.profilePhotoObject.uri
+              : '',
           };
         }
       }
@@ -550,6 +575,9 @@ export const removeMember = async (username, groupId, currentUser) => {
     newAdminArray = newAdminArray.filter(item => item != username);
     let newMemberArray = response.data?.members;
     newMemberArray = newMemberArray.filter(item => item != username);
+    if (newAdminArray.length == 0) {
+      newAdminArray = [newMemberArray[0]];
+    }
 
     response = await apiRequest(url, 'PUT', {
       ...response.data,
@@ -712,6 +740,42 @@ export const changeGroupName = async (groupId, newName, currentUser) => {
     };
     return response;
   } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const getAllBackups = async username => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/backups/${username}.json`;
+    let response = await apiRequest(url, 'GET');
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const updateBackup = async (username, chatSliceRef) => {
+  try {
+    let chatString = JSON.stringify(chatSliceRef.individualChats);
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/backups/${username}.json`;
+    let previous = await apiRequest(url, 'GET');
+    let backupArr = {};
+    if (!previous.isError || !!previous?.data) {
+      backupArr = {...previous.data};
+    }
+    const dateStr = new Date().toString();
+    backupArr[dateStr] = chatString;
+    let response = await apiRequest(url, 'PUT', backupArr);
+
+    return response;
+  } catch (error) {
+    console.log({errorupdateBackup: error});
     return {
       isError: true,
       error,

@@ -1,5 +1,4 @@
 import {useNavigation, useTheme} from '@react-navigation/native';
-import {useState} from 'react';
 import {
   FlatList,
   Image,
@@ -9,28 +8,29 @@ import {
   View,
 } from 'react-native';
 import {useSelector} from 'react-redux';
-import {commonStyles, fontSize} from '../../styles/commonStyles';
 import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
-import FontfamiliesNames, {fontWeights} from '../../strings/FontfamiliesNames';
-import ScreenNames from '../../strings/ScreenNames';
-import TextButton from '../TextButton';
-import {imageUrlStrings} from '../../strings/ImageUrlStrings';
-import BaseText from '../BaseText';
-import ImageCompWithLoader from '../ImageCompWithLoader';
-import {useEffect} from 'react';
-import ChatAvatar from '../ChatAvatar';
+import FontfamiliesNames, {
+  fontWeights,
+} from '../../../strings/FontfamiliesNames';
+import ScreenNames from '../../../strings/ScreenNames';
+import ImageCompWithLoader from '../../ImageCompWithLoader';
+import {commonStyles, fontSize} from '../../../styles/commonStyles';
+import BaseText from '../../BaseText';
+import TextButton from '../../TextButton';
+import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
+import ChatAvatar from '../../ChatAvatar';
 
-export default HomepageChatsPage = ({chatArray}) => {
+export default SearchList = ({searchArray, searchText}) => {
   const themeRef = useTheme();
   const styles = StyleSheet.create({
     ...commonStyles,
     mainDiv: {
       backgroundColor: themeRef.colors.primaryColor,
       flex: 1,
-      borderRadius: 30,
+      //   borderRadius: 30,
       borderBottomLeftRadius: 0,
       borderBottomRightRadius: 0,
       overflow: 'hidden',
@@ -85,6 +85,10 @@ export default HomepageChatsPage = ({chatArray}) => {
       borderRadius: 7,
       marginHorizontal: wp(2),
     },
+    chatResultContainer: {
+      //   backgroundColor: 'red',
+      marginHorizontal: wp(10),
+    },
   });
 
   const authenticationSliceRef = useSelector(
@@ -92,18 +96,7 @@ export default HomepageChatsPage = ({chatArray}) => {
   );
   const chatSliceRef = useSelector(state => state.chatSlice);
   const navigation = useNavigation();
-  const [homepageChats, setHomepageChats] = useState([]);
   // console.log({homepageChats})
-
-  useEffect(() => {
-    if (chatSliceRef.homepageChats.length != 0) {
-      setHomepageChats([...chatSliceRef.homepageChats]);
-    }
-  }, [chatSliceRef.homepageChats, chatSliceRef.strangers]);
-
-  const goToNewChatPage = () => {
-    navigation.navigate(ScreenNames.NewChatPage);
-  };
 
   const goToChatScreen = item => {
     let chatname = item.chatName;
@@ -291,9 +284,21 @@ export default HomepageChatsPage = ({chatArray}) => {
   return (
     <View style={styles.mainDiv}>
       {/* {console.log({homepageChats})} */}
-      {homepageChats.length != 0 && (
+      {searchArray.length != 0 && (
+        <View style={styles.chatResultContainer}>
+          <BaseText
+            color={themeRef.colors.secondaryColor}
+            size={fontSize.big}
+            weight={fontWeights.semiBold}>
+            {searchArray.length} Result{searchArray.length == 1 ? '' : 's'}{' '}
+            found
+          </BaseText>
+        </View>
+      )}
+
+      {searchArray.length != 0 && (
         <FlatList
-          data={homepageChats}
+          data={searchArray}
           renderItem={renderHomePageChats}
           bounces={false}
           keyExtractor={(item, index) => index}
@@ -301,16 +306,20 @@ export default HomepageChatsPage = ({chatArray}) => {
           showsVerticalScrollIndicator={false}
         />
       )}
-      {homepageChats.length == 0 && (
+      {searchArray.length == 0 && (
         <View style={styles.noChatsDiv}>
-          <BaseText color={themeRef.colors.secondaryColor}>
-            No Recent Chats ..
+          <BaseText
+            color={themeRef.colors.secondaryColor}
+            size={fontSize.big}
+            weight={fontWeights.semiBold}>
+            No Search found named {''}
+            <BaseText
+              size={fontSize.big}
+              weight={fontWeights.semiBold}
+              color={themeRef.colors.appThemeColor}>
+              "{searchText}"
+            </BaseText>
           </BaseText>
-          <TextButton
-            title={'Start new'}
-            textStyle={styles.newChatButton}
-            onPress={goToNewChatPage}
-          />
         </View>
       )}
     </View>

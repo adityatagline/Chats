@@ -4,7 +4,7 @@ export const apiRequest = async (url, method, data, myHeaders) => {
 
     if (!myHeaders) {
       headers = new Headers();
-      headers.append('Content-Type', 'application/json');
+      method !== 'GET' && headers.append('Content-Type', 'application/json');
     } else {
       headers = {...myHeaders};
     }
@@ -17,7 +17,13 @@ export const apiRequest = async (url, method, data, myHeaders) => {
       redirect: 'follow',
     };
 
-    const response = await fetch(`${url}`, requestOptions);
+    if (method === 'GET') {
+      delete requestOptions.headers;
+      delete requestOptions.body;
+    }
+
+    // console.log('Api call check======>', {url, requestOptions});
+    const response = await fetch(url, requestOptions);
     const responsedata = await response.json();
 
     if (!responsedata) {

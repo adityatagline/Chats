@@ -12,24 +12,33 @@ import {
   heightPercentageToDP as hp,
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
+import {StatusBarHeight} from '../styles/commonStyles';
 
-const BaseModal = ({
+const FloatingOptionModal = ({
   visibility,
   canClosable = false,
   onOutsidePressHandler = () => {},
   children,
   scrollContainerProps,
   customBottomPosition,
+  top = StatusBarHeight + hp(7),
+  right = wp(5),
+  width = wp(70),
+  height = hp(20),
+  scrollContainerStyle,
+  innerContainerStyle,
 }) => {
   const themeRef = useTheme();
   const [modalExistance, setModalExistance] = useState(false);
   const outerContainerOpacity = useRef(new Animated.Value(0)).current;
-  const innerContainerPosition = useRef(new Animated.Value(-hp(100))).current;
+  const innerContainerDimensions = useRef(
+    new Animated.ValueXY({x: 0, y: 0}),
+  ).current;
 
   const closeModal = () => {
     Animated.parallel([
-      Animated.timing(innerContainerPosition, {
-        toValue: -hp(100),
+      Animated.timing(innerContainerDimensions, {
+        toValue: {x: 0, y: 0},
         duration: 400,
         useNativeDriver: false,
       }),
@@ -51,12 +60,15 @@ const BaseModal = ({
         duration: 500,
         useNativeDriver: true,
       }),
-      Animated.timing(innerContainerPosition, {
-        toValue: !!customBottomPosition ? customBottomPosition : hp(3),
+      Animated.timing(innerContainerDimensions, {
+        toValue: {x: height, y: width},
         duration: 300,
         useNativeDriver: false,
       }),
     ]).start();
+    // setTimeout(() => {
+    //   closeModal();
+    // }, 2000);
   };
 
   useEffect(() => {
@@ -73,13 +85,16 @@ const BaseModal = ({
         style={[
           {
             position: 'absolute',
-            height: hp(100),
-            width: wp(100),
+            // height: hp(200),
+            // width: wp(100),
+            ...StyleSheet.absoluteFillObject,
             top: 0,
             right: 0,
+            // backgroundColor: themeRef.colors.secondaryColor,
             backgroundColor: themeRef.dark
               ? themeRef.colors.card
               : themeRef.colors.secondaryColor,
+            // backgroundColor: 'black',
             zIndex: 100,
             opacity: outerContainerOpacity,
           },
@@ -89,8 +104,7 @@ const BaseModal = ({
             style={[
               {
                 position: 'absolute',
-                height: hp(100),
-                width: wp(100),
+                ...StyleSheet.absoluteFillObject,
                 top: 0,
                 right: 0,
                 backgroundColor: 'transparent',
@@ -106,17 +120,36 @@ const BaseModal = ({
           {
             position: 'absolute',
             maxHeight: hp(85),
-            width: wp(92),
-            bottom: innerContainerPosition,
+            maxWidth: wp(92),
+            // bottom: innerContainerDimensions,
             alignSelf: 'center',
             backgroundColor: themeRef.colors.primaryColor,
             zIndex: 105,
             borderRadius: 35,
-            paddingVertical: hp(3),
-            paddingHorizontal: wp(5),
+            right,
+            top,
+            height: innerContainerDimensions.x,
+            width: innerContainerDimensions.y,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
+            flexDirection: 'row',
+            // borderColor: themeRef.dark
+            //   ? themeRef.colors.secondaryColor
+            //   : 'transparent',
+            // borderWidth: themeRef.dark ? 0.5 : 0,
           },
+          innerContainerStyle,
         ]}>
-        <ScrollView bounces={false} style={[{}]} {...scrollContainerProps}>
+        <ScrollView
+          bounces={false}
+          style={[
+            {
+              alignSelf: 'center',
+            },
+            scrollContainerStyle,
+          ]}
+          {...scrollContainerProps}>
           {children}
         </ScrollView>
         {/* <StatusBar translucent /> */}
@@ -127,4 +160,4 @@ const BaseModal = ({
 
 const styles = StyleSheet.create({});
 
-export default BaseModal;
+export default FloatingOptionModal;

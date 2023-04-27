@@ -3,6 +3,7 @@ import {GoogleSigninCredentials} from '../../credentials/CloudCredentials/Google
 import auth from '@react-native-firebase/auth';
 import {databaseLinks} from '../../credentials/firebaseCredentials/FirebaseDatabaseLinks';
 import {apiRequest} from '../global/BaseApiRequestes';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const loginWithGoogle = async () => {
   try {
@@ -126,19 +127,25 @@ export const loginWithPhone = async userDetails => {
 
     const getUserStatus = await apiRequest(url, 'GET');
 
-    if (getUserStatus.isError && getUserStatus.error != 'noData') {
-      return {
-        isError: true,
-        error: getUserStatus.error,
-      };
-    }
-
     if (!!getUserStatus.isError) {
       return {
         isError: true,
         response: getUserStatus.error,
       };
     }
+    let tokenArray = !!getUserStatus?.data?.token
+      ? getUserStatus?.data?.token
+      : [];
+    let tokenStored = await AsyncStorage.getItem('chatsToken');
+    if (!!tokenStored) {
+      tokenArray = tokenArray.filter(item => item != tokenStored);
+    }
+
+    const sendToken = await apiRequest(url, 'PUT', {
+      ...getUserStatus.data,
+      token: [tokenStored, ...tokenArray],
+    });
+
     // console.log('running last');
     // console.log({
     //   returns: {
@@ -152,8 +159,8 @@ export const loginWithPhone = async userDetails => {
       response: {...getUserStatus.data, username: userCred.data.username},
     };
   } catch (error) {
-    // console.log('-----error');
-    // console.log(error);
+    console.log('-----error');
+    console.log(error);
     return {
       isError: true,
       error: error.code,
@@ -434,6 +441,57 @@ export const getPublicCredential = async phone => {
 export const logoutUserFromDB = async username => {
   try {
     let response = await auth().signOut();
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
+    let removeToken = await apiRequest(url, 'GET');
+    console.log({url, removeToken});
+    if (!!removeToken.isError) {
+      console.log({logoutEr: removeToken});
+      return removeToken;
+    }
+
+    let tokenArray = !!removeToken?.data?.token ? removeToken?.data?.token : [];
+    let tokenStored = await AsyncStorage.getItem('chatsToken');
+    if (!!tokenStored) {
+      tokenArray = tokenArray.filter(item => item != tokenStored);
+    }
+    removeToken = await apiRequest(url, 'PUT', {
+      ...removeToken.data,
+      token: tokenArray,
+    });
+    if (!!removeToken.isError) {
+      console.log({logoutEr2: removeToken});
+      return removeToken;
+    }
+    return response;
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const changePassword = async email => {
+  try {
+    const resetRes = await auth().sendPasswordResetEmail(
+      'adityat.tagline@gmail.com',
+    );
+    return {
+      isError: false,
+      data: resetRes,
+    };
+  } catch (error) {
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const getTokens = async username => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/token.json`;
+    let response = await apiRequest(url, 'GET');
     return response;
   } catch (error) {
     return {

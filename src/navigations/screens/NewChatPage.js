@@ -9,6 +9,7 @@ import {
   Animated,
   TouchableOpacity,
   Alert,
+  Keyboard,
 } from 'react-native';
 import SearchPage from '../../components/home/search/SearchPage';
 import {commonStyles, fontSize} from '../../styles/commonStyles';
@@ -154,6 +155,16 @@ export default NewChatPage = () => {
       width: wp(60),
       textAlign: 'center',
     },
+    noChatsDiv: {
+      backgroundColor: themeRef.colors.primaryColor,
+      flex: 1,
+      // justifyContent: 'center',
+      alignItems: 'center',
+    },
+    chatResultContainer: {
+      //   backgroundColor: 'red',
+      marginHorizontal: wp(8),
+    },
   });
 
   const navigation = useNavigation();
@@ -180,6 +191,55 @@ export default NewChatPage = () => {
       y: wp(44),
     }),
   ).current;
+
+  const [searchText, setSearchText] = useState('');
+  const [searchArray, setSearchArray] = useState([
+    // {
+    //   username: 'John',
+    //   email: 'aditya.tagline2@gmail.com',
+    //   firstName: 'John',
+    //   lastName: 'Appl',
+    //   phone: '8885551212',
+    //   profilePhoto: '',
+    //   contactName: 'John Appleseed',
+    // },
+    // {
+    //   username: 'Anna',
+    //   email: 'aditya.tagline4@gmail.com',
+    //   firstName: 'Anna',
+    //   lastName: 'Haro',
+    //   phone: '5555228243',
+    //   profilePhoto: '',
+    //   contactName: 'Anna Haro',
+    // },
+  ]);
+  console.log({searchArray});
+
+  const searchInContact = text => {
+    setSearchText(text);
+    let filteredItems = [...contactList].filter(item => {
+      if (
+        item.contactName.includes(text) ||
+        item.phone.toString().includes(text)
+      ) {
+        if (
+          memebersSelected.length == 0 ||
+          (memebersSelected.length != 0 &&
+            !memebersSelected.includes(item.username))
+        ) {
+          return item;
+        }
+      }
+    });
+
+    setSearchArray(filteredItems);
+  };
+
+  const clearSearch = () => {
+    setSearchText('');
+    setSearchArray([]);
+    Keyboard.dismiss();
+  };
 
   useEffect(() => {
     let arrayToSet = [];
@@ -271,8 +331,9 @@ export default NewChatPage = () => {
       return;
       // console.log({errorInGroup: response.error});
     }
-    // console.log({response});
+    console.log({createNewGroupInDB: response});
     let {message, groupInfo} = response;
+    console.log({responseCreate: response});
     dispatch(
       storeMessageToGroup({
         message,
@@ -456,8 +517,15 @@ export default NewChatPage = () => {
       {contactList.length != 0 &&
         (isCreatingGroup
           ? contactList.length != memebersSelected.length
-          : true) && <SearchPage containerStyle={{marginVertical: hp(2)}} />}
-      {!isCreatingGroup && (
+          : true) && (
+          <SearchPage
+            containerStyle={{marginVertical: hp(2)}}
+            onChangeText={searchInContact}
+            clearSearch={clearSearch}
+            searchText={searchText}
+          />
+        )}
+      {!isCreatingGroup && !searchText && (
         <TouchableOpacity
           style={[
             commonStyles.iconWithTextBtn,
@@ -478,7 +546,7 @@ export default NewChatPage = () => {
           </BaseText>
         </TouchableOpacity>
       )}
-      {contactList.length != 0 && (
+      {contactList.length != 0 && !searchText && (
         <FlatList
           data={contactList}
           renderItem={renderContact}
@@ -488,6 +556,48 @@ export default NewChatPage = () => {
           }}
           showsVerticalScrollIndicator={false}
         />
+      )}
+      {!!searchText && (
+        <>
+          {searchArray.length != 0 && (
+            <View style={styles.chatResultContainer}>
+              <BaseText
+                color={themeRef.colors.secondaryColor}
+                size={fontSize.big}
+                weight={fontWeights.semiBold}>
+                {searchArray.length} Result{searchArray.length == 1 ? '' : 's'}{' '}
+                found
+              </BaseText>
+            </View>
+          )}
+          {searchArray.length != 0 && (
+            <FlatList
+              data={searchArray}
+              renderItem={renderContact}
+              keyExtractor={(item, index) => index}
+              contentContainerStyle={{
+                paddingTop: hp(1),
+              }}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+          {searchArray.length == 0 && (
+            <View style={styles.noChatsDiv}>
+              <BaseText
+                color={themeRef.colors.secondaryColor}
+                size={fontSize.big}
+                weight={fontWeights.semiBold}>
+                No Search found named {''}
+                <BaseText
+                  size={fontSize.big}
+                  weight={fontWeights.semiBold}
+                  color={themeRef.colors.appThemeColor}>
+                  "{searchText}"
+                </BaseText>
+              </BaseText>
+            </View>
+          )}
+        </>
       )}
       {isCreatingGroup && contactList.length == memebersSelected.length && (
         <BaseText

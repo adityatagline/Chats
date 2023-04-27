@@ -5,7 +5,7 @@ import {
   useTheme,
 } from '@react-navigation/native';
 import {useEffect, useState} from 'react';
-import {StyleSheet, TouchableOpacity, View} from 'react-native';
+import {Keyboard, StyleSheet, TouchableOpacity, View} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {AppStatusBar} from '../../../components/AppStatusBar';
 import {
@@ -29,6 +29,7 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import {
   checkAndStoreNewMessages,
+  clearUserChat,
   storeGroups,
   storeMessageToGroup,
   storeStranger,
@@ -40,8 +41,12 @@ import IonIcon from 'react-native-vector-icons/Ionicons';
 import BaseText from '../../../components/BaseText';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
 import ScreenNames from '../../../strings/ScreenNames';
+import notifee from '@notifee/react-native';
 import {logout} from '../../../../redux/authentication/AuthenticationSlice';
 import {storeUserDataInRedux} from '../../../../redux/authentication/AuthenticationSlice';
+import {sendmsg} from '../../../../api/notification/NotificationReq';
+import {changePassword} from '../../../../api/authentication/AuthenticationRequests';
+import SearchList from '../../../components/home/search/SearchList';
 
 export default HomeScreen = props => {
   const themeRef = useTheme();
@@ -55,14 +60,24 @@ export default HomeScreen = props => {
   const [messageToBedeleted, setMessageToBedeleted] = useState([]);
   const [strangerArray, setStrangerArray] = useState([]);
   const [searchText, setSearchText] = useState('');
-  // console.log({chatSliceRef});
-  // dispatch(logout());
-  // console.log({groups: chatSliceRef.groups});
+  const [searchArray, setSearchArray] = useState([
+    // {
+    //   from: 'Aditya',
+    //   date: 'Wed Apr 26 2023 11:37:52 GMT+0530 (India Standard Time)',
+    //   message: 'Hi',
+    //   isSending: true,
+    //   id: 'HiWed Apr 26 2023 11:37:52 GMT+0530 (India Standard Time)',
+    //   otherUser: 'Developer',
+    //   chatName: 'Me Personal',
+    // },
+  ]);
+  // console.log({individualChats: chatSliceRef.homepageChats});
 
   useEffect(() => {
     setisLoading(true);
-    getInitialData();
+    isFocused && getInitialData();
     isFocused && props.setterFunction(route.name);
+    // dispatch(clearUserChat({username: 'Kate'}));
   }, [isFocused]);
 
   useEffect(() => {
@@ -76,7 +91,7 @@ export default HomeScreen = props => {
         .collection(authenticationSlice.user.username)
         .onSnapshot(res => {
           const docChanges = res.docChanges();
-          console.log({docChanges});
+          // console.log({docChanges});
           let arrayToCheck = [];
           let usersArray = [];
           docChanges.forEach(item => {
@@ -120,9 +135,7 @@ export default HomeScreen = props => {
   useEffect(() => {
     // console.log('running');
     // console.log({gp: chatSliceRef.groups});
-    if (Object.keys(chatSliceRef.groups).length == 0) {
-      return;
-    }
+
     try {
       // console.log('running 2');
       const gpChatListner = firestore()
@@ -169,7 +182,7 @@ export default HomeScreen = props => {
         });
       return () => gpChatListner();
     } catch (error) {}
-  }, [chatSliceRef.groups]);
+  }, []);
 
   useEffect(() => {
     const deleteMessages = async () => {
@@ -219,7 +232,7 @@ export default HomeScreen = props => {
       ));
     // console.log('running getInitialData');
     let response = await getGroupsOfUser(authenticationSlice.user.username);
-    // console.log({response});
+    console.log({getGroupsOfUser: response});
     if (!response.isError) {
       dispatch(storeGroups({groups: response.data}));
       setisLoading(false);
@@ -235,7 +248,7 @@ export default HomeScreen = props => {
       paddingTop: hp(1.5) + StatusBarHeight,
     },
     searchDiv: {
-      flexDirection: 'row',
+      // flexDirection: 'row',
       marginHorizontal: wp(7),
       marginBottom: hp(2),
     },
@@ -254,7 +267,16 @@ export default HomeScreen = props => {
     },
   });
 
-  const sendNoti = () => {};
+  // const sendNoti = async () => {
+  //   await notifee.displayNotification({
+  //     android: {
+  //       // color: 'res',
+  //       channelId: 'Chats',
+  //     },
+  //     title: 'hello',
+  //     subtitle: 'subtitle',
+  //   });
+  // };
 
   const searchInHomeChat = text => {
     setSearchText(text);
@@ -264,6 +286,13 @@ export default HomeScreen = props => {
       }
     });
     console.log({filteredItems});
+    setSearchArray(filteredItems);
+  };
+
+  const clearSearch = () => {
+    setSearchText('');
+    setSearchArray([]);
+    Keyboard.dismiss();
   };
 
   return (
@@ -286,9 +315,12 @@ export default HomeScreen = props => {
             New
           </BaseText>
         </TouchableOpacity>
+
         {/* <TouchableOpacity
           style={[commonStyles.iconWithTextBtn, styles.newChatBtn]}
-          onPress={() => sendNoti()}>
+          onPress={async () => {
+            await changePassword();
+          }}>
           <IonIcon name="add" size={20} color={themeRef.colors.primaryColor} />
           <BaseText
             size={fontSize.small}
@@ -298,10 +330,17 @@ export default HomeScreen = props => {
           </BaseText>
         </TouchableOpacity> */}
         <View style={styles.searchDiv}>
-          <SearchPage searchText={searchText} onChangeText={searchInHomeChat} />
+          <SearchPage
+            searchText={searchText}
+            clearSearch={clearSearch}
+            onChangeText={searchInHomeChat}
+          />
         </View>
 
         {!searchText && <HomepageChatsPage />}
+        {!!searchText && (
+          <SearchList searchText={searchText} searchArray={searchArray} />
+        )}
         <AppStatusBar dark={themeRef.dark} />
       </>
     </View>

@@ -27,6 +27,7 @@ const ChatScreenHeaderComponent = ({
   onInfoPress,
   chatProfilePhoto,
   onChatNamePress,
+  optionButtonVisibility,
 }) => {
   const themeRef = useTheme();
   const styles = StyleSheet.create({
@@ -193,20 +194,22 @@ const ChatScreenHeaderComponent = ({
             color={themeRef.colors.secondaryColor}
           />
         </TouchableOpacity> */}
-        <TouchableOpacity
-          style={[
-            styles.backButton,
-            {
-              marginRight: wp(2.5),
-            },
-          ]}
-          onPress={onOptionPress}>
-          <Icon
-            name={'ellipsis-vertical'}
-            size={25}
-            color={themeRef.colors.secondaryColor}
-          />
-        </TouchableOpacity>
+        {!!optionButtonVisibility && (
+          <TouchableOpacity
+            style={[
+              styles.backButton,
+              {
+                marginRight: wp(2.5),
+              },
+            ]}
+            onPress={onOptionPress}>
+            <Icon
+              name={'ellipsis-vertical'}
+              size={25}
+              color={themeRef.colors.secondaryColor}
+            />
+          </TouchableOpacity>
+        )}
       </View>
     </Animated.View>
   );

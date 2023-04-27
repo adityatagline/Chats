@@ -110,38 +110,43 @@ export default LoginScreen = () => {
   };
 
   const login = async values => {
-    setLoading('Checking info ..');
-    const loginResponse = await loginWithPhone({
-      phone: values.phone,
-      password: values.password,
-    });
-    if (!!loginResponse.isError) {
-      Alert.alert(
-        'Oops !!',
-        ErrorCodes[loginResponse.error.toString()].message,
-      );
-      setLoading('');
-      return;
-    }
-    if (!loginResponse.response.phoneVerified) {
-      const sendCode = await sendOtp('+91' + values.phone);
-      setLoading('');
-      setVerificationFunction({
-        ...loginResponse.response,
-        sendOtpCode: sendCode.response,
+    try {
+      setLoading('Checking info ..');
+      const loginResponse = await loginWithPhone({
+        phone: values.phone,
+        password: values.password,
       });
-      return;
-    }
-    if (loginResponse.response.isNewUser) {
-      navigation.navigate(ScreenNames.EnterDetails, {
-        previousDetails: {
+      console.log({loginResponse});
+      if (!!loginResponse.isError) {
+        Alert.alert(
+          'Oops !!',
+          ErrorCodes[loginResponse.error.toString()].message,
+        );
+        setLoading('');
+        return;
+      }
+      if (!loginResponse.response.phoneVerified) {
+        const sendCode = await sendOtp('+91' + values.phone);
+        setLoading('');
+        setVerificationFunction({
           ...loginResponse.response,
-        },
-      });
-    } else {
-      dispatch(
-        storeUserDataInRedux({userDetails: {...loginResponse.response}}),
-      );
+          sendOtpCode: sendCode.response,
+        });
+        return;
+      }
+      if (loginResponse.response.isNewUser) {
+        navigation.navigate(ScreenNames.EnterDetails, {
+          previousDetails: {
+            ...loginResponse.response,
+          },
+        });
+      } else {
+        dispatch(
+          storeUserDataInRedux({userDetails: {...loginResponse.response}}),
+        );
+      }
+    } catch (error) {
+      console.log({loginErr: error});
     }
   };
 

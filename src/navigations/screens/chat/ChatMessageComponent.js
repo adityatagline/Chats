@@ -21,6 +21,7 @@ const ChatMessageComponent = ({
   isGroup,
   handleDownload,
   chatSliceRef,
+  searchArray,
 }) => {
   let position;
   // console.log({item});
@@ -89,6 +90,7 @@ const ChatMessageComponent = ({
           isGroup,
           position,
           handleDownload,
+          searchArray,
         }}
       />
     );
@@ -125,6 +127,13 @@ const ChatMessageComponent = ({
             shadowColor: themeRef.colors.appThemeColor,
           },
         ],
+        searchArray.includes(item.id) && {
+          backgroundColor: themeRef.colors.border,
+          paddingVertical: hp(0.5),
+          borderRadius: 12,
+          ...borderRadiusStyle,
+          overflow: 'hidden',
+        },
       ]}>
       {(position == 'Bottom' || position == 'alone') &&
         (isGroup || (!isGroup && item.from == currentUserInfo.username)) &&
@@ -203,6 +212,7 @@ const RenderMediaComponent = ({
   isGroup,
   position,
   handleDownload,
+  searchArray,
 }) => {
   switch (item.mediaType) {
     case 'photo':
@@ -277,6 +287,9 @@ const RenderMediaComponent = ({
 };
 
 const styles = StyleSheet.create({
+  chatItemContainer: {
+    paddingHorizontal: wp(1),
+  },
   senderName: {
     marginHorizontal: wp(1),
     marginVertical: hp(0.5),

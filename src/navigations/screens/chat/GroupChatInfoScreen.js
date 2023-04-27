@@ -166,10 +166,23 @@ const GroupChatInfoScreen = () => {
           newMemberArray.push(member.data);
         }
       }
-      // console.log({getInitialInfo: newMemberArray});
       storeMembers(newMemberArray);
       setGroupInfo(response.data);
       setFieldValue('groupName', response.data.name);
+      let memberObj = {};
+      newMemberArray.forEach(element => {
+        memberObj[element.username] = element;
+      });
+      console.log({getInitialInfo: memberObj});
+      dispatch(
+        updateGroup({
+          groupInfo: {
+            ...response.data,
+            members: memberObj,
+            memberUsernames: response.data.members,
+          },
+        }),
+      );
       setIsLoading(false);
     }
   };

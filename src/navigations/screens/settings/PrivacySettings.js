@@ -1,4 +1,4 @@
-import {View, StyleSheet, ScrollView} from 'react-native';
+import {View, StyleSheet, ScrollView, Alert} from 'react-native';
 import {
   commonStyles,
   fontSize,
@@ -13,9 +13,35 @@ import {useTheme} from '@react-navigation/native';
 import {PageHeading, PageName, SettingItem} from './CommonComponents';
 import ScreenNames from '../../../strings/ScreenNames';
 import {commonSettingsStyles} from './AppearenceSettings';
+import {changePassword} from '../../../../api/authentication/AuthenticationRequests';
+import {useSelector} from 'react-redux';
 
 export default PrivacySettings = () => {
   const themeRef = useTheme();
+  const currentUser = useSelector(state => state.authenticationSlice).user;
+
+  const shoeResetConfirm = () => {
+    Alert.alert('Are you sure ?', 'Want to reset password. ?', [
+      {text: 'Yes,confirm', onPress: resetPassword, style: 'destructive'},
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+    ]);
+  };
+
+  const resetPassword = async () => {
+    const response = await changePassword(currentUser.email);
+    console.log({resetREs: response});
+    if (!!response.isError) {
+      console.log({ErrorInReset: response});
+      return;
+    }
+    Alert.alert(
+      'Success',
+      `Password reset link is sent to you email address :\n${currentUser.email}`,
+    );
+  };
 
   return (
     <View style={commonStyles.topSpacer}>
@@ -46,7 +72,11 @@ export default PrivacySettings = () => {
           disableBackButton
         />
 
-        <SettingItem title={'Change password'} itemIcon={'sync'} />
+        <SettingItem
+          onPress={shoeResetConfirm}
+          title={'Change password'}
+          itemIcon={'sync'}
+        />
         {/* <SettingItem title={'Change Phone number'} itemIcon={'sync'} /> */}
       </ScrollView>
     </View>

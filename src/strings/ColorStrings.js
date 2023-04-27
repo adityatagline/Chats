@@ -16,7 +16,7 @@ export const colorStrings = {
     secondaryColor: 'white',
     appThemeColor: '#80A0E7',
     background: 'black',
-    border: '#646464',
+    border: '#282828',
     card: '#323232',
     notification: 'rgb(255, 69, 58)',
     primary: 'rgb(10, 132, 255)',

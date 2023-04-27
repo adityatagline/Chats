@@ -151,6 +151,7 @@ export const uploadFileToFirebase = async (
   sendMediaMessage,
   username,
   fileObject,
+  sendNoti,
 ) => {
   try {
     // console.log({imgObj, uploadContext});
@@ -179,6 +180,7 @@ export const uploadFileToFirebase = async (
               {path: stateDetails.metadata.fullPath, uri},
               fileObject.type,
             );
+            await sendNoti();
           }
         } else {
           uploadContext.updateTask(uploadResponse._id, username, stateDetails);
@@ -263,22 +265,104 @@ export const sendGPLastSeen = async (username, groupId, chatObject) => {
   }
 };
 
-export const clearAllIndividualChats = async (username, chatArray) => {
+export const clearAllIndividualChats = async (username, otherUser) => {
   try {
-    let response;
-    chatArray.forEach(async chatObj => {
-      response = await firestore()
-        .collection('chats')
-        .doc('individual')
-        .collection(username)
-        .doc(chatObj.id)
-        .delete();
-    });
+    let response = await firestore()
+      .collection('chats')
+      .doc('individual')
+      .collection(username)
+      // .doc(otherUser)
+      .get();
+    console.log({response: response.docs});
+
+    for (let i = 0; i < response.docs.length; i++) {
+      const element = response.docs[i];
+      console.log({element: element});
+      if (
+        !!element?.data()?.otherUser &&
+        element?.data()?.otherUser == otherUser
+      ) {
+        let deleteRes = await firestore()
+          .collection('chats')
+          .doc('individual')
+          .collection(username)
+          .doc(element.id)
+          .delete();
+        console.log('deleting ...');
+      }
+    }
+
+    // response.forEach(async element => {
+    //   console.log({element: element.data()});
+    //   if (
+    //     !!element?.data()?.otherUser &&
+    //     element?.data()?.otherUser == otherUser
+    //   ) {
+    //     let deleteRes = await firestore()
+    //       .collection('chats')
+    //       .doc('individual')
+    //       .collection(username)
+    //       .doc(element.id)
+    //       .delete();
+    //     console.log('deleting ...');
+    //   }
+    // });
+
+    console.log('deleted');
     return {
       isError: false,
       data: response,
     };
   } catch (error) {
+    console.log({errorInCLear: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const clearAllGroupChats = async (username, groupId) => {
+  try {
+    let response = await firestore()
+      .collection('groupChats')
+      .doc(groupId)
+      // .doc(otherUser)
+      .get();
+    console.log({response: response?.data()});
+
+    let responseObj = response?.data();
+    let objToReturn = {};
+    for (const id in responseObj) {
+      console.log({id});
+      if (responseObj[id].members.includes(username)) {
+        console.log('includes');
+        let newMemberArray = responseObj[id].members.filter(
+          item => item != username,
+        );
+        objToReturn[id] = {
+          ...objToReturn[id],
+          members: newMemberArray,
+        };
+      }
+    }
+    if (!objToReturn || Object.keys(objToReturn).length == 0) {
+      objToReturn = responseObj;
+    }
+    console.log({objToReturn});
+    response = await firestore()
+      .collection('groupChats')
+      .doc(groupId)
+      // .doc(otherUser)
+      .set(objToReturn);
+
+    console.log('deleted');
+    return {
+      isError: false,
+      data: response,
+    };
+  } catch (error) {
+    console.log({errorInCLear: error});
     return {
       isError: true,
       error,

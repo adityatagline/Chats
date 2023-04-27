@@ -5,6 +5,7 @@ import {
   Alert,
   BackHandler,
   View,
+  Keyboard,
 } from 'react-native';
 import React, {useContext} from 'react';
 import {commonStyles, dimensions, fontSize} from '../../../styles/commonStyles';
@@ -21,12 +22,15 @@ import {useDispatch, useSelector} from 'react-redux';
 import {
   addInGpChat,
   changeMediaStatus,
+  clearUserChat,
   storeGroups,
   storeMessage,
   storeMessageToGroup,
   updateGroup,
 } from '../../../../redux/chats/ChatSlice';
 import {
+  clearAllGroupChats,
+  clearAllIndividualChats,
   sendGPLastSeen,
   sendGPMessageToFB,
   sendMessageToFirestore,
@@ -58,6 +62,11 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import BaseText from '../../../components/BaseText';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
+import {getTokens} from '../../../../api/authentication/AuthenticationRequests';
+import {sendgpmsg} from '../../../../api/notification/NotificationReq';
+import TextButton from '../../../components/TextButton';
+import SearchPage from '../../../components/home/search/SearchPage';
+import OptionModal from './OptionModal';
 
 const GroupChatScreen = () => {
   const themeRef = useTheme();
@@ -77,6 +86,12 @@ const GroupChatScreen = () => {
     },
     chatListContainer: {
       marginHorizontal: wp(4),
+    },
+    searchDiv: {
+      flexDirection: 'row',
+      marginHorizontal: wp(7),
+      marginVertical: hp(2),
+      alignItems: 'center',
     },
   });
 
@@ -107,6 +122,10 @@ const GroupChatScreen = () => {
   const [showPickerOptions, setShowPickerOptions] = useState('');
   const taskContextRef = useContext(FirebaseStreamTaskContext);
   const [lastSeen, setLastSeen] = useState();
+  const [searchText, setSearchText] = useState('');
+  const [searchArray, setSearchArray] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [optionModalVisibility, setOptionModalVisibility] = useState(false);
   // console.log({lastSeen});
 
   const getInitialData = async () => {
@@ -114,6 +133,7 @@ const GroupChatScreen = () => {
     if (!!response.isError) {
       return;
     }
+    console.log({groupsUser: response.data});
     dispatch(storeGroups({groups: response.data}));
 
     // setIsMember(false);
@@ -121,7 +141,7 @@ const GroupChatScreen = () => {
 
   useEffect(() => {
     if (!!groupId) {
-      getInitialData();
+      // getInitialData();
       const seenListner = firestore()
         .collection('groupChats')
         .doc(groupId)
@@ -218,9 +238,67 @@ const GroupChatScreen = () => {
       // // console.log({chatObject});
       // dispatch(storeMessage({chatObject, receiverObject}));
       const response = await sendGPMessageToFB(groupId, chatObject, false);
+      console.log({memb: chatSliceRef?.groups?.[groupId]?.memberUsernames});
+
+      try {
+        let tokenArray = [];
+        let mems = chatSliceRef?.groups?.[groupId]?.memberUsernames;
+        for (let i = 0; i < mems.length; i++) {
+          const uname = mems[i];
+          console.log({uname});
+          const getToken = await getTokens(uname);
+          if (!getToken.isError) {
+            console.log({tokenArr: getToken.data});
+            tokenArray = [...tokenArray, ...getToken.data];
+          }
+        }
+
+        console.log({tokenArray});
+        if (tokenArray?.length != 0) {
+          console.log('sending notis', tokenArray);
+          const sendNotification = sendgpmsg(
+            tokenArray,
+            chatSliceRef?.groups?.[groupId]?.name,
+            'message',
+            {},
+            `${currentUserInfo.username}:${message}`,
+          );
+        }
+      } catch (error) {
+        console.log({errorInSendNoti: error});
+      }
       // console.log({response});
     } catch (error) {
       console.log({errorInGPSEND: error});
+    }
+  };
+
+  const sendNoti = async type => {
+    try {
+      let tokenArray = [];
+      let mems = chatSliceRef?.groups?.[groupId]?.memberUsernames;
+      for (let i = 0; i < mems.length; i++) {
+        const uname = mems[i];
+        console.log({uname});
+        const getToken = await getTokens(uname);
+        if (!getToken.isError) {
+          console.log({tokenArr: getToken.data});
+          tokenArray = [...tokenArray, ...getToken.data];
+        }
+      }
+      console.log({tokenArray});
+      if (tokenArray?.length != 0) {
+        console.log('sending notis', tokenArray);
+        const sendNotification = sendgpmsg(
+          tokenArray,
+          chatSliceRef?.groups?.[groupId]?.name,
+          'message',
+          {},
+          `${currentUserInfo.username}:Sent ${type}`,
+        );
+      }
+    } catch (error) {
+      console.log({errorInSendNoti: error});
     }
   };
 
@@ -243,44 +321,50 @@ const GroupChatScreen = () => {
           filename,
           type,
         },
+        sendNoti.bind(this, type),
       );
     });
   };
 
   const sendMediaMessage = async (mediaObj, type) => {
-    let mediaName = mediaObj.path.split('/').reverse()[0];
-    let objToGenID =
-      currentUserInfo.username +
-      groupId +
-      mediaName
-        .replaceAll(' ', '')
-        .replaceAll(':', '')
-        .replaceAll('/', '')
-        .replaceAll('.', '') +
-      new Date().toString();
-    let id = objToGenID.toString();
-    let chatObject = {
-      from: currentUserInfo.username,
-      date: new Date().toString(),
-      mediaName,
-      uri: mediaObj.uri,
-      isSending: true,
-      id,
-      message: '',
-      mediaType: type,
-      groupId,
-    };
-    // let receiverObject = {otherUser: userInfo.username};
-    // console.log({chatObject});
-    // dispatch(storeMessage({chatObject, receiverObject}));
-    dispatch(
-      storeMessageToGroup({
-        message: chatObject,
-        groupInfo: chatSliceRef.groups[groupId],
-        userInfo: authenticationSliceRef.user,
-      }),
-    );
-    const response = await sendGPMessageToFB(groupId, chatObject, false);
+    try {
+      let mediaName = mediaObj.path.split('/').reverse()[0];
+      let objToGenID =
+        currentUserInfo.username +
+        groupId +
+        mediaName
+          .replaceAll(' ', '')
+          .replaceAll(':', '')
+          .replaceAll('/', '')
+          .replaceAll('.', '') +
+        new Date().toString();
+      let id = objToGenID.toString();
+      let chatObject = {
+        from: currentUserInfo.username,
+        date: new Date().toString(),
+        mediaName,
+        uri: mediaObj.uri,
+        isSending: true,
+        id,
+        message: '',
+        mediaType: type,
+        groupId,
+        members: chatSliceRef.groups[groupId].memberUsernames,
+      };
+      // let receiverObject = {otherUser: userInfo.username};
+      // console.log({chatObject});
+      // dispatch(storeMessage({chatObject, receiverObject}));
+      dispatch(
+        storeMessageToGroup({
+          message: chatObject,
+          groupInfo: chatSliceRef.groups[groupId],
+          userInfo: authenticationSliceRef.user,
+        }),
+      );
+      const response = await sendGPMessageToFB(groupId, chatObject, false);
+    } catch (error) {
+      console.log({errorInSENDMED: error});
+    }
   };
 
   const openImagePicker = () => {
@@ -304,7 +388,7 @@ const GroupChatScreen = () => {
     // dispatch(changeMediaStatus({downloadObj, chatObj}));
   };
 
-  const RenderChatComp = ({item, index, chatArray}) => {
+  const RenderChatComp = ({item, index, chatArray, searchArray}) => {
     let seenMemberString = '';
     if (!!lastSeen) {
       for (const username in lastSeen) {
@@ -351,6 +435,7 @@ const GroupChatScreen = () => {
             isGroup: true,
             handleDownload,
             chatSliceRef,
+            searchArray,
           }}
         />
       </>
@@ -363,12 +448,60 @@ const GroupChatScreen = () => {
     });
   };
 
+  const clearAllChats = async () => {
+    const response = await clearAllGroupChats(
+      currentUserInfo.username,
+      groupId,
+    );
+    console.log({clearresponse: response});
+    if (!response.isError) {
+      dispatch(clearUserChat({username: groupId}));
+      setOptionModalVisibility(false);
+    }
+  };
+
+  const searchInChats = text => {
+    setSearchText(text);
+    if (!text) {
+      setSearchArray([]);
+      return;
+    }
+    let filteredItems = [];
+    chatContent.map(item => {
+      if (item?.messageType == 'announcement') {
+        return;
+      }
+      if (item.message.includes(text)) {
+        filteredItems.push(item.id);
+      }
+    });
+    console.log({filteredItems});
+    setSearchArray(filteredItems);
+  };
+
+  const clearSearch = () => {
+    setSearchText('');
+    setSearchArray([]);
+    Keyboard.dismiss();
+  };
+
   // console.log({
   //   chatContent,
   // });
 
   return (
     <>
+      <OptionModal
+        cancelColor={themeRef.colors.errorColor}
+        modalVisibility={optionModalVisibility}
+        setModalVisibility={setOptionModalVisibility}
+        themeRef={themeRef}
+        clearAllChats={clearAllChats}
+        onSearchPress={() => {
+          setOptionModalVisibility(false);
+          setIsSearching(true);
+        }}
+      />
       <MediaPickerOptionModal
         afterChoosehandler={res => {
           sendMedia(showPickerOptions, res);
@@ -387,9 +520,44 @@ const GroupChatScreen = () => {
           displayChatName={chatSliceRef?.groups[groupId]?.name ?? chatName}
           onChatNamePress={goToInfo}
           onInfoPress={() => {}}
-          onOptionPress={() => {}}
+          onOptionPress={() => {
+            setOptionModalVisibility(true);
+          }}
           chatProfilePhoto={chatSliceRef?.groups[groupId]?.profilePhoto}
+          optionButtonVisibility={chatContent.length != 0}
         />
+
+        {!!isSearching && (
+          <View style={styles.searchDiv}>
+            <SearchPage
+              searchText={searchText}
+              clearSearch={clearSearch}
+              onChangeText={searchInChats}
+              mainContainerStyle={{
+                flex: 1,
+                marginRight: !searchText ? wp(5) : 0,
+                // backgroundColor: 'red',
+              }}
+              showSideSearchCount={true}
+              searchCounts={searchArray.length}
+            />
+
+            {!searchText && (
+              <TextButton
+                title={'Cancel'}
+                textStyle={{
+                  color: themeRef.colors.errorColor,
+                }}
+                onPress={() => {
+                  setSearchText('');
+                  setSearchArray([]);
+                  setIsSearching(false);
+                }}
+              />
+            )}
+          </View>
+        )}
+
         <NoChatAnimatedCompoenet
           visibility={chatContent.length == 0}
           themeRef={themeRef}
@@ -405,6 +573,7 @@ const GroupChatScreen = () => {
                 item={item}
                 index={index}
                 chatArray={[...chatContent]}
+                searchArray={searchArray}
               />
             )}
             keyExtractor={(_, index) => index}
@@ -424,9 +593,13 @@ const GroupChatScreen = () => {
             onDocPress={openDocPicker}
           />
 
+          {/* {console.log({
+            mem: chatSliceRef?.groups?.[groupId],
+            curUser: currentUserInfo.username,
+          })} */}
           {!!chatSliceRef?.groups?.[groupId]?.members[
             currentUserInfo.username
-          ] && (
+          ] ? (
             <ChatTextInputContainer
               userChatMessage={userChatMessage}
               setUserChatMessage={setUserChatMessage}
@@ -438,6 +611,17 @@ const GroupChatScreen = () => {
                 let upload = await sendMedia('photo', photoObj);
               }}
             />
+          ) : (
+            <BaseText
+              size={fontSize.big}
+              weight={fontWeights.bold}
+              color={themeRef.colors.errorColor}
+              otherStyles={{
+                alignSelf: 'center',
+                textAlign: 'center',
+              }}>
+              You left the group.
+            </BaseText>
           )}
         </KeyboardAvoidingView>
       </SafeAreaView>

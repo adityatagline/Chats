@@ -447,6 +447,52 @@ const Chatslice = createSlice({
 
       return newState;
     },
+    clearUserChat: (state, action) => {
+      let newState = {...state};
+      const {username} = action.payload;
+      let {[username]: removeUser, ...otherChats} = newState.individualChats;
+      console.log({
+        username,
+        removeUser,
+      });
+      let newHomeArray = newState?.homepageChats;
+      newHomeArray = newHomeArray.filter(item => {
+        if (!!item?.otherUser && item.otherUser == username) {
+          return {...item, message: ''};
+        } else if (!!item?.groupId && item.groupId == username) {
+          return {...item, message: ''};
+        } else {
+          return item;
+        }
+      });
+      return {
+        ...newState,
+        individualChats: otherChats,
+        homepageChats: newHomeArray,
+      };
+    },
+    // clearUserChat: (state, action) => {
+    //   let newState = {...state};
+    //   const {username} = action.payload;
+    //   let {[username]: removeUser, ...otherChats} = newState.individualChats;
+    //   console.log({
+    //     username,
+    //     removeUser,
+    //   });
+    //   let newHomeArray = newState?.homepageChats;
+    //   newHomeArray = newHomeArray.filter(item => {
+    //     if (!!item?.otherUser && item.otherUser != username) {
+    //       return item;
+    //     } else if (!!item?.groupId && item.groupId != username) {
+    //       return item;
+    //     }
+    //   });
+    //   return {
+    //     ...newState,
+    //     individualChats: otherChats,
+    //     homepageChats: newHomeArray,
+    //   };
+    // },
   },
 });
 
@@ -462,5 +508,7 @@ export const {
   storeGroups,
   updateGroup,
   addInGpChat,
+  clearUserChat,
+  // clearGroupChat
 } = Chatslice.actions;
 export default Chatslice.reducer;
