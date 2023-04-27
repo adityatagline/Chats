@@ -456,20 +456,49 @@ const Chatslice = createSlice({
         removeUser,
       });
       let newHomeArray = newState?.homepageChats;
-      newHomeArray = newHomeArray.filter(item => {
-        if (!!item?.otherUser && item.otherUser == username) {
-          return {...item, message: ''};
-        } else if (!!item?.groupId && item.groupId == username) {
-          return {...item, message: ''};
-        } else {
+      newHomeArray = newHomeArray.map(item => {
+        // if (!!item?.otherUser && item.otherUser == username) {
+        //   return {...item, message: ''};
+        // } else if (!!item?.groupId && item.groupId == username) {
+        //   return {...item, message: ''};
+        // } else {
+        //   return item;
+        // }
+        if (
+          (!!item?.otherUser && item.otherUser != username) ||
+          (!!item?.groupId && item?.groupId != username)
+        ) {
           return item;
+        } else {
+          console.log('running item del', {item});
+          let isGroup = !!item?.groupId;
+          let {id, chatName, from} = item;
+          let objToReturn = {
+            message: '',
+            date: new Date().toString(),
+            id,
+            chatName,
+            from,
+          };
+          objToReturn[isGroup ? 'groupId' : 'otherUser'] = isGroup
+            ? item.groupId
+            : item.otherUser;
+          return isGroup ? objToReturn : null;
         }
       });
+      newHomeArray = newHomeArray.filter(item => !!item);
       return {
         ...newState,
         individualChats: otherChats,
         homepageChats: newHomeArray,
       };
+    },
+    restoreBackupReplace: (state, action) => {
+      let {newState} = action.payload;
+      newState = JSON.parse(newState);
+      console.log({newState});
+      // let {newState} = action.payload;
+      return {...state, ...newState};
     },
     // clearUserChat: (state, action) => {
     //   let newState = {...state};
@@ -509,6 +538,7 @@ export const {
   updateGroup,
   addInGpChat,
   clearUserChat,
+  restoreBackupReplace,
   // clearGroupChat
 } = Chatslice.actions;
 export default Chatslice.reducer;

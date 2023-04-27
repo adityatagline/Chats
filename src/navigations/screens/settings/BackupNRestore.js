@@ -12,31 +12,39 @@ import {BaseLoader} from '../../../components/LoadingPage';
 import BaseText from '../../../components/BaseText';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
 import {useEffect} from 'react';
-import {useSelector} from 'react-redux';
-import {getAllBackups, updateBackup} from '../../../../api/chat/ChatRequests';
+import {useDispatch, useSelector} from 'react-redux';
+import {
+  deleteBackupFromDB,
+  getAllBackups,
+  updateBackup,
+} from '../../../../api/chat/ChatRequests';
 import {FlatList} from 'react-native';
 import BackUpComponent from '../../../components/BackUpComponent';
+import {restoreBackupReplace} from '../../../../redux/chats/ChatSlice';
 
 export default BackupNRestore = () => {
   const themeRef = useTheme();
+  const dispatch = useDispatch();
   const currentUser = useSelector(state => state.authenticationSlice).user;
   const chatSliceRef = useSelector(state => state.chatSlice);
   const [isLoading, setIsLoading] = useState('getting');
   const [backups, setBackups] = useState();
+  const [expandedBackup, setExpandedBackup] = useState();
 
   const getInitialData = async () => {
     setIsLoading('getting');
     const response = await getAllBackups(currentUser.username);
     console.log({backup: response});
     if (!!response.isError) {
+      setBackups();
       setIsLoading('');
       return;
     }
     setBackups(response.data);
     let backupArr = [];
     for (const date in response.data) {
-      let backup = response.data[date];
-      backupArr.push({backUp, date});
+      let backupData = response.data[date];
+      backupArr.push({backupData, date});
     }
     backupArr.sort((a, b) => new Date(b.date) - new Date(a.date));
     setBackups(backupArr);
@@ -60,6 +68,41 @@ export default BackupNRestore = () => {
     await getInitialData();
   };
 
+  const deleteBackup = async item => {
+    console.log({item, backups});
+    const response = await deleteBackupFromDB(currentUser.username, item.date);
+    if (!!response.isError) {
+      return;
+    }
+    await getInitialData();
+  };
+
+  const showConfirm = async (action, item = {}) => {
+    Alert.alert(
+      'Are you sure ?',
+      action == 'delete'
+        ? 'Want to delete this backup ?'
+        : action == 'backup'
+        ? 'All you chat will be uploaded to cloud'
+        : 'All you current chat will be overwritten ?',
+      [
+        {
+          text: 'Yes, confirm',
+          onPress:
+            action == 'backup'
+              ? backUp
+              : action == 'delete'
+              ? deleteBackup.bind(this, item)
+              : () => {
+                  dispatch(restoreBackupReplace({newState: item.backupData}));
+                  Alert.alert('Successfully stored !!');
+                },
+        },
+        {text: 'Cancel'},
+      ],
+    );
+  };
+
   return (
     <View style={commonStyles.topSpacer}>
       <PageHeading
@@ -76,7 +119,7 @@ export default BackupNRestore = () => {
       <SettingItem
         title={'Backup to cloud'}
         itemIcon={'cloud-upload-outline'}
-        onPress={backUp}
+        onPress={showConfirm.bind(this, 'backup')}
       />
       {!!isLoading && (
         <BaseLoader
@@ -95,7 +138,15 @@ export default BackupNRestore = () => {
         />
       )}
       {!isLoading && !!backups && (
-        <BackUpComponent themeRef={themeRef} item={backups[0]} isLast />
+        <BackUpComponent
+          themeRef={themeRef}
+          item={backups[0]}
+          isExpandedDef={!!expandedBackup && expandedBackup == backups[0].date}
+          isLast
+          setIsExpanded={selectedItem => {
+            setExpandedBackup(selectedItem.date);
+          }}
+        />
       )}
 
       {!isLoading && !backups && (
@@ -124,10 +175,10 @@ export default BackupNRestore = () => {
           marginBottom: hp(1.5),
         }}
       />
-      <SettingItem
+      {/* <SettingItem
         title={'Restore from cloud'}
         itemIcon={'cloud-download-outline'}
-      />
+      /> */}
       {isLoading == 'getting' && (
         <BaseLoader
           dark={themeRef.dark}
@@ -144,9 +195,18 @@ export default BackupNRestore = () => {
       )}
       {!isLoading && !!backups && backups?.length != 0 && (
         <FlatList
-          data={[...backups, ...backups]}
-          renderItem={({item}) => (
-            <BackUpComponent themeRef={themeRef} item={item} />
+          data={backups}
+          renderItem={({item, index}) => (
+            <BackUpComponent
+              themeRef={themeRef}
+              item={item}
+              isExpandedDef={!!expandedBackup && expandedBackup == item.date}
+              setIsExpanded={selectedItem => {
+                setExpandedBackup(selectedItem.date);
+              }}
+              onDeletePress={showConfirm.bind(this, 'delete')}
+              onDownloadPress={showConfirm.bind(this, 'restore')}
+            />
           )}
           keyExtractor={(item, index) => index}
           style={{

@@ -34,10 +34,12 @@ export const TopTabNavigator = () => {
       fontFamily: FontfamiliesNames.primaryFontBold,
       left: wp(0),
       paddingLeft: wp(10),
-      paddingBottom: hp(2),
+      paddingBottom: hp(1.5),
       color: themeRef.colors.appThemeColor,
       backgroundColor: themeRef.colors.primaryColor,
-      width: wp(60),
+      // width: wp(40),
+      // backgroundColor: 'red',
+      paddingRight: wp(10),
     },
     tabIcon: {
       height: hp(3.5),
@@ -53,6 +55,8 @@ export const TopTabNavigator = () => {
     <>
       <TopTab.Navigator
         screenOptions={{
+          swipeEnabled: false,
+          lazy: true,
           tabBarStyle: {
             backgroundColor: themeRef.colors.appThemeColor,
             position: 'absolute',

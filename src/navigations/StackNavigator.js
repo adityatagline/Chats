@@ -22,6 +22,7 @@ import ChatInfoScreen from './screens/chat/ChatInfoScreen';
 import GroupChatInfoScreen from './screens/chat/GroupChatInfoScreen';
 import EditGroupScreen from './screens/chat/EditGroupScreen';
 import ForgotPasswordScreen from './screens/authentication/ForgotPasswordScreen';
+import BlockedContacts from './screens/settings/BlockedContacts';
 
 export default StackNavigator = () => {
   const Stack = createNativeStackNavigator();
@@ -111,6 +112,10 @@ export default StackNavigator = () => {
       <Stack.Screen
         name={ScreenNames.TopTabInnerScreens.PrivacyNSecurity}
         component={PrivacySettings}
+      />
+      <Stack.Screen
+        name={ScreenNames.TopTabInnerScreens.BlockedContacts}
+        component={BlockedContacts}
       />
     </Stack.Navigator>
   );

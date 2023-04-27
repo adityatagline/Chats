@@ -199,12 +199,19 @@ const GroupChatScreen = () => {
 
   useEffect(() => {
     const checkAndDeleteMessage = async () => {
-      let unseenChats = chatSliceRef.unseenChats[groupId];
+      let unseenChats = chatSliceRef?.unseenChats?.[groupId];
       // dispatch(addInGpChat({groupId}));
-      await sendGPLastSeen(currentUserInfo.username, groupId, unseenChats[0]);
-      console.log({'unseenChats[0]': unseenChats[0]});
+      if (!!unseenChats) {
+        await sendGPLastSeen(currentUserInfo.username, groupId, unseenChats[0]);
+        console.log({'unseenChats[0]': unseenChats[0]});
+      }
     };
-    checkAndDeleteMessage();
+    if (
+      !!chatSliceRef.unseenChats &&
+      Object.keys(chatSliceRef.unseenChats).length != 0
+    ) {
+      checkAndDeleteMessage();
+    }
   }, [chatSliceRef.unseenChats]);
 
   const sendMessage = async message => {

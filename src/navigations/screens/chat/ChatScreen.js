@@ -222,6 +222,9 @@ export default ChatScreen = () => {
       userInfo.username,
       {...chatObject},
     );
+    if (!!response.isError || response.isBlocked) {
+      return;
+    }
     try {
       const getToken = await getTokens(userInfo.username);
       if (!getToken.isError && getToken?.data?.length != 0) {
@@ -519,20 +522,40 @@ export default ChatScreen = () => {
           behavior={Platform.OS == 'android' ? 'height' : 'padding'}>
           <FlatList
             data={[...chatContent]}
-            renderItem={({item, index}) => (
-              <RenderChatComp
-                item={item}
-                index={index}
-                chatArray={[...chatContent]}
-                searchArray={searchArray}
-              />
-            )}
+            renderItem={
+              ({item, index}) =>
+                RenderChatComp({
+                  item,
+                  index,
+                  chatArray: [...chatContent],
+                  searchArray,
+                })
+              // <RenderChatComp
+              //   item={item}
+              //   index={index}
+              //   chatArray={[...chatContent]}
+              //   searchArray={searchArray}
+              // />
+              // )
+            }
             keyExtractor={(_, index) => index}
             style={styles.chatList}
             inverted
             contentContainerStyle={styles.chatListContainer}
             showsVerticalScrollIndicator={false}
           />
+
+          {!!authenticationSliceRef?.user?.blocked &&
+            authenticationSliceRef?.user?.blocked?.includes(
+              userInfo.username,
+            ) && (
+              <BaseText
+                otherStyles={{alignSelf: 'center'}}
+                color={themeRef.colors.errorColor}
+                weight={fontWeights.semiBold}>
+                You blocked this user
+              </BaseText>
+            )}
 
           <UploadingTrayComponent username={userInfo.username} />
 

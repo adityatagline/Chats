@@ -14,6 +14,7 @@ export default ScreenNames = {
   TopTabInnerScreens: {
     Appearence: 'Appearence',
     PrivacyNSecurity: 'PrivacyAndSecurity',
+    BlockedContacts: 'BlockedContacts',
     BackupNRestore: 'BackupAndRestore',
     ProfileSettings: 'ProfileSettings',
   },

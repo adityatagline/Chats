@@ -2,6 +2,8 @@ import firestore from '@react-native-firebase/firestore';
 import storage from '@react-native-firebase/storage';
 import {useContext} from 'react';
 import {FirebaseStreamTaskContext} from '../../context/FirebaseStreamTaskContext';
+import {apiRequest} from '../global/BaseApiRequestes';
+import {databaseLinks} from '../../credentials/firebaseCredentials/FirebaseDatabaseLinks';
 
 export const sendMessageToFirestore = async (
   senderUsername,
@@ -15,7 +17,19 @@ export const sendMessageToFirestore = async (
       .collection(senderUsername)
       .doc(chatObject.id)
       .set({...chatObject, otherUser: receiverUsername});
-
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${receiverUsername}/blocked.json`;
+    const response = await apiRequest(url, 'GET');
+    if (!!response.isError && response.error != 'noData') {
+      return response;
+    }
+    if (!!response?.data?.includes(senderUsername)) {
+      console.log('blocked');
+      return {
+        isError: false,
+        response: sendToReceiver,
+        isBlocked: true,
+      };
+    }
     const sendToReceiver = firestore()
       .collection('chats')
       .doc('individual')
@@ -26,9 +40,10 @@ export const sendMessageToFirestore = async (
     return {
       isError: false,
       data: sendToSender,
+      isBlocked: false,
     };
   } catch (error) {
-    // console.log({firebaseErrr: error});
+    console.log({firebaseErrr: error});
     return {
       isError: true,
       error,

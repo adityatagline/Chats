@@ -7,7 +7,7 @@ import {
 } from 'react-native-responsive-screen';
 import TextButton from '../../../components/TextButton';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
-import {fontSize} from '../../../styles/commonStyles';
+import {dimensions, fontSize} from '../../../styles/commonStyles';
 import SimpleButton from '../../../components/SimpleButton';
 import {useState} from 'react';
 import FloatingOptionModal from '../../../components/FloatingOptionModal';
@@ -19,6 +19,7 @@ const OptionModal = ({
   themeRef,
   clearAllChats,
   onSearchPress,
+  isBlocked,
 }) => {
   const Seperator = () => {
     return (
@@ -56,7 +57,7 @@ const OptionModal = ({
     <FloatingOptionModal
       visibility={modalVisibility}
       onOutsidePressHandler={() => setModalVisibility(false)}
-      height={hp(15)}
+      height={dimensions.height * 0.3}
       width={wp(50)}
       canClosable>
       <TextButton
@@ -81,6 +82,18 @@ const OptionModal = ({
       />
       <Seperator />
       <TextButton
+        title={isBlocked ? 'Unblock user' : 'Block user'}
+        textStyle={{
+          color: themeRef.colors.appThemeColor,
+          fontSize: fontSize.big,
+        }}
+        // onPress={
+        // clearAllChats
+        // setModalVisibility(false);
+        // }
+      />
+      <Seperator />
+      <TextButton
         title={'Cancel'}
         textStyle={{
           color: cancelColor,
@@ -99,7 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     height: 0.5,
     marginHorizontal: wp(5),
-    marginVertical: hp(0.2),
+    marginVertical: hp(0.7),
   },
 });
 

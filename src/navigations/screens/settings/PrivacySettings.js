@@ -9,7 +9,7 @@ import {
   widthPercentageToDP as wp,
 } from 'react-native-responsive-screen';
 import FontfamiliesNames from '../../../strings/FontfamiliesNames';
-import {useTheme} from '@react-navigation/native';
+import {useNavigation, useTheme} from '@react-navigation/native';
 import {PageHeading, PageName, SettingItem} from './CommonComponents';
 import ScreenNames from '../../../strings/ScreenNames';
 import {commonSettingsStyles} from './AppearenceSettings';
@@ -18,6 +18,7 @@ import {useSelector} from 'react-redux';
 
 export default PrivacySettings = () => {
   const themeRef = useTheme();
+  const navigation = useNavigation();
   const currentUser = useSelector(state => state.authenticationSlice).user;
 
   const shoeResetConfirm = () => {
@@ -59,6 +60,9 @@ export default PrivacySettings = () => {
         <SettingItem
           title={'Blocked Contacts'}
           itemIcon={'remove-circle-outline'}
+          onPress={() =>
+            navigation.navigate(ScreenNames.TopTabInnerScreens.BlockedContacts)
+          }
         />
         {/* <SettingItem title={'Status settings'} itemIcon={'eye'} /> */}
 

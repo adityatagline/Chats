@@ -762,7 +762,10 @@ export const getAllBackups = async username => {
 
 export const updateBackup = async (username, chatSliceRef) => {
   try {
-    let chatString = JSON.stringify(chatSliceRef.individualChats);
+    let chatString = JSON.stringify({
+      individualChats: chatSliceRef.individualChats,
+      homepageChats: chatSliceRef.homepageChats,
+    });
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/backups/${username}.json`;
     let previous = await apiRequest(url, 'GET');
     let backupArr = {};
@@ -776,6 +779,52 @@ export const updateBackup = async (username, chatSliceRef) => {
     return response;
   } catch (error) {
     console.log({errorupdateBackup: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const deleteBackupFromDB = async (username, backupId) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/backups/${username}/${backupId}.json`;
+    let previous = await apiRequest(url, 'GET');
+    if (!!previous.isError) {
+      return previous;
+    }
+    let response = await apiRequest(url, 'DELETE');
+    console.log({response});
+    if (!!response.isError && response.error != 'noData') {
+      return response;
+    }
+    return {
+      isError: false,
+      data: previous.data,
+    };
+  } catch (error) {
+    console.log({errorupdateBackup: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const blockUsersInDB = async (username, userArray) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/blocked.json`;
+    let previous = await apiRequest(url, 'GET');
+    if (!!previous.isError && previous.error != 'noData') {
+      return previous;
+    }
+    let array = !!previous?.data ? previous.data : [];
+    array = array.filter(item => !userArray.includes(item));
+    array = [...array, ...userArray];
+    let response = await apiRequest(url, 'PUT', array);
+    return response;
+  } catch (error) {
+    console.log({errorBlock: error});
     return {
       isError: true,
       error,

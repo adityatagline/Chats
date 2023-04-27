@@ -23,7 +23,12 @@ import ImageCompWithLoader from '../ImageCompWithLoader';
 import {useEffect} from 'react';
 import ChatAvatar from '../ChatAvatar';
 
-export default HomepageChatsPage = ({chatArray}) => {
+export default HomepageChatsPage = ({
+  chatArray,
+  onLongPress,
+  isSelectionMode,
+  optionUsers,
+}) => {
   const themeRef = useTheme();
   const styles = StyleSheet.create({
     ...commonStyles,
@@ -56,6 +61,8 @@ export default HomepageChatsPage = ({chatArray}) => {
       flexDirection: 'row',
       paddingHorizontal: wp(3),
       alignItems: 'center',
+      borderRadius: hp(2.5),
+      overflow: 'hidden',
     },
     chatDetails: {
       width: wp(50),
@@ -126,7 +133,9 @@ export default HomepageChatsPage = ({chatArray}) => {
 
   const renderHomePageChats = ({item}) => {
     let chatname = item.chatName;
+    item.otherUser == 'Aditya' && console.log({itemHome: item});
     let isUnseenMessages = 0;
+    let isGroup = !!item?.groupId;
     if (!!item?.otherUser && !!chatSliceRef.unseenChats[item?.otherUser]) {
       isUnseenMessages = chatSliceRef.unseenChats[item.otherUser].length;
     }
@@ -187,10 +196,9 @@ export default HomepageChatsPage = ({chatArray}) => {
       // chattime = chattime + part;
     }
 
-    let chatmessage =
-      !!item.mediaType || !item.message
-        ? `sent ${item.mediaType}`
-        : item.message;
+    let chatmessage = !!item.mediaType
+      ? `sent ${item.mediaType}`
+      : item.message;
     if (item.message.includes('\n')) {
       chatmessage = chatmessage.split('\n')[0];
     }
@@ -220,10 +228,45 @@ export default HomepageChatsPage = ({chatArray}) => {
 
     // console.log({photoUri, user: chatSlice.friends[item.otherUser]});
 
+    let isSelected =
+      (!!item?.otherUser && optionUsers.includes(item?.otherUser)) ||
+      (!!item?.groupId && optionUsers.includes(item?.groupId));
+
     return (
       <TouchableOpacity
-        style={styles.chatDiv}
-        onPress={goToChatScreen.bind(this, item)}>
+        style={[
+          styles.chatDiv,
+          isSelected && {
+            backgroundColor: themeRef.colors.border,
+          },
+        ]}
+        onLongPress={onLongPress.bind(
+          this,
+          isGroup ? item.groupId : item.otherUser,
+        )}
+        onPress={
+          isSelectionMode
+            ? onLongPress.bind(this, isGroup ? item.groupId : item.otherUser)
+            : goToChatScreen.bind(this, item)
+        }>
+        {!!authenticationSliceRef?.user?.blocked &&
+          authenticationSliceRef?.user?.blocked?.includes(
+            isGroup ? item.groupId : item.otherUser,
+          ) &&
+          !isSelected && (
+            <View
+              style={{
+                backgroundColor: themeRef.colors.errorColor,
+                position: 'absolute',
+                flex: 1,
+                top: 0,
+                bottom: 0,
+                right: 0,
+                left: 0,
+                opacity: 0.2,
+                zIndex: -100,
+              }}></View>
+          )}
         {!!item?.profilePhoto ? (
           <ImageCompWithLoader
             // source={!!photoUri ? photoUri : imageUrlStrings.profileSelected}
@@ -257,7 +300,9 @@ export default HomepageChatsPage = ({chatArray}) => {
             }}>
             {`${
               item.from == authenticationSliceRef.user.username
-                ? 'You : '
+                ? !item.message
+                  ? ''
+                  : "'You : '"
                 : !!item?.groupId && item.messageType != 'announcement'
                 ? senderName + ' : '
                 : ''

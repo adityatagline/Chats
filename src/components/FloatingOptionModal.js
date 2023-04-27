@@ -119,7 +119,7 @@ const FloatingOptionModal = ({
         style={[
           {
             position: 'absolute',
-            maxHeight: hp(85),
+            // maxHeight: hp(85),
             maxWidth: wp(92),
             // bottom: innerContainerDimensions,
             alignSelf: 'center',
@@ -128,7 +128,7 @@ const FloatingOptionModal = ({
             borderRadius: 35,
             right,
             top,
-            height: innerContainerDimensions.x,
+            maxHeight: innerContainerDimensions.x,
             width: innerContainerDimensions.y,
             alignItems: 'center',
             justifyContent: 'center',
@@ -138,6 +138,7 @@ const FloatingOptionModal = ({
             //   ? themeRef.colors.secondaryColor
             //   : 'transparent',
             // borderWidth: themeRef.dark ? 0.5 : 0,
+            paddingVertical: hp(2),
           },
           innerContainerStyle,
         ]}>

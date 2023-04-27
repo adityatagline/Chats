@@ -5,7 +5,13 @@ import {
   useTheme,
 } from '@react-navigation/native';
 import {useEffect, useState} from 'react';
-import {Keyboard, StyleSheet, TouchableOpacity, View} from 'react-native';
+import {
+  Alert,
+  Keyboard,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {useDispatch, useSelector} from 'react-redux';
 import {AppStatusBar} from '../../../components/AppStatusBar';
 import {
@@ -20,6 +26,7 @@ import {
   fontSize,
 } from '../../../styles/commonStyles';
 import {
+  blockUsersInDB,
   checkIsMember,
   getGroupInfo,
   getGroupsOfUser,
@@ -29,6 +36,7 @@ import {
 import firestore from '@react-native-firebase/firestore';
 import {
   checkAndStoreNewMessages,
+  clearAllChats,
   clearUserChat,
   storeGroups,
   storeMessageToGroup,
@@ -47,6 +55,10 @@ import {storeUserDataInRedux} from '../../../../redux/authentication/Authenticat
 import {sendmsg} from '../../../../api/notification/NotificationReq';
 import {changePassword} from '../../../../api/authentication/AuthenticationRequests';
 import SearchList from '../../../components/home/search/SearchList';
+import IconButton from '../../../components/IconButton';
+import BaseModal from '../../../components/BaseModal';
+import {clearAllGroupChats} from '../../../../api/chat/firebaseSdkRequests';
+import {changeUserDetails} from '../../../../redux/authentication/AuthenticationSlice';
 
 export default HomeScreen = props => {
   const themeRef = useTheme();
@@ -57,6 +69,7 @@ export default HomeScreen = props => {
   const isFocused = useIsFocused();
   const dispatch = useDispatch();
   const [isLoading, setisLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState('');
   const [messageToBedeleted, setMessageToBedeleted] = useState([]);
   const [strangerArray, setStrangerArray] = useState([]);
   const [searchText, setSearchText] = useState('');
@@ -71,7 +84,41 @@ export default HomeScreen = props => {
     //   chatName: 'Me Personal',
     // },
   ]);
-  // console.log({individualChats: chatSliceRef.homepageChats});
+  const [optionUsers, setOptionUsers] = useState([]);
+
+  // dispatch(clearAllChats());
+  // dispatch(logout());
+  // console.log({individualChats: chatSliceRef});
+
+  useEffect(() => {
+    if (!!isProcessing) {
+      navigation.setOptions({
+        tabBarStyle: {
+          display: 'none',
+        },
+      });
+    } else {
+      navigation.setOptions({
+        tabBarStyle: {
+          backgroundColor: themeRef.colors.appThemeColor,
+          position: 'absolute',
+          bottom: hp(2.5),
+          width: wp(60),
+          elevation: 0,
+          shadowOpacity: 0.4,
+          shadowColor: themeRef.colors.appThemeColor,
+          shadowOffset: {
+            height: 0,
+            width: 0,
+          },
+          shadowRadius: 5,
+          borderRadius: 40,
+          alignSelf: 'center',
+          justifyContent: 'center',
+        },
+      });
+    }
+  }, [isProcessing]);
 
   useEffect(() => {
     setisLoading(true);
@@ -295,40 +342,155 @@ export default HomeScreen = props => {
     Keyboard.dismiss();
   };
 
+  const startSelection = userName => {
+    if (optionUsers.length == 0) {
+      setOptionUsers([userName]);
+    } else {
+      let newArray = [...optionUsers];
+      if (optionUsers.includes(userName)) {
+        newArray = newArray.filter(item => item != userName);
+      } else {
+        newArray.push(userName);
+      }
+      setOptionUsers(newArray);
+    }
+  };
+
+  const clearSelection = () => setOptionUsers([]);
+
+  const deleteChats = async () => {
+    setIsProcessing('Deleting chats ..');
+    // return;
+    for (let i = 0; i < optionUsers.length; i++) {
+      const userName = optionUsers[i];
+      console.log({userName, ind: chatSliceRef.individualChats});
+      if (!!chatSliceRef?.groups?.[userName]) {
+        let response = await clearAllGroupChats(
+          authenticationSlice.user.username,
+          userName,
+        );
+        if (!response.isError) {
+        }
+      }
+      console.log({home: chatSliceRef.homepageChats});
+      dispatch(clearUserChat({username: userName}));
+      console.log({home: chatSliceRef.homepageChats});
+    }
+    setOptionUsers([]);
+    setIsProcessing('');
+  };
+  const blockUsers = async () => {
+    setIsProcessing('Updating records ..');
+    const response = await blockUsersInDB(
+      authenticationSlice.user.username,
+      optionUsers,
+    );
+    if (!response.isError) {
+      dispatch(changeUserDetails({userDetails: {blocked: response.data}}));
+    }
+    console.log({block: response});
+    setIsProcessing('');
+  };
+
+  const showConfirm = action => {
+    Alert.alert(
+      'Are you sure ?',
+      action == 'delete'
+        ? 'Delete Selected chats ?'
+        : action == 'block'
+        ? 'Block users '
+        : '',
+      [
+        {
+          text: 'Yes, Delete',
+          style: 'destructive',
+          onPress:
+            action == 'delete'
+              ? deleteChats
+              : action == 'block'
+              ? blockUsers
+              : () => {},
+        },
+        {text: 'Cancel', style: 'cancel'},
+      ],
+    );
+  };
+
   return (
     <View style={[styles.mainDiv]}>
       <>
-        {!!isLoading && chatSliceRef.homepageChats.length == 0 && (
+        {((!!isLoading && chatSliceRef.homepageChats.length == 0) ||
+          !!isProcessing) && (
           <LoadingPage
-            loadingText="Geting your chats .."
+            loadingText={!!isProcessing ? isProcessing : 'Geting your chats ..'}
             dark={themeRef.dark}
           />
         )}
-        <TouchableOpacity
-          style={[commonStyles.iconWithTextBtn, styles.newChatBtn]}
-          onPress={() => navigation.navigate(ScreenNames.NewChatPage)}>
-          <IonIcon name="add" size={20} color={themeRef.colors.primaryColor} />
-          <BaseText
-            size={fontSize.small}
-            color={themeRef.colors.primaryColor}
-            weight={fontWeights.bold}>
-            New
-          </BaseText>
-        </TouchableOpacity>
-
-        {/* <TouchableOpacity
-          style={[commonStyles.iconWithTextBtn, styles.newChatBtn]}
-          onPress={async () => {
-            await changePassword();
-          }}>
-          <IonIcon name="add" size={20} color={themeRef.colors.primaryColor} />
-          <BaseText
-            size={fontSize.small}
-            color={themeRef.colors.primaryColor}
-            weight={fontWeights.bold}>
-            New
-          </BaseText>
-        </TouchableOpacity> */}
+        {optionUsers.length == 0 ? (
+          <TouchableOpacity
+            style={[commonStyles.iconWithTextBtn, styles.newChatBtn]}
+            onPress={() => navigation.navigate(ScreenNames.NewChatPage)}>
+            <IonIcon
+              name="add"
+              size={20}
+              color={themeRef.colors.primaryColor}
+            />
+            <BaseText
+              size={fontSize.small}
+              color={themeRef.colors.primaryColor}
+              weight={fontWeights.bold}>
+              New
+            </BaseText>
+          </TouchableOpacity>
+        ) : (
+          <View
+            style={[
+              {
+                // marginVertical: hp(1.5),
+                paddingVertical: hp(0.25),
+                marginBottom: hp(2),
+                alignSelf: 'flex-end',
+                flexDirection: 'row',
+                marginRight: wp(10),
+              },
+            ]}>
+            <IconButton
+              name={'remove-circle-outline'}
+              color={themeRef.colors.errorColor}
+              size={27}
+              containerStyle={{
+                marginHorizontal: wp(2),
+              }}
+              onPress={showConfirm.bind(this, 'block')}
+            />
+            <IconButton
+              name={'trash-outline'}
+              color={themeRef.colors.errorColor}
+              size={27}
+              containerStyle={{
+                marginHorizontal: wp(2),
+              }}
+              onPress={showConfirm.bind(this, 'delete')}
+            />
+            {/* <IconButton
+              name={'ios-notifications-off-outline'}
+              color={themeRef.colors.secondaryColor}
+              size={28}
+              containerStyle={{
+                marginHorizontal: wp(2),
+              }}
+            /> */}
+            <IconButton
+              name={'close'}
+              color={themeRef.colors.appThemeColor}
+              size={30}
+              containerStyle={{
+                marginHorizontal: wp(2),
+              }}
+              onPress={clearSelection}
+            />
+          </View>
+        )}
         <View style={styles.searchDiv}>
           <SearchPage
             searchText={searchText}
@@ -337,9 +499,21 @@ export default HomeScreen = props => {
           />
         </View>
 
-        {!searchText && <HomepageChatsPage />}
+        {!searchText && (
+          <HomepageChatsPage
+            onLongPress={startSelection}
+            isSelectionMode={optionUsers.length != 0}
+            optionUsers={optionUsers}
+          />
+        )}
         {!!searchText && (
-          <SearchList searchText={searchText} searchArray={searchArray} />
+          <SearchList
+            searchText={searchText}
+            searchArray={searchArray}
+            onLongPress={startSelection}
+            isSelectionMode={optionUsers.length != 0}
+            optionUsers={optionUsers}
+          />
         )}
         <AppStatusBar dark={themeRef.dark} />
       </>
