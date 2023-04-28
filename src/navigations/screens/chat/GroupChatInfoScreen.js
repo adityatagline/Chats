@@ -418,6 +418,21 @@ const GroupChatInfoScreen = () => {
     });
   };
 
+  const navigateToChat = user => {
+    let userInfo = !!chatSliceRef.friends[user.username]
+      ? chatSliceRef.friends[user.username]
+      : !!chatSliceRef.starngers[user.username]
+      ? chatSliceRef.starngers[user.username]
+      : {};
+    let chatName = !!chatSliceRef.friends[user.username]
+      ? chatSliceRef.friends[user.username].contactName
+      : userInfo.username;
+    navigation.navigate(ScreenNames.ChatPage, {
+      userInfo,
+      chatName,
+    });
+  };
+
   const RenderMemebers = ({item}) => {
     return (
       <View
@@ -479,6 +494,7 @@ const GroupChatInfoScreen = () => {
             name="chatbubble-ellipses-outline"
             size={25}
             color={themeRef.colors.appThemeColor}
+            onPress={navigateToChat.bind(this, item)}
           />
         )}
         {item?.username != currentUser?.username &&

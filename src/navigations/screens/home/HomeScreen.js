@@ -63,7 +63,7 @@ import BaseModal from '../../../components/BaseModal';
 import {clearAllGroupChats} from '../../../../api/chat/firebaseSdkRequests';
 import {changeUserDetails} from '../../../../redux/authentication/AuthenticationSlice';
 
-export default HomeScreen = props => {
+const HomeScreen = props => {
   const themeRef = useTheme();
   const authenticationSlice = useSelector(state => state.authenticationSlice);
   const chatSliceRef = useSelector(state => state.chatSlice);
@@ -331,7 +331,11 @@ export default HomeScreen = props => {
   const searchInHomeChat = text => {
     setSearchText(text);
     let filteredItems = chatSliceRef.homepageChats.filter(item => {
-      if (item.chatName.includes(text)) {
+      let smallText = item?.chatName?.toString()?.toLowerCase();
+      if (
+        item.chatName.includes(text) ||
+        (!!smallText && smallText.includes(text?.toString().toLowerCase()))
+      ) {
         return item;
       }
     });
@@ -535,3 +539,5 @@ export default HomeScreen = props => {
     </View>
   );
 };
+
+export default HomeScreen;

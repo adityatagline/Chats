@@ -471,6 +471,17 @@ const GroupChatScreen = () => {
     }
   };
 
+  const showConfirm = () => {
+    Alert.alert('Are you sure ?', 'Clear all chat.', [
+      {
+        text: 'Yes, Clear all',
+        style: 'destructive',
+        onPress: clearAllChats,
+      },
+      {text: 'Cancel', style: 'cancel'},
+    ]);
+  };
+
   const searchInChats = text => {
     setSearchText(text);
     if (!text) {
@@ -482,7 +493,11 @@ const GroupChatScreen = () => {
       if (item?.messageType == 'announcement') {
         return;
       }
-      if (item.message.includes(text)) {
+      let lowerText = item?.message?.toString()?.toLowerCase();
+      if (
+        item.message.includes(text) ||
+        (!!lowerText && !!lowerText?.includes(text?.toLowerCase()))
+      ) {
         filteredItems.push(item.id);
       }
     });
@@ -507,7 +522,7 @@ const GroupChatScreen = () => {
         modalVisibility={optionModalVisibility}
         setModalVisibility={setOptionModalVisibility}
         themeRef={themeRef}
-        clearAllChats={clearAllChats}
+        clearAllChats={showConfirm}
         onSearchPress={() => {
           setOptionModalVisibility(false);
           setIsSearching(true);
@@ -601,9 +616,7 @@ const GroupChatScreen = () => {
             contentContainerStyle={styles.chatListContainer}
             showsVerticalScrollIndicator={false}
           />
-
           <UploadingTrayComponent username={groupId} />
-
           <FileSharingTrayComponent
             visibility={isFileSendingTrayOpen}
             setterFunc={setIsFileSendingTrayOpen}
@@ -611,26 +624,34 @@ const GroupChatScreen = () => {
             onVideoPress={openVideoPicker}
             onDocPress={openDocPicker}
           />
-
           {/* {console.log({
             mem: chatSliceRef?.groups?.[groupId],
             curUser: currentUserInfo.username,
           })} */}
           {!!chatSliceRef?.groups?.[groupId]?.members[
             currentUserInfo.username
-          ] ? (
-            <ChatTextInputContainer
-              userChatMessage={userChatMessage}
-              setUserChatMessage={setUserChatMessage}
-              toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
-              isFileSendingTrayOpen={isFileSendingTrayOpen}
-              sendMessage={sendMessage}
-              onPressCamera={async () => {
-                let photoObj = await openMediaPickerModal('camera', 'photo', 1);
-                let upload = await sendMedia('photo', photoObj);
-              }}
-            />
-          ) : (
+          ] &&
+            !isSearching && (
+              <ChatTextInputContainer
+                userChatMessage={userChatMessage}
+                setUserChatMessage={setUserChatMessage}
+                toggleFileTray={() => setIsFileSendingTrayOpen(pre => !pre)}
+                isFileSendingTrayOpen={isFileSendingTrayOpen}
+                sendMessage={sendMessage}
+                onPressCamera={async () => {
+                  let photoObj = await openMediaPickerModal(
+                    'camera',
+                    'photo',
+                    1,
+                  );
+                  let upload = await sendMedia('photo', photoObj);
+                }}
+              />
+            )}
+
+          {!chatSliceRef?.groups?.[groupId]?.members[
+            currentUserInfo.username
+          ] && (
             <BaseText
               size={fontSize.big}
               weight={fontWeights.bold}
@@ -639,7 +660,7 @@ const GroupChatScreen = () => {
                 alignSelf: 'center',
                 textAlign: 'center',
               }}>
-              You left the group.
+              You are no longer member.
             </BaseText>
           )}
         </KeyboardAvoidingView>

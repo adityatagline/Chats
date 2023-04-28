@@ -218,9 +218,11 @@ export default NewChatPage = () => {
   const searchInContact = text => {
     setSearchText(text);
     let filteredItems = [...contactList].filter(item => {
+      let lowerText = item?.contactName?.toString()?.toLowerCase();
       if (
         item.contactName.includes(text) ||
-        item.phone.toString().includes(text)
+        item.phone.toString().includes(text) ||
+        (!!lowerText && !!lowerText.includes(text?.toLowerCase()))
       ) {
         if (
           memebersSelected.length == 0 ||

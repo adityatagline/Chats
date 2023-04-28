@@ -391,6 +391,17 @@ export default ChatScreen = () => {
     }
   };
 
+  const showClearConfirm = () => {
+    Alert.alert('Are you sure ?', 'Clear all chat.', [
+      {
+        text: 'Yes, Clear all',
+        style: 'destructive',
+        onPress: clearAllChats,
+      },
+      {text: 'Cancel', style: 'cancel'},
+    ]);
+  };
+
   const searchInChats = text => {
     setSearchText(text);
     if (!text) {
@@ -399,7 +410,11 @@ export default ChatScreen = () => {
     }
     let filteredItems = [];
     chatContent.map(item => {
-      if (item.message.includes(text)) {
+      let lowerText = item?.message?.toString()?.toLowerCase();
+      if (
+        item.message.includes(text) ||
+        (!!lowerText && !!lowerText?.includes(text?.toLowerCase()))
+      ) {
         filteredItems.push(item.id);
       }
     });
@@ -515,7 +530,7 @@ export default ChatScreen = () => {
         modalVisibility={optionModalVisibility}
         setModalVisibility={setOptionModalVisibility}
         themeRef={themeRef}
-        clearAllChats={clearAllChats}
+        clearAllChats={showClearConfirm}
         onSearchPress={() => {
           setOptionModalVisibility(false);
           setIsSearching(true);
