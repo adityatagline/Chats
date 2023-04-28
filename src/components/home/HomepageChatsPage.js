@@ -22,6 +22,7 @@ import BaseText from '../BaseText';
 import ImageCompWithLoader from '../ImageCompWithLoader';
 import {useEffect} from 'react';
 import ChatAvatar from '../ChatAvatar';
+import EntypoIcon from 'react-native-vector-icons/Entypo';
 
 export default HomepageChatsPage = ({
   chatArray,
@@ -63,6 +64,7 @@ export default HomepageChatsPage = ({
       alignItems: 'center',
       borderRadius: hp(2.5),
       overflow: 'hidden',
+      flex: 1,
     },
     chatDetails: {
       width: wp(50),
@@ -105,6 +107,8 @@ export default HomepageChatsPage = ({
   useEffect(() => {
     if (chatSliceRef.homepageChats.length != 0) {
       setHomepageChats([...chatSliceRef.homepageChats]);
+    } else {
+      setHomepageChats([]);
     }
   }, [chatSliceRef.homepageChats, chatSliceRef.strangers]);
 
@@ -133,7 +137,7 @@ export default HomepageChatsPage = ({
 
   const renderHomePageChats = ({item}) => {
     let chatname = item.chatName;
-    item.otherUser == 'Aditya' && console.log({itemHome: item});
+    // item.otherUser == 'Aditya' && console.log({itemHome: item});
     let isUnseenMessages = 0;
     let isGroup = !!item?.groupId;
     if (!!item?.otherUser && !!chatSliceRef.unseenChats[item?.otherUser]) {
@@ -202,15 +206,12 @@ export default HomepageChatsPage = ({
     if (item.message.includes('\n')) {
       chatmessage = chatmessage.split('\n')[0];
     }
-    let photoUri = !!chatSliceRef?.friends?.[item.otherUser]?.profilePhoto
-      ? {uri: chatSliceRef.friends[item.otherUser].profilePhoto}
-      : undefined;
+    let photoUri = !!item?.groupId
+      ? chatSliceRef?.groups[item.groupId]?.profilePhotoObject?.uri
+      : !!chatSliceRef?.friends[item.otherUser]?.profilePhoto
+      ? chatSliceRef?.friends[item.otherUser]?.profilePhoto
+      : chatSliceRef?.strangers[item.otherUser]?.profilePhoto;
 
-    if (!photoUri) {
-      photoUri = !!chatSliceRef?.strangers?.[item.otherUser]?.profilePhoto
-        ? {uri: chatSliceRef?.strangers?.[item.otherUser].profilePhoto}
-        : imageUrlStrings.profileSelected;
-    }
     let senderName = !!chatSliceRef?.friends?.[item.from]
       ? chatSliceRef?.friends?.[item.from].contactName
       : !!chatSliceRef?.strangers?.[item.from]
@@ -233,103 +234,130 @@ export default HomepageChatsPage = ({
       (!!item?.groupId && optionUsers.includes(item?.groupId));
 
     return (
-      <TouchableOpacity
-        style={[
-          styles.chatDiv,
-          isSelected && {
-            backgroundColor: themeRef.colors.border,
-          },
-        ]}
-        onLongPress={onLongPress.bind(
-          this,
-          isGroup ? item.groupId : item.otherUser,
-        )}
-        onPress={
-          isSelectionMode
-            ? onLongPress.bind(this, isGroup ? item.groupId : item.otherUser)
-            : goToChatScreen.bind(this, item)
-        }>
-        {!!authenticationSliceRef?.user?.blocked &&
-          authenticationSliceRef?.user?.blocked?.includes(
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+        }}>
+        <TouchableOpacity
+          style={[
+            styles.chatDiv,
+            isSelected && {
+              backgroundColor: themeRef.colors.border,
+            },
+            !!photoUri && {
+              paddingVertical: hp(1.25),
+            },
+          ]}
+          onLongPress={onLongPress.bind(
+            this,
             isGroup ? item.groupId : item.otherUser,
-          ) &&
-          !isSelected && (
-            <View
-              style={{
-                backgroundColor: themeRef.colors.errorColor,
-                position: 'absolute',
-                flex: 1,
-                top: 0,
-                bottom: 0,
-                right: 0,
-                left: 0,
-                opacity: 0.2,
-                zIndex: -100,
-              }}></View>
           )}
-        {!!item?.profilePhoto ? (
-          <ImageCompWithLoader
-            // source={!!photoUri ? photoUri : imageUrlStrings.profileSelected}
-            source={imageUrlStrings.banana}
-            ImageStyles={[styles.chatAvatar, !photoUri && styles.noPhotoStyle]}
-            containerStyles={{
-              marginRight: !!photoUri.uri ? wp(1) : wp(0.5),
-              marginLeft: !!photoUri.uri ? wp(0) : wp(0.4),
-            }}
-          />
-        ) : (
-          <ChatAvatar
-            size={hp(6)}
-            isCircle
-            color={themeRef.colors.appThemeColor}
-          />
-        )}
+          onPress={
+            isSelectionMode
+              ? onLongPress.bind(this, isGroup ? item.groupId : item.otherUser)
+              : goToChatScreen.bind(this, item)
+          }>
+          {!!authenticationSliceRef?.user?.blocked &&
+            authenticationSliceRef?.user?.blocked?.includes(
+              isGroup ? item.groupId : item.otherUser,
+            ) &&
+            !isSelected && (
+              <View
+                style={{
+                  backgroundColor: themeRef.colors.errorColor,
+                  position: 'absolute',
+                  flex: 1,
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  left: 0,
+                  opacity: 0.2,
+                  zIndex: -100,
+                }}></View>
+            )}
+          {!!photoUri ? (
+            <ImageCompWithLoader
+              source={
+                !!photoUri ? {uri: photoUri} : imageUrlStrings.profileSelected
+              }
+              // source={imageUrlStrings.banana}
+              ImageStyles={[
+                styles.chatAvatar,
+                !photoUri && styles.noPhotoStyle,
+              ]}
+              containerStyles={{
+                marginRight: !!photoUri.uri ? wp(1) : wp(0.5),
+                marginLeft: !!photoUri.uri ? wp(0) : wp(0.4),
+              }}
+              loaderColor={themeRef.colors.appThemeColor}
+            />
+          ) : (
+            <ChatAvatar
+              size={hp(7)}
+              isCircle
+              color={themeRef.colors.appThemeColor}
+            />
+          )}
 
-        <View style={styles.chatDetails}>
-          <BaseText
-            weight={fontWeights.semiBold}
-            color={themeRef.colors.appThemeColor}
-            size={fontSize.big}>
-            {chatname}
-          </BaseText>
-          <BaseText
-            weight={fontWeights.medium}
-            color={themeRef.colors.secondaryColor}
-            otherProp={{
-              numberOfLines: 1,
-            }}>
-            {`${
-              item.from == authenticationSliceRef.user.username
-                ? !item.message
-                  ? ''
-                  : "'You : '"
-                : !!item?.groupId && item.messageType != 'announcement'
-                ? senderName + ' : '
-                : ''
-            }${chatmessage}`}
-            {/* {item.from == authenticationSliceRef.user.username
+          <View style={styles.chatDetails}>
+            <BaseText
+              weight={fontWeights.semiBold}
+              color={themeRef.colors.appThemeColor}
+              size={fontSize.big}>
+              {chatname}
+            </BaseText>
+            <BaseText
+              weight={fontWeights.medium}
+              color={themeRef.colors.secondaryColor}
+              otherProp={{
+                numberOfLines: 1,
+              }}>
+              {`${
+                item.from == authenticationSliceRef.user.username
+                  ? !item.message
+                    ? ''
+                    : "'You : '"
+                  : !!item?.groupId && item.messageType != 'announcement'
+                  ? senderName + ' : '
+                  : ''
+              }${chatmessage}`}
+              {/* {item.from == authenticationSliceRef.user.username
 '              ? (item?.messageType == 'announcement' ? '' : 'You: ') +
 '                chatmessage
               : chatmessage} */}
-          </BaseText>
-        </View>
-        {(isUnseenMessages != 0 || isUnseenMessages != '0') && (
-          <View style={styles.unseenMessageNumberContainer}>
-            <BaseText
-              color={themeRef.colors.primaryColor}
-              size={fontSize.tiny}
-              weight={fontWeights.semiBold}>
-              {isUnseenMessages}
             </BaseText>
           </View>
+          {(isUnseenMessages != 0 || isUnseenMessages != '0') && (
+            <View style={styles.unseenMessageNumberContainer}>
+              <BaseText
+                color={themeRef.colors.primaryColor}
+                size={fontSize.tiny}
+                weight={fontWeights.semiBold}>
+                {isUnseenMessages}
+              </BaseText>
+            </View>
+          )}
+          <BaseText
+            color={themeRef.colors.secondaryColor}
+            size={fontSize.tiny}
+            weight={fontWeights.medium}>
+            {chattime}
+          </BaseText>
+        </TouchableOpacity>
+        {!!authenticationSliceRef?.user?.blocked?.includes(
+          isGroup ? item.groupId : item.otherUser,
+        ) && (
+          <EntypoIcon
+            name="block"
+            size={25}
+            color={themeRef.colors.errorColor}
+            style={{
+              marginRight: wp(5),
+            }}
+          />
         )}
-        <BaseText
-          color={themeRef.colors.secondaryColor}
-          size={fontSize.tiny}
-          weight={fontWeights.medium}>
-          {chattime}
-        </BaseText>
-      </TouchableOpacity>
+      </View>
     );
   };
 

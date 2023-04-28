@@ -289,10 +289,10 @@ export default ProfileSettings = () => {
             }>
             {!!user?.profilePhotoObject?.uri ? (
               <ImageCompWithLoader
-                // source={{
-                //   uri: user.profilePhotoObject.uri,
-                // }}
-                source={imageUrlStrings.lemon}
+                source={{
+                  uri: user.profilePhotoObject.uri,
+                }}
+                // source={imageUrlStrings.lemon}
                 ImageStyles={styles.profilePhoto}
                 resizeMode="contain"
               />

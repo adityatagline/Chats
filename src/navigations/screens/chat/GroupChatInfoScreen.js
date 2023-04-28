@@ -430,8 +430,8 @@ const GroupChatInfoScreen = () => {
         <View>
           {!!item?.profilePhoto ? (
             <ImageCompWithLoader
-              // source={{uri: item.profilePhoto}}
-              source={imageUrlStrings.banana}
+              source={{uri: item.profilePhoto}}
+              // source={imageUrlStrings.banana}
               ImageStyles={styles.userPhoto}
               resizeMode="contain"
             />
@@ -675,8 +675,8 @@ const GroupChatInfoScreen = () => {
               }}>
               {!!groupInfo?.profilePhotoObject?.uri ? (
                 <ImageCompWithLoader
-                  // source={{uri: groupInfo?.profilePhotoObject?.uri}}
-                  source={imageUrlStrings.banana}
+                  source={{uri: groupInfo?.profilePhotoObject?.uri}}
+                  // source={imageUrlStrings.banana}
                   ImageStyles={styles.groupPhoto}
                 />
               ) : (

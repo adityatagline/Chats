@@ -487,6 +487,7 @@ const Chatslice = createSlice({
         }
       });
       newHomeArray = newHomeArray.filter(item => !!item);
+      console.log({newHomeArray});
       return {
         ...newState,
         individualChats: otherChats,

@@ -44,7 +44,10 @@ import {
 } from '../../../../redux/chats/ChatSlice';
 import {askPermissionAsync, getContacts} from '../NewChatPage';
 import LoadingPage, {BaseLoader} from '../../../components/LoadingPage';
-import {checkAndDeleteMessage} from '../../../../api/chat/firebaseSdkRequests';
+import {
+  checkAndDeleteMessage,
+  clearAllIndividualChats,
+} from '../../../../api/chat/firebaseSdkRequests';
 import IonIcon from 'react-native-vector-icons/Ionicons';
 import BaseText from '../../../components/BaseText';
 import {fontWeights} from '../../../strings/FontfamiliesNames';
@@ -369,7 +372,17 @@ export default HomeScreen = props => {
           authenticationSlice.user.username,
           userName,
         );
-        if (!response.isError) {
+        if (!!response.isError) {
+          continue;
+        }
+      } else {
+        let response = await clearAllIndividualChats(
+          authenticationSlice.user.username,
+          userName,
+        );
+        console.log({clearResInd: response});
+        if (!!response.isError) {
+          continue;
         }
       }
       console.log({home: chatSliceRef.homepageChats});
@@ -381,9 +394,11 @@ export default HomeScreen = props => {
   };
   const blockUsers = async () => {
     setIsProcessing('Updating records ..');
+    let usersToReturn = [...optionUsers];
+    usersToReturn = usersToReturn.filter(item => !chatSliceRef?.groups?.[item]);
     const response = await blockUsersInDB(
       authenticationSlice.user.username,
-      optionUsers,
+      usersToReturn,
     );
     if (!response.isError) {
       dispatch(changeUserDetails({userDetails: {blocked: response.data}}));
@@ -402,7 +417,7 @@ export default HomeScreen = props => {
         : '',
       [
         {
-          text: 'Yes, Delete',
+          text: action == 'delete' ? 'Yes, Delete' : 'Yes, Block',
           style: 'destructive',
           onPress:
             action == 'delete'

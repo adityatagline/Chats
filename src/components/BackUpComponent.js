@@ -25,12 +25,16 @@ const BackUpComponent = ({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        // backgroundColor: 'red',
+        width: wp(95),
+        // backgroundColor: 'red',
+        alignSelf: 'center',
       }}>
       <TouchableOpacity
         activeOpacity={0.6}
         style={{
           backgroundColor: themeRef.colors.appThemeColor,
-          marginHorizontal: isExpandedDef ? wp(2) : wp(8),
+          // marginHorizontal: isExpandedDef ? wp(2) : wp(8),
           paddingHorizontal: wp(7),
           paddingVertical: hp(1.5),
           borderRadius: hp(2),
@@ -43,7 +47,8 @@ const BackUpComponent = ({
           shadowRadius: 7,
           marginVertical: isLast ? 0 : hp(0.5),
         }}
-        onPress={() => setIsExpanded(item)}>
+        onPress={() => setIsExpanded(item)}
+        disabled={isLast}>
         <BaseText
           color={themeRef.colors.primaryColor}
           weight={fontWeights.medium}
@@ -64,6 +69,7 @@ const BackUpComponent = ({
             size={25}
             containerStyle={{
               marginHorizontal: wp(2),
+              marginLeft: wp(4),
             }}
             onPress={onDownloadPress.bind(this, item)}
             color={themeRef.colors.appThemeColor}

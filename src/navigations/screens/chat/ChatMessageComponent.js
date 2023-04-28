@@ -11,6 +11,7 @@ import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 import IconButton from '../../../components/IconButton';
 import {downloadMediaToDevice} from '../../../../api/chat/ChatRequests';
 import IonIcon from 'react-native-vector-icons/Ionicons';
+import {TouchableOpacity} from 'react-native';
 
 const ChatMessageComponent = ({
   item,
@@ -22,6 +23,7 @@ const ChatMessageComponent = ({
   handleDownload,
   chatSliceRef,
   searchArray,
+  onImagePress,
 }) => {
   let position;
   // console.log({item});
@@ -91,6 +93,7 @@ const ChatMessageComponent = ({
           position,
           handleDownload,
           searchArray,
+          onImagePress,
         }}
       />
     );
@@ -213,11 +216,13 @@ const RenderMediaComponent = ({
   position,
   handleDownload,
   searchArray,
+  onImagePress,
 }) => {
   switch (item.mediaType) {
     case 'photo':
       return (
-        <View
+        <TouchableOpacity
+          onPress={() => onImagePress({uri: item.uri})}
           style={[
             {
               // backgroundColor: 'yellow',
@@ -247,7 +252,7 @@ const RenderMediaComponent = ({
           {!item.isDownloaded && (
             <DownloadBtn {...{themeRef, item, handleDownload}} />
           )}
-        </View>
+        </TouchableOpacity>
       );
 
     case 'documentFile':

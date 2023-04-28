@@ -27,6 +27,7 @@ const AuthenticationSlice = createSlice({
       };
     },
     changeUserDetails: (state, action) => {
+      console.log({pay: action.payload});
       return {
         ...state,
         user: {

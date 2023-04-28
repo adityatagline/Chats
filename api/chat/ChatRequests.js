@@ -197,6 +197,7 @@ export const getStrangerInfoFromDB = async (
   isCurrentUser = false,
 ) => {
   try {
+    console.log({starngerUsername});
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${starngerUsername}.json`;
     let response = await apiRequest(url, 'GET');
     // console.log({url, response});
@@ -822,6 +823,26 @@ export const blockUsersInDB = async (username, userArray) => {
     array = array.filter(item => !userArray.includes(item));
     array = [...array, ...userArray];
     let response = await apiRequest(url, 'PUT', array);
+    return response;
+  } catch (error) {
+    console.log({errorBlock: error});
+    return {
+      isError: true,
+      error,
+    };
+  }
+};
+
+export const unBlockUsersInDB = async (username, otherUser) => {
+  try {
+    let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}/blocked.json`;
+    let previous = await apiRequest(url, 'GET');
+    if (!!previous.isError && previous.error != 'noData') {
+      return previous;
+    }
+    let arrayToReturn = !!previous?.data ? previous.data : [];
+    arrayToReturn = arrayToReturn.filter(item => item != otherUser);
+    let response = await apiRequest(url, 'PUT', arrayToReturn);
     return response;
   } catch (error) {
     console.log({errorBlock: error});

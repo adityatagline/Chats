@@ -40,10 +40,10 @@ const AvatarListHorizontal = ({
         <View>
           {!!item?.[uriField] ? (
             <ImageCompWithLoader
-              // source={{
-              //   uri: item[uriField],
-              // }}
-              source={imageUrlStrings.lemon}
+              source={{
+                uri: item[uriField],
+              }}
+              // source={imageUrlStrings.lemon}
               resizeMode="contain"
               ImageStyles={{
                 height: wp(12),

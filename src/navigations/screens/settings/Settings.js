@@ -156,12 +156,12 @@ export default Settings = props => {
       <View style={[styles.settingItem]}>
         {/* <View> */}
 
-        {!user?.profilePhotoObject?.uri ? (
+        {!!user?.profilePhotoObject?.uri ? (
           <ImageCompWithLoader
-            // source={{
-            //   uri: user.profilePhotoObject.uri,
-            // }}
-            source={imageUrlStrings.lemon}
+            source={{
+              uri: user?.profilePhotoObject?.uri,
+            }}
+            // source={imageUrlStrings.lemon}
             ImageStyles={{
               height: hp(10),
               width: hp(10),

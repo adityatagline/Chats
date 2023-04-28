@@ -23,6 +23,7 @@ import {
   clearUserChat,
   removeUnseenChats,
   storeMessage,
+  storeStranger,
 } from '../../../../redux/chats/ChatSlice';
 import {
   clearAllIndividualChats,
@@ -57,6 +58,13 @@ import SearchPage from '../../../components/home/search/SearchPage';
 import TextButton from '../../../components/TextButton';
 import BaseModal from '../../../components/BaseModal';
 import {BaseLoader} from '../../../components/LoadingPage';
+import {changeUserDetails} from '../../../../redux/authentication/AuthenticationSlice';
+import {
+  blockUsersInDB,
+  getStrangerInfoFromDB,
+  unBlockUsersInDB,
+} from '../../../../api/chat/ChatRequests';
+import ImageView from 'react-native-image-viewing';
 
 export default ChatScreen = () => {
   const themeRef = useTheme();
@@ -116,8 +124,24 @@ export default ChatScreen = () => {
   const [searchArray, setSearchArray] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showImage, setShowImage] = useState();
 
   // console.log({lastSeen});
+
+  const getInitialData = async () => {
+    let response = await getStrangerInfoFromDB(userInfo.username);
+    if (!!response.error) {
+      Alert.alert('Oops', 'Error while getting user information.');
+      console.log({responseErrUserInfo: response});
+      navigation.navigate(ScreenNames.TopTabScreens.HomeScreen);
+      return;
+    }
+    dispatch(storeStranger({userInfo: response.data}));
+  };
+
+  useEffect(() => {
+    getInitialData();
+  }, []);
 
   useEffect(() => {
     !!chatSliceRef.individualChats[userInfo.username] &&
@@ -428,10 +452,61 @@ export default ChatScreen = () => {
           chatSliceRef,
           lastSeen,
           searchArray,
+          onImagePress: res => setShowImage(res),
         }}
       />
     </>
   );
+
+  const block = async () => {
+    setIsLoading('Updating records ..');
+    const response = await blockUsersInDB(currentUserInfo.username, [
+      userInfo.username,
+    ]);
+    if (!response.isError) {
+      dispatch(changeUserDetails({userDetails: {blocked: response.data}}));
+    }
+    console.log({block: response});
+    setIsLoading('');
+  };
+
+  const unblock = async () => {
+    setIsLoading('Please wait ..');
+    const response = await unBlockUsersInDB(
+      currentUserInfo.username,
+      userInfo.username,
+    );
+    if (!!response.isError && response.error != 'noData') {
+      setIsLoading('');
+      return;
+    }
+    console.log({unBlockUser: response});
+    dispatch(
+      changeUserDetails({
+        userDetails: {
+          blocked: response?.data?.length != 0 ? response?.data : [],
+        },
+      }),
+    );
+    setIsLoading('');
+  };
+
+  const showConfirm = action => {
+    // setOptionModalVisibility(false);
+    setIsSearching(false);
+    Alert.alert(
+      'Are you sure ?',
+      action == 'block' ? 'Want to block user?' : 'Want to Unblock user?',
+      [
+        {
+          text: action == 'block' ? 'Yes, block' : 'Yes, Unblock',
+          style: 'destructive',
+          onPress: action == 'block' ? block : unblock,
+        },
+        {text: 'Cancel', style: 'cancel'},
+      ],
+    );
+  };
 
   return (
     <>
@@ -445,6 +520,13 @@ export default ChatScreen = () => {
           setOptionModalVisibility(false);
           setIsSearching(true);
         }}
+        onBlockPress={
+          !currentUserInfo?.blocked?.includes(userInfo.username)
+            ? showConfirm.bind(this, 'block')
+            : showConfirm.bind(this, 'unblock')
+        }
+        isBlocked={!!currentUserInfo?.blocked?.includes(userInfo.username)}
+        // isSelectionMode={true}
       />
       <BaseModal visibility={isLoading}>
         <BaseLoader loadingText="Please wait .." dark={themeRef.dark} />
@@ -472,12 +554,11 @@ export default ChatScreen = () => {
             setOptionModalVisibility(true);
           }}
           chatProfilePhoto={
-            // !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
-            //   ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
-            //   : !!chatSliceRef?.strangers[userInfo.username]?.profilePhoto
-            //   ? {uri: chatSliceRef?.strangers[userInfo.username]?.profilePhoto}
-            //   :
-            imageUrlStrings.lemon
+            !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
+              ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
+              : !!chatSliceRef?.strangers[userInfo.username]?.profilePhoto
+              ? {uri: chatSliceRef?.strangers[userInfo.username]?.profilePhoto}
+              : imageUrlStrings.profileSelected
           }
         />
 

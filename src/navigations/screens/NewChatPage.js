@@ -389,8 +389,8 @@ export default NewChatPage = () => {
       <View style={styles.userContactDiv}>
         {!!item.profilePhoto ? (
           <ImageCompWithLoader
-            // source={{uri: item.profilePhoto}}
-            source={imageUrlStrings.lemon}
+            source={{uri: item.profilePhoto}}
+            // source={imageUrlStrings.lemon}
             ImageStyles={styles.profilePhoto}
             ImageProps={{borderRadius: 500}}
           />

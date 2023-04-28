@@ -5,6 +5,7 @@ import {
   Alert,
   FlatList,
   Text,
+  TouchableOpacity,
 } from 'react-native';
 import {
   commonStyles,
@@ -18,12 +19,12 @@ import {
 import FontfamiliesNames, {
   fontWeights,
 } from '../../../strings/FontfamiliesNames';
-import {useTheme} from '@react-navigation/native';
+import {useNavigation, useTheme} from '@react-navigation/native';
 import {PageHeading, PageName, SettingItem} from './CommonComponents';
 import ScreenNames from '../../../strings/ScreenNames';
 import {commonSettingsStyles} from './AppearenceSettings';
 import {changePassword} from '../../../../api/authentication/AuthenticationRequests';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {useState} from 'react';
 import BaseModal from '../../../components/BaseModal';
 import LoadingPage, {BaseLoader} from '../../../components/LoadingPage';
@@ -33,13 +34,74 @@ import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import ChatAvatar from '../../../components/ChatAvatar';
 import IconButton from '../../../components/IconButton';
+import {unBlockUsersInDB} from '../../../../api/chat/ChatRequests';
+import {changeUserDetails} from '../../../../redux/authentication/AuthenticationSlice';
 
 const BlockedContacts = () => {
   const themeRef = useTheme();
   const currentUser = useSelector(state => state.authenticationSlice).user;
   const chatSliceRef = useSelector(state => state.chatSlice);
+  console.log({currentUser});
+  const dispatch = useDispatch();
+  const styles = StyleSheet.create({
+    chatAvatar: {
+      height: hp(6),
+      width: hp(6),
+      borderRadius: 500,
+      backgroundColor: themeRef.colors.primaryColor,
+    },
+    noPhotoStyle: {
+      height: hp(5),
+      width: hp(5),
+    },
+  });
+  const navigation = useNavigation();
 
   const [isLoading, setIsLoading] = useState('');
+
+  const unBlockUser = async user => {
+    console.log({user});
+    setIsLoading('Please wait ..');
+    const response = await unBlockUsersInDB(currentUser.username, user);
+    if (!!response.isError && response.error != 'noData') {
+      setIsLoading('');
+      return;
+    }
+    console.log({unBlockUser: response});
+    dispatch(
+      changeUserDetails({
+        userDetails: {
+          blocked: response?.data?.length != 0 ? response?.data : [],
+        },
+      }),
+    );
+    setIsLoading('');
+  };
+
+  const showConfirm = user => {
+    Alert.alert('Are you sure ?', 'Want to unblock user', [
+      {
+        text: 'Yes, Unblock',
+        style: 'destructive',
+        onPress: unBlockUser.bind(this, user),
+      },
+      {text: 'Cancel', style: 'cancel'},
+    ]);
+  };
+
+  const navigateInfoScreen = item => {
+    console.log({item});
+    // return;
+    if (!!item?.id) {
+      navigation.navigate(ScreenNames.GroupChatInfoScreen, {
+        groupId: item.id,
+      });
+    } else {
+      navigation.navigate(ScreenNames.ChatInfoScreen, {
+        username: item.username,
+      });
+    }
+  };
 
   const RenderBlockedUser = ({item}) => {
     let userInfo;
@@ -68,9 +130,18 @@ const BlockedContacts = () => {
     if (!userInfo || !role) {
       return null;
     }
-    let photoUri = !!userInfo?.profilePhoto
-      ? {uri: userInfo.profilePhoto}
-      : undefined;
+    let photoUri =
+      role == 'groups'
+        ? !!userInfo?.profilePhotoObject?.uri
+          ? {
+              uri: userInfo?.profilePhotoObject?.uri,
+            }
+          : undefined
+        : !!userInfo?.profilePhoto
+        ? {
+            uri: userInfo.profilePhoto,
+          }
+        : undefined;
     return (
       <View
         style={{
@@ -85,24 +156,25 @@ const BlockedContacts = () => {
           borderRadius: hp(2.5),
           overflow: 'hidden',
         }}>
-        {!!userInfo?.profilePhoto ? (
+        {!!photoUri ? (
           <ImageCompWithLoader
-            // source={!!photoUri ? photoUri : imageUrlStrings.profileSelected}
-            source={imageUrlStrings.banana}
+            source={!!photoUri ? photoUri : imageUrlStrings.profileSelected}
+            // source={imageUrlStrings.banana}
             ImageStyles={[styles.chatAvatar, !photoUri && styles.noPhotoStyle]}
             containerStyles={{
-              marginRight: !!photoUri.uri ? wp(1) : wp(0.5),
-              marginLeft: !!photoUri.uri ? wp(0) : wp(0.4),
+              marginRight: !!photoUri ? wp(1) : wp(0.5),
+              marginLeft: !!photoUri ? wp(0) : wp(0.4),
             }}
           />
         ) : (
           <ChatAvatar
-            size={hp(6)}
+            size={hp(7)}
             isCircle
             color={themeRef.colors.appThemeColor}
           />
         )}
-        <View
+        <TouchableOpacity
+          onPress={navigateInfoScreen.bind(this, userInfo)}
           style={{
             width: wp(50),
             marginHorizontal: wp(2),
@@ -111,13 +183,20 @@ const BlockedContacts = () => {
             flex: 1,
           }}>
           <BaseText
-            weight={fontWeights.semiBold}
+            weight={fontWeights.bold}
             color={themeRef.colors.appThemeColor}
             size={fontSize.big}>
             {displayName}
           </BaseText>
-          {role !== 'groups' && <BaseText>{userInfo.phone}</BaseText>}
-        </View>
+          {role !== 'groups' && (
+            <BaseText
+              weight={fontWeights.semiBold}
+              color={themeRef.colors.appThemeColor}
+              size={fontSize.medium}>
+              {userInfo.phone}
+            </BaseText>
+          )}
+        </TouchableOpacity>
         <IconButton
           name={'person-add-sharp'}
           color={themeRef.colors.appThemeColor}
@@ -125,6 +204,7 @@ const BlockedContacts = () => {
           containerStyle={{
             marginHorizontal: wp(2),
           }}
+          onPress={showConfirm.bind(this, item)}
         />
       </View>
     );
@@ -134,14 +214,22 @@ const BlockedContacts = () => {
     <>
       <View style={commonStyles.topSpacer}>
         <PageHeading
-          middleComponenet={<PageName name={'Blocked contacts'} />}
+          middleComponenet={
+            <PageName
+              name={`${
+                !!currentUser?.blocked?.length
+                  ? currentUser?.blocked?.length
+                  : 0
+              } Blocked contact${currentUser?.blocked?.length < 2 ? '' : 's'}`}
+            />
+          }
           backButtonProps={{
             name: 'chevron-back',
             size: 30,
             color: themeRef.colors.secondaryColor,
             backScreen: 'Privacy and Security',
           }}
-          backNavigationScreen={ScreenNames.TopTabScreens.ProfileScreen}
+          backNavigationScreen={ScreenNames.TopTabInnerScreens.PrivacyNSecurity}
         />
         {isLoading && (
           <BaseLoader
@@ -156,6 +244,10 @@ const BlockedContacts = () => {
             data={currentUser.blocked}
             renderItem={RenderBlockedUser}
             keyExtractor={(item, index) => item}
+            style={{
+              // backgroundColor: 'red',
+              marginTop: hp(2),
+            }}
           />
         )}
       </View>

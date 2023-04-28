@@ -20,6 +20,8 @@ const OptionModal = ({
   clearAllChats,
   onSearchPress,
   isBlocked,
+  onBlockPress,
+  isGroup = false,
 }) => {
   const Seperator = () => {
     return (
@@ -81,18 +83,31 @@ const OptionModal = ({
         }
       />
       <Seperator />
-      <TextButton
-        title={isBlocked ? 'Unblock user' : 'Block user'}
+
+      {/* <TextButton
+        title={'Delete selected'}
         textStyle={{
           color: themeRef.colors.appThemeColor,
           fontSize: fontSize.big,
         }}
-        // onPress={
-        // clearAllChats
-        // setModalVisibility(false);
-        // }
+        onPress={
+          clearAllChats
+          // setModalVisibility(false);
+        }
       />
-      <Seperator />
+      <Seperator /> */}
+
+      {!isGroup && (
+        <TextButton
+          title={isBlocked ? 'Unblock user' : 'Block user'}
+          textStyle={{
+            color: themeRef.colors.appThemeColor,
+            fontSize: fontSize.big,
+          }}
+          onPress={onBlockPress}
+        />
+      )}
+      {!isGroup && <Seperator />}
       <TextButton
         title={'Cancel'}
         textStyle={{

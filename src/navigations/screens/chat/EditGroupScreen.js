@@ -140,8 +140,8 @@ const EditGroupScreen = () => {
         <View>
           {!!item?.profilePhoto ? (
             <ImageCompWithLoader
-              // source={{uri: item.profilePhoto}}
-              source={imageUrlStrings.banana}
+              source={{uri: item.profilePhoto}}
+              // source={imageUrlStrings.banana}
               ImageStyles={styles.userPhoto}
               resizeMode="contain"
             />

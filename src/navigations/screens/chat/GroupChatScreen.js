@@ -426,8 +426,12 @@ const GroupChatScreen = () => {
               containerStyle={{
                 marginHorizontal: wp(1),
               }}
+              color={themeRef.colors.appThemeColor}
             />
-            <BaseText size={fontSize.tiny} weight={fontWeights.bold}>
+            <BaseText
+              size={fontSize.tiny}
+              weight={fontWeights.bold}
+              color={themeRef.colors.appThemeColor}>
               Seen by {seenMemberString}
             </BaseText>
           </View>
@@ -508,6 +512,7 @@ const GroupChatScreen = () => {
           setOptionModalVisibility(false);
           setIsSearching(true);
         }}
+        isGroup
       />
       <MediaPickerOptionModal
         afterChoosehandler={res => {
@@ -523,6 +528,7 @@ const GroupChatScreen = () => {
         visibility={assetsArray.length != 0}
       /> */}
       <SafeAreaView style={[commonStyles.screenStyle, styles.mainDiv]}>
+        {/* {console.log({gp: chatSliceRef.groups[groupId]})} */}
         <ChatScreenHeaderComponent
           displayChatName={chatSliceRef?.groups[groupId]?.name ?? chatName}
           onChatNamePress={goToInfo}
@@ -530,7 +536,13 @@ const GroupChatScreen = () => {
           onOptionPress={() => {
             setOptionModalVisibility(true);
           }}
-          chatProfilePhoto={chatSliceRef?.groups[groupId]?.profilePhoto}
+          chatProfilePhoto={
+            !!chatSliceRef?.groups[groupId]?.profilePhotoObject?.uri
+              ? {
+                  uri: chatSliceRef?.groups[groupId]?.profilePhotoObject?.uri,
+                }
+              : ''
+          }
           optionButtonVisibility={chatContent.length != 0}
         />
 
