@@ -35,7 +35,10 @@ import {useState} from 'react';
 import BaseModal from '../../../components/BaseModal';
 import BaseText from '../../../components/BaseText';
 import {updateProfileOnFirebase} from '../../../../api/authentication/AuthenticationRequests';
-import {changeUserDetails} from '../../../../redux/authentication/AuthenticationSlice';
+import {
+  changeUserDetails,
+  logout,
+} from '../../../../redux/authentication/AuthenticationSlice';
 import {imageUrlStrings} from '../../../strings/ImageUrlStrings';
 import {useTheme} from '@react-navigation/native';
 import MediaPickerOptionModal from '../../../components/MediaPickerOptionModal';
@@ -45,6 +48,8 @@ import {apiRequest} from '../../../../api/global/BaseApiRequestes';
 import {updateProfilePhotoInDB} from '../../../../api/chat/ChatRequests';
 import ImageCompWithLoader from '../../../components/ImageCompWithLoader';
 import ChatAvatar from '../../../components/ChatAvatar';
+import {clearAllChats} from '../../../../redux/chats/ChatSlice';
+import ErrorCodes from '../../../../api/authentication/ErrorCodes';
 
 export default ProfileSettings = () => {
   const themeRef = useTheme();
@@ -145,8 +150,17 @@ export default ProfileSettings = () => {
     );
     setShowConfirmation(false);
     if (response.isError) {
-      Alert.alert('Oops', response.error.toString());
+      Alert.alert(
+        'Oops',
+        !!ErrorCodes?.[response?.error]?.message
+          ? ErrorCodes?.[response?.error]?.message
+          : response.error.toString(),
+      );
       return;
+    }
+    if (!!response?.data?.isEmailReset) {
+      dispatch(clearAllChats());
+      dispatch(logout());
     }
     if (!!response.data) {
       dispatch(changeUserDetails({userDetails: {...response.data}}));
@@ -289,10 +303,10 @@ export default ProfileSettings = () => {
             }>
             {!!user?.profilePhotoObject?.uri ? (
               <ImageCompWithLoader
-                source={{
-                  uri: user.profilePhotoObject.uri,
-                }}
-                // source={imageUrlStrings.lemon}
+                // source={{
+                //   uri: user.profilePhotoObject.uri,
+                // }}
+                source={imageUrlStrings.lemon}
                 ImageStyles={styles.profilePhoto}
                 resizeMode="contain"
               />

@@ -35,4 +35,7 @@ export default errorCodes = {
   ['auth/invalid-phone-number']: {
     message: 'Invalid Phone number !!',
   },
+  ['auth/email-already-in-use']: {
+    message: 'This email is already in use !!',
+  },
 };

@@ -278,10 +278,10 @@ export default HomepageChatsPage = ({
             )}
           {!!photoUri ? (
             <ImageCompWithLoader
-              source={
-                !!photoUri ? {uri: photoUri} : imageUrlStrings.profileSelected
-              }
-              // source={imageUrlStrings.banana}
+              // source={
+              //   !!photoUri ? {uri: photoUri} : imageUrlStrings.profileSelected
+              // }
+              source={imageUrlStrings.banana}
               ImageStyles={[
                 styles.chatAvatar,
                 !photoUri && styles.noPhotoStyle,

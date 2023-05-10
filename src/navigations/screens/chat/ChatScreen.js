@@ -569,11 +569,12 @@ export default ChatScreen = () => {
             setOptionModalVisibility(true);
           }}
           chatProfilePhoto={
-            !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
-              ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
-              : !!chatSliceRef?.strangers[userInfo.username]?.profilePhoto
-              ? {uri: chatSliceRef?.strangers[userInfo.username]?.profilePhoto}
-              : imageUrlStrings.profileSelected
+            // !!chatSliceRef?.friends[userInfo.username]?.profilePhoto
+            //   ? {uri: chatSliceRef?.friends[userInfo.username]?.profilePhoto}
+            //   : !!chatSliceRef?.strangers[userInfo.username]?.profilePhoto
+            //   ? {uri: chatSliceRef?.strangers[userInfo.username]?.profilePhoto}
+            //   :
+            imageUrlStrings.profileSelected
           }
         />
 

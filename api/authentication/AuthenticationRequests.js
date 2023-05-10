@@ -407,17 +407,40 @@ export const checkUserName = async userName => {
 export const updateProfileOnFirebase = async (data, username) => {
   try {
     let url = `${databaseLinks.REALTIME_DATBASE_ROOT}/users/${username}.json`;
+    let oldUser = await apiRequest(url, 'GET');
+    if (!!oldUser.isError) {
+      return oldUser;
+    }
+
+    if (data.email != oldUser.data.email) {
+      let updateAuth = await auth().currentUser.updateEmail(data.email);
+      console.log({updateAuth});
+      let credUrl = `${databaseLinks.REALTIME_DATBASE_ROOT}/credentials/${data.phone}.json`;
+      let updateInCred = await apiRequest(credUrl, 'PUT', {
+        phone: data.phone,
+        email: data.email,
+        username: data.username,
+      });
+      if (updateInCred.isError) {
+        return updateInCred;
+      }
+      await auth().signOut();
+    }
+
     let updateRes = await apiRequest(url, 'PUT', {...data});
     if (!!updateRes.isError) {
       return {
         ...updateRes,
+        email: oldUser.data.email,
       };
     }
+
     return {
       isError: false,
-      data: updateRes.data,
+      data: {...updateRes.data, isEmailReset: data.email != oldUser.data.email},
     };
   } catch (error) {
+    console.log({errorUpdate: error});
     return {
       isError: true,
       error,

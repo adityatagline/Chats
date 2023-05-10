@@ -49,11 +49,12 @@ const ChatInfoScreen = () => {
       />
       <ImageCompWithLoader
         source={
-          !!user?.profilePhoto
-            ? {
-                uri: user.profilePhoto,
-              }
-            : imageUrlStrings.profileSelected
+          // !!user?.profilePhoto
+          //   ? {
+          //       uri: user.profilePhoto,
+          //     }
+          //   :
+          imageUrlStrings.profileSelected
         }
         ImageStyles={styles.profilePhoto}
         resizeMode="contain"
